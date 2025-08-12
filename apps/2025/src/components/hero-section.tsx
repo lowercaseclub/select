@@ -1,38 +1,33 @@
 "use client";
 
-export function HeroSection() {
-  const handleReserveTickets = () => {
-    // TODO: Integrate with Bizzabo Partner API
-    alert("Redirecting to ticket reservation...");
-  };
+import { Button } from "@ui/components/button";
 
+export function HeroSection() {
   return (
-    <main className="px-8 py-16">
-      <div className="max-w-2xl">
-        <p className="text-gray-400 text-xl font-medium">
-          Hosted with Y Combinator
-        </p>
+    <section className="px-8 py-48">
+      <div className="flex flex-col gap-2">
+        <p className="text-gray-400 text-3xl">Hosted with Y Combinator</p>
 
         <div className="">
-          <h2 className="text-2xl font-medium">Monday, October 3, 2025</h2>
-          <p className="text-2xl font-medium">
+          <h1 className="text-3xl ">
+            <time dateTime="2025-10-03">Monday, October 3, 2025</time>
+          </h1>
+          <address className="text-3xl not-italic">
             Y Combinator,
             <br />
             580 20th St, San Francisco
-          </p>
+          </address>
         </div>
 
-        <p className="text-[#ebf22d] text-2xl font-medium mb-12">
+        <p className="text-[#ebf22d] text-3xl  mb-12">
           Livestreamed at 10am PT
         </p>
-
-        <button
-          onClick={handleReserveTickets}
-          className="bg-[rgba(235,242,45,0.33)] border-2 border-dashed border-[#ebf22d] px-8 py-4 text-xl font-medium hover:bg-[rgba(235,242,45,0.5)] transition-colors"
-        >
-          Reserve Tickets
-        </button>
+        <div>
+          <Button className="bg-[rgba(235,242,45,0.33)] border-2 border-dashed border-[#ebf22d] px-8 py-4 text-xl font-medium hover:bg-[rgba(235,242,45,0.5)] transition-colors rounded-none">
+            Reserve Tickets
+          </Button>
+        </div>
       </div>
-    </main>
+    </section>
   );
 }

@@ -1,81 +1,132 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+function createColumnWidths(widths: readonly number[]): string {
+  const sum = widths.reduce((acc, width) => acc + width, 0);
+  if (sum !== 100) {
+    throw new Error(`Column widths must sum to 100%, got ${sum}%`);
+  }
+
+  return widths.map((w) => `${w}%`).join(" ") as string;
+}
+
+// Column configuration - TypeScript will ensure this adds up to 100%
+const COLUMN_WIDTHS_ARRAY = [30, 10, 24, 8, 10, 13, 5] as const;
+const COLUMN_WIDTHS = createColumnWidths(COLUMN_WIDTHS_ARRAY);
+const NUM_COLUMNS = COLUMN_WIDTHS_ARRAY.length;
+
+// Calculate cumulative column positions for proper cell positioning
+const getColumnPosition = (colIndex: number): number => {
+  const basePosition = COLUMN_WIDTHS_ARRAY.slice(0, colIndex - 1).reduce(
+    (sum, width) => sum + width,
+    0
+  );
+  return colIndex === 1 ? basePosition : basePosition - 0.1;
+};
+
+const getColumnWidth = (colStart: number, colEnd: number): number => {
+  const baseWidth = COLUMN_WIDTHS_ARRAY.slice(colStart - 1, colEnd).reduce(
+    (sum, width) => sum + width,
+    0
+  );
+  return colStart === 1 ? baseWidth + 0.1 : baseWidth + 0.2;
+};
 
 interface GridCell {
   id: string;
-  top: number;
-  left: number;
-  width: number;
-  height: number;
+  row: number; // grid row number
+  colStart: number; // starting column (1-12)
+  colEnd: number; // ending column (1-12)
   delay: number;
 }
 
 export function AnimatedGrid() {
   const [cells, setCells] = useState<GridCell[]>([]);
 
-    useEffect(() => {
+  useEffect(() => {
     // Generate cells that snap to grid columns (each column is ~8.33% wide)
     const animatedCells: GridCell[] = [
-      // Top section cells - aligned to columns
-      { id: "cell-1", top: 2, left: 0, width: 25, height: 2, delay: 300 },   // columns 1-3
-      { id: "cell-2", top: 2, left: 33.33, width: 16.67, height: 2, delay: 600 }, // columns 5-6
-      { id: "cell-3", top: 5, left: 0, width: 50, height: 2, delay: 900 },   // columns 1-6
-      
-      // Middle section
-      { id: "cell-4", top: 8, left: 41.67, width: 25, height: 3, delay: 1200 }, // columns 6-8
-      { id: "cell-5", top: 8, left: 75, width: 25, height: 3, delay: 1500 },   // columns 10-12
-      { id: "cell-6", top: 12, left: 41.67, width: 41.67, height: 2, delay: 1800 }, // columns 6-10
-      
-      // Lower section
-      { id: "cell-7", top: 16, left: 16.67, width: 25, height: 2, delay: 2100 }, // columns 3-5
-      { id: "cell-8", top: 16, left: 50, width: 25, height: 2, delay: 2400 },   // columns 7-9
-      { id: "cell-9", top: 16, left: 83.33, width: 16.67, height: 2, delay: 2700 }, // columns 11-12
+      // Only the 6 cells that exist in your design
+      { id: "cell-1", row: 1, colStart: 3, colEnd: 4, delay: 50 },
+      { id: "cell-2", row: 3, colStart: 4, colEnd: 6, delay: 100 },
+      { id: "cell-3", row: 4, colStart: 3, colEnd: 4, delay: 150 },
+      { id: "cell-4", row: 5, colStart: 4, colEnd: 5, delay: 200 },
+      { id: "cell-5", row: 7, colStart: 2, colEnd: 4, delay: 250 },
+      { id: "cell-6", row: 8, colStart: 3, colEnd: 4, delay: 300 },
     ];
-    
+
+    // Validate cell column references
+    animatedCells.forEach((cell) => {
+      if (cell.colStart < 1 || cell.colStart > NUM_COLUMNS) {
+        throw new Error(
+          `Cell ${cell.id}: colStart ${cell.colStart} is out of range (1-${NUM_COLUMNS})`
+        );
+      }
+      if (cell.colEnd < 1 || cell.colEnd > NUM_COLUMNS) {
+        throw new Error(
+          `Cell ${cell.id}: colEnd ${cell.colEnd} is out of range (1-${NUM_COLUMNS})`
+        );
+      }
+      if (cell.colStart > cell.colEnd) {
+        throw new Error(
+          `Cell ${cell.id}: colStart ${cell.colStart} must be less than or equal to colEnd ${cell.colEnd}`
+        );
+      }
+    });
+
     setCells(animatedCells);
   }, []);
 
   return (
     <div className="absolute top-0 left-0 right-0 bottom-0">
       {/* 2 left vertical lines - like spreadsheet margins */}
-      <div className="absolute top-0 bottom-0 left-16 w-px bg-neutral-500" />
-      <div className="absolute top-0 bottom-0 left-32 w-px bg-neutral-500" />
 
-      {/* Main grid area - starts after the 2 left lines */}
-      <div className="absolute top-0 bottom-0 left-32 right-0">
-        {/* Vertical columns in main grid */}
-        <div className="grid grid-cols-12 h-full">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="border-r border-neutral-500" />
-          ))}
-        </div>
+      {/* Vertical columns in main grid */}
+      <div
+        className="grid h-full"
+        style={{
+          gridTemplateColumns: COLUMN_WIDTHS,
+        }}
+      >
+        {/* 
+          Render column dividers for each column except the last one.
+          Each div renders a right border to create column lines.
+          We skip the last column because the container's border 
+          already provides the final edge line.
+        */}
+        {Array.from({
+          length: NUM_COLUMNS - 1, // Skip last column - container border handles final edge
+        }).map((_, i) => (
+          <div key={i} className="border-r border-column-lines" />
+        ))}
+      </div>
 
-        {/* Horizontal rows */}
-        <div className="absolute inset-0 opacity-20">
+      {/* Horizontal rows - 48px tall */}
+      {/* <div className="absolute inset-0 opacity-20">
           {Array.from({ length: 20 }).map((_, i) => (
-            <div key={i} className="border-b border-gray-800 h-16" />
+            <div key={i} className="border-b border-column-lines h-12" />
           ))}
-        </div>
+        </div> */}
 
-        {/* Animated cells in main grid area */}
-        <div className="absolute inset-0">
+      {/* Cells in main grid area */}
+      <div className="absolute inset-0">
+        <AnimatePresence>
           {cells.map((cell) => (
-            <div
+            <motion.div
               key={cell.id}
-              className="absolute border border-gray-600 bg-gray-900/30 opacity-0 animate-pulse"
+              className="absolute bg-background"
               style={{
-                top: `${cell.top}%`,
-                left: `${cell.left}%`,
-                width: `${cell.width}%`,
-                height: `${cell.height}%`,
-                animationDelay: `${cell.delay}ms`,
-                animationDuration: "1500ms",
-                animationFillMode: "forwards",
+                top: `${cell.row * 48 - (cell.row - 1)}px`,
+                left: `${getColumnPosition(cell.colStart)}%`,
+                width: `${getColumnWidth(cell.colStart, cell.colEnd)}%`,
+                height: "48px",
+                border: "1px solid var(--muted-foreground)",
               }}
             />
           ))}
-        </div>
+        </AnimatePresence>
       </div>
     </div>
   );
