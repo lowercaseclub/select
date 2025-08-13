@@ -1,0 +1,121 @@
+"use client";
+
+import scheduleData from "../data/schedule.json";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/components/tabs";
+import { ColumnLine } from "./column-line";
+import { Separator } from "@ui/components/separator";
+
+export function ScheduleSection() {
+  const mainEvents = scheduleData.events.filter(
+    (event) => event.stage === "main"
+  );
+  const buildEvents = scheduleData.events.filter(
+    (event) => event.stage === "build"
+  );
+
+  return (
+    <section className="w-full">
+      <div className="relative mx-auto max-w-site">
+        <div className="border-l border-r px-8 py-16">
+          <ColumnLine />
+          <h2 className="text-3xl font-medium">Schedule</h2>
+        </div>
+      </div>
+
+      <Tabs defaultValue="main" className="w-full">
+        <div className="max-w-site relative mx-auto">
+          <ColumnLine />
+          <div className="max-w-site mx-auto px-8 border-l border-r">
+            <TabsList className="bg-transparent h-auto p-0 border-b border-column-lines">
+              <TabsTrigger
+                value="main"
+                className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent rounded-none px-0 pb-3 mr-8"
+              >
+                <span className="text-lg font-medium">Main Stage</span>
+                <span className="text-muted-foreground data-[state=active]:text-foreground ml-2">
+                  @ Union Iron Works
+                </span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="build"
+                className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent rounded-none px-0 pb-3"
+              >
+                <span className="text-lg font-medium">Build Stage</span>
+                <span className="text-muted-foreground data-[state=active]:text-foreground ml-2">
+                  @ 520 YC
+                </span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
+        <Separator />
+
+        <TabsContent value="main" className="mt-8">
+          <div className="space-y-0">
+            {/* Header */}
+            <div className="py-4 border-b border-column-lines text-muted-foreground text-sm font-medium">
+              <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
+                <div className="col-span-3">TIME</div>
+                <div className="col-span-5">TITLE</div>
+                <div className="col-span-4">SPEAKERS</div>
+              </div>
+            </div>
+
+            {/* Events */}
+            {mainEvents.map((event, index) => (
+              <div
+                key={index}
+                className="py-6 border-b border-column-lines hover:bg-muted/20 transition-colors"
+              >
+                <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
+                  <div className="col-span-3 text-sm font-mono">
+                    {event.time}
+                  </div>
+                  <div className="col-span-5">
+                    <h3 className="font-medium text-lg">{event.title}</h3>
+                  </div>
+                  <div className="col-span-4 text-muted-foreground">
+                    {event.speakers}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="build" className="mt-8">
+          <div className="space-y-0">
+            {/* Header */}
+            <div className="py-4 border-b border-column-lines text-muted-foreground text-sm font-medium">
+              <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
+                <div className="col-span-3">TIME</div>
+                <div className="col-span-5">TITLE</div>
+                <div className="col-span-4">SPEAKERS</div>
+              </div>
+            </div>
+
+            {/* Events */}
+            {buildEvents.map((event, index) => (
+              <div
+                key={index}
+                className="py-6 border-b border-column-lines hover:bg-muted/20 transition-colors"
+              >
+                <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
+                  <div className="col-span-3 text-sm font-mono">
+                    {event.time}
+                  </div>
+                  <div className="col-span-5">
+                    <h3 className="font-medium text-lg">{event.title}</h3>
+                  </div>
+                  <div className="col-span-4 text-muted-foreground">
+                    {event.speakers}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </section>
+  );
+}

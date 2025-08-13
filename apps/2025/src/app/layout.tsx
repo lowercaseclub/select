@@ -30,9 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background  text-foreground`}
       >
         <Providers>
-          <div className="container mx-auto max-w-[var(--site-max-width)]">
-            {children}
-          </div>
+          <main className="">{children}</main>
         </Providers>
       </body>
     </html>

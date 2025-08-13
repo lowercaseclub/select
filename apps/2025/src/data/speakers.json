@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Sarah Chen",
+    "title": "CEO, DataFlow",
+    "company": "YC S21",
+    "bio": "Leading the future of data infrastructure with revolutionary approaches to real-time analytics."
+  },
+  {
+    "name": "Marcus Rodriguez",
+    "title": "CTO, BuildSpace",
+    "company": "YC W22",
+    "bio": "Pioneering developer tools that are reshaping how teams build and deploy applications."
+  },
+  {
+    "name": "Aisha Patel",
+    "title": "Founder, HealthTech Labs",
+    "company": "YC S20",
+    "bio": "Transforming healthcare delivery through innovative technology and patient-centered design."
+  },
+  {
+    "name": "David Kim",
+    "title": "VP Engineering, ScaleAI",
+    "company": "YC W19",
+    "bio": "Building the infrastructure that powers the next generation of AI applications."
+  },
+  {
+    "name": "Emma Thompson",
+    "title": "Founder, GreenTech Solutions",
+    "company": "YC S23",
+    "bio": "Revolutionizing sustainable technology with carbon-neutral cloud infrastructure."
+  },
+  {
+    "name": "James Liu",
+    "title": "CEO, FinanceFlow",
+    "company": "YC W21",
+    "bio": "Democratizing financial services through innovative blockchain and DeFi solutions."
+  },
+  {
+    "name": "Sofia Martinez",
+    "title": "CTO, EduSpace",
+    "company": "YC S22",
+    "bio": "Transforming education through AI-powered personalized learning platforms."
+  },
+  {
+    "name": "Alex Johnson",
+    "title": "Founder, LogisticsPro",
+    "company": "YC W20",
+    "bio": "Optimizing supply chain management with machine learning and predictive analytics."
+  },
+  {
+    "name": "Priya Singh",
+    "title": "CEO, BioInnovate",
+    "company": "YC S21",
+    "bio": "Advancing biotechnology research through cutting-edge computational biology tools."
+  },
+  {
+    "name": "Michael Brown",
+    "title": "CTO, CyberShield",
+    "company": "YC W23",
+    "bio": "Protecting digital infrastructure with next-generation cybersecurity solutions."
+  },
+  {
+    "name": "Lisa Wang",
+    "title": "Founder, AgriTech Labs",
+    "company": "YC S20",
+    "bio": "Improving agricultural efficiency through IoT sensors and precision farming technology."
+  },
+  {
+    "name": "Carlos Rivera",
+    "title": "CEO, MobilityNext",
+    "company": "YC W22",
+    "bio": "Shaping the future of transportation with autonomous vehicle technology and smart cities."
+  }
+]

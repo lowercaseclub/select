@@ -1,0 +1,40 @@
+{
+  "stages": [
+    {
+      "name": "Main Stage",
+      "location": "@ Union Iron Works",
+      "active": true
+    },
+    {
+      "name": "Build Stage",
+      "location": "@ 520 YC",
+      "active": false
+    }
+  ],
+  "events": [
+    {
+      "time": "10:00 AM - 11:00AM",
+      "title": "OPENING KEYNOTE",
+      "speakers": "Paul Copplestone CEO, Supabase",
+      "stage": "main"
+    },
+    {
+      "time": "10:00 AM - 11:00AM",
+      "title": "OPENING KEYNOTE",
+      "speakers": "Paul Copplestone CEO, Supabase",
+      "stage": "main"
+    },
+    {
+      "time": "10:00 AM - 11:00AM",
+      "title": "OPENING KEYNOTE",
+      "speakers": "Paul Copplestone CEO, Supabase",
+      "stage": "main"
+    },
+    {
+      "time": "10:00 AM - 11:00AM",
+      "title": "LUNCH",
+      "speakers": "",
+      "stage": "main"
+    }
+  ]
+}
