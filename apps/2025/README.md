@@ -22,18 +22,25 @@ Bizzabo API → Next.js API Routes → Client Components → React UI
 ```
 src/
 ├── app/
-│   ├── api/bizzabo/          # Bizzabo API integration routes
-│   │   ├── speakers/         # Speaker data endpoint
-│   │   ├── schedule/         # Schedule data endpoint
-│   │   └── events/           # Events list endpoint
+│   ├── api/                  # API routes
+│   │   ├── apply/            # Application submission endpoint
+│   │   ├── bizzabo/          # Bizzabo API integration routes
+│   │   │   ├── speakers/     # Speaker data endpoint
+│   │   │   └── schedule/     # Schedule data endpoint
+│   │   └── csrf/             # CSRF token endpoint
 │   └── page.tsx              # Main landing page
 ├── components/               # React components
+│   ├── application-form.tsx  # Application form component
 │   ├── speakers-section.tsx  # Speaker display component
 │   ├── schedule-section.tsx  # Schedule display component
 │   └── ...
 ├── lib/
 │   ├── bizzabo-api.ts        # Bizzabo API client
-│   └── data-fetcher.ts       # Client-side data fetching
+│   ├── customerio.ts         # Customer.io API clients
+│   ├── rate-customer.ts      # Customer rating system
+│   ├── csrf.ts              # CSRF protection utilities
+│   ├── security.ts          # Security validation functions
+│   └── data-fetcher.ts      # Client-side data fetching
 └── types/                    # TypeScript type definitions
     ├── bizzabo.ts            # Raw API types
     ├── bizzabo-locations.ts  # Location mapping
@@ -78,6 +85,7 @@ BIZZABO_EVENT_ID=your-event-id
 # Customer.io API Credentials
 CUSTOMERIO_SITE_ID=your-site-id
 CUSTOMERIO_API_KEY=your-api-key
+CUSTOMERIO_APP_API_KEY=your-app-api-key
 
 # OpenAI Key
 OPENAI_API_KEY=your-openai-key
@@ -136,6 +144,8 @@ export const BIZZABO_LOCATIONS: BizzaboLocation[] = [
 
 - **Dynamic Speaker Data**: Pulls speaker information from Bizzabo API
 - **Real-time Schedule**: Displays event schedule with session details
+- **Application System**: Secure application form with CSRF protection
+- **Customer Intelligence**: Customer.io integration for applicant rating and segmentation
 - **Fallback Support**: Graceful degradation when API is unavailable
 - **Responsive Design**: Mobile-first design with Tailwind CSS
 - **Type Safety**: Full TypeScript support throughout the application
@@ -147,9 +157,51 @@ export const BIZZABO_LOCATIONS: BizzaboLocation[] = [
 - `GET /events/{eventId}/agenda/sessions` - Session data
 - `GET /events/{eventId}/speakers` - Speaker information
 
+### Customer.io API Integration
+
+- **Track API**: Used for creating/updating customer profiles and tracking events
+- **App API**: Used for fetching customer segments and rating applicants
+
 ### Authentication
 
-Uses OAuth 2.0 Client Credentials flow with fallback to API key authentication.
+- **Bizzabo**: OAuth 2.0 Client Credentials flow with fallback to API key authentication
+- **Customer.io Track API**: Basic authentication with Site ID and API Key
+- **Customer.io App API**: Bearer token authentication with App API Key
+
+## 🎯 Customer Rating System
+
+The application includes an intelligent customer rating system that analyzes applicants based on their Customer.io segments.
+
+### Rating Tiers
+
+- **Tier 1** (60+ points): High-value customers (Enterprise, Team plans, active engagement)
+- **Tier 2** (40-59 points): Engaged customers (Pro plans, event participation)
+- **Tier 3** (20-39 points): Moderate engagement (Free plans, basic activity)
+- **Tier 4** (0-19 points): New or low-engagement customers
+
+### Scoring Factors
+
+#### Plan-Based Scoring (Highest Value)
+
+- **Enterprise Plan**: 40 points
+- **Team Plan**: 25 points
+- **Pro Plan**: 15 points
+- **Free Plan**: 5 points
+
+#### Engagement Indicators
+
+- **Event Participation**: 10 points each (applied/registered for Supabase events)
+- **Launch Week Signups**: 8 points each (previous/current)
+- **Service Activation**: 3 points per activated Supabase service
+- **Organization Status**: 15-20 points (owners, active status)
+
+### Application Process
+
+1. **Customer Intelligence**: Fetches customer segments from Customer.io App API
+2. **Rating Analysis**: Calculates customer score and tier based on segments
+3. **Profile Update**: Updates customer profile in Customer.io Track API
+4. **Event Tracking**: Records application event with rating data
+5. **Data Storage**: Stores application and rating data (Supabase integration planned)
 
 ## 🛠️ Development
 
@@ -170,6 +222,15 @@ curl http://localhost:3000/api/bizzabo/schedule
 
 # Test speakers endpoint
 curl http://localhost:3000/api/bizzabo/speakers
+
+# Test CSRF token endpoint
+curl http://localhost:3000/api/csrf
+
+# Test application endpoint (POST with CSRF token)
+curl -X POST http://localhost:3000/api/apply \
+  -H "Content-Type: application/json" \
+  -H "X-CSRF-Token: your-csrf-token" \
+  -d '{"firstName":"John","lastName":"Doe","email":"john@example.com"}'
 ```
 
 ## 🚨 Troubleshooting
@@ -188,8 +249,19 @@ curl http://localhost:3000/api/bizzabo/speakers
    - Restart the development server after adding environment variables
 
 3. **Location mapping issues**
+
    - Update location IDs in `src/types/bizzabo-locations.ts`
    - Check that location IDs match your Bizzabo event setup
+
+4. **Customer.io API errors**
+
+   - Verify `CUSTOMERIO_APP_API_KEY` is set for App API access
+   - Check that `CUSTOMERIO_SITE_ID` and `CUSTOMERIO_API_KEY` are set for Track API
+   - Ensure API keys have correct permissions
+
+5. **CSRF token validation failures**
+   - Check that the CSRF token is being sent in the `X-CSRF-Token` header
+   - Verify the token hasn't expired (tokens are valid for 1 hour)
 
 ### Debug Endpoints
 
