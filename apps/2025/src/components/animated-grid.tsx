@@ -20,7 +20,7 @@ const COLUMN_WIDTHS = createColumnWidths(COLUMN_WIDTHS_ARRAY);
 const NUM_COLUMNS = COLUMN_WIDTHS_ARRAY.length;
 
 // Animation configuration
-const ENABLE_COLOR_ANIMATIONS = false; // Toggle to easily disable color swipes
+const ENABLE_COLOR_ANIMATIONS = true; // Toggle to easily disable color swipes
 
 // Calculate cumulative column positions for proper cell positioning
 const getColumnPosition = (
@@ -61,6 +61,16 @@ export function AnimatedGrid() {
     useState(COLUMN_WIDTHS_ARRAY);
   const [isColumnChanging, setIsColumnChanging] = useState(false);
   const [movingCellId, setMovingCellId] = useState<string | null>(null);
+  const [selections, setSelections] = useState<
+    Array<{
+      id: string;
+      startRow: number;
+      startCol: number;
+      endRow: number;
+      endCol: number;
+      isFlashing: boolean;
+    }>
+  >([]);
 
   // Helper function to check if two cells overlap
   const cellsOverlap = (cell1: GridCell, cell2: GridCell) => {
@@ -75,6 +85,17 @@ export function AnimatedGrid() {
     return otherCells.some(
       (other) => other.id !== testCell.id && cellsOverlap(testCell, other)
     );
+  };
+
+  // Helper function to check if a cell is within any selection
+  const isCellInSelection = (cell: GridCell) => {
+    return selections.some((selection) => {
+      const cellInRowRange =
+        cell.row >= selection.startRow && cell.row <= selection.endRow;
+      const cellInColRange =
+        cell.colStart <= selection.endCol && cell.colEnd >= selection.startCol;
+      return cellInRowRange && cellInColRange;
+    });
   };
 
   useEffect(() => {
@@ -240,23 +261,26 @@ export function AnimatedGrid() {
             .map((width, index) => ({ width, index }))
             .filter((col) => col.width > 25);
 
-          // Left columns (0-2), right columns (5-7)
+          // Right columns (4-7), left columns (0-3)
+          const rightColumns = prevWidths
+            .map((width, index) => ({ width, index }))
+            .filter((col) => col.index >= 4);
           const leftColumns = prevWidths
             .map((width, index) => ({ width, index }))
-            .filter((col) => col.index <= 2);
+            .filter((col) => col.index <= 3);
           const farRightColumns = prevWidths
             .map((width, index) => ({ width, index }))
             .filter((col) => col.index >= 5 && col.width < 8); // Far right and small
 
           const biasChance = Math.random();
 
-          if (biasChance < 0.25 && leftColumns.length > 0) {
-            // 25% chance: Expand a left column (bias towards left)
-            const randomLeft =
-              leftColumns[Math.floor(Math.random() * leftColumns.length)];
-            columnIndex = randomLeft.index;
+          if (biasChance < 0.35 && rightColumns.length > 0) {
+            // 35% chance: Expand a right column (bias towards right)
+            const randomRight =
+              rightColumns[Math.floor(Math.random() * rightColumns.length)];
+            columnIndex = randomRight.index;
             action = "expand";
-          } else if (biasChance < 0.4 && farRightColumns.length > 0) {
+          } else if (biasChance < 0.5 && farRightColumns.length > 0) {
             // 15% chance: Expand a small far-right column (prevent eternal deflation)
             const randomFarRight =
               farRightColumns[
@@ -265,21 +289,29 @@ export function AnimatedGrid() {
             columnIndex = randomFarRight.index;
             action = "expand";
           } else if (biasChance < 0.65 && smallColumns.length > 0) {
-            // 25% chance: Expand any small column
+            // 15% chance: Expand any small column
             const randomSmall =
               smallColumns[Math.floor(Math.random() * smallColumns.length)];
             columnIndex = randomSmall.index;
             action = "expand";
-          } else if (biasChance < 0.85 && largeColumns.length > 0) {
-            // 20% chance: Contract a large column
+          } else if (biasChance < 0.8 && leftColumns.length > 0) {
+            // 15% chance: Contract a left column (make more room for right)
+            const randomLeft =
+              leftColumns[Math.floor(Math.random() * leftColumns.length)];
+            columnIndex = randomLeft.index;
+            action = "contract";
+          } else if (biasChance < 0.9 && largeColumns.length > 0) {
+            // 10% chance: Contract any large column
             const randomLarge =
               largeColumns[Math.floor(Math.random() * largeColumns.length)];
             columnIndex = randomLarge.index;
             action = "contract";
           } else {
-            // 15% chance: Random column, random action (fallback)
-            columnIndex = Math.floor(Math.random() * newWidths.length);
-            action = Math.random() < 0.5 ? "expand" : "contract";
+            // 10% chance: Random column, random action (fallback)
+            // Bias the random selection towards right side too
+            const biasedColumnRandom = Math.random() * 0.7 + 0.3; // 0.3-1.0
+            columnIndex = Math.floor(biasedColumnRandom * newWidths.length);
+            action = Math.random() < 0.6 ? "expand" : "contract"; // Slight bias towards expansion
           }
 
           const currentWidth = newWidths[columnIndex];
@@ -293,7 +325,19 @@ export function AnimatedGrid() {
           } else {
             // Contract: shrink the column
             const shrinkAmount = Math.random() * 15 + 10; // 10-25% shrink
-            targetWidth = Math.max(5, currentWidth - shrinkAmount); // Min 5%
+            const proposedWidth = Math.max(5, currentWidth - shrinkAmount);
+
+            // Check how many columns would be very small (< 8%) if we shrink this one
+            const verySmallCount = prevWidths.filter((w, i) =>
+              i === columnIndex ? proposedWidth < 8 : w < 8
+            ).length;
+
+            // Don't allow more than 2 very small columns
+            if (verySmallCount > 2) {
+              targetWidth = Math.max(8, currentWidth - shrinkAmount); // Keep it at least 8%
+            } else {
+              targetWidth = proposedWidth; // Allow shrinking to 5%
+            }
           }
 
           // Set the target column's new width
@@ -319,14 +363,49 @@ export function AnimatedGrid() {
             }
           }
 
+          // Prevent too many columns from being very small (< 7%)
+          const verySmallIndices = newWidths
+            .map((width, index) => ({ width, index }))
+            .filter((col) => col.width < 7)
+            .map((col) => col.index);
+
+          if (verySmallIndices.length > 2) {
+            // Boost the smallest columns back to 7%
+            const sortedSmall = verySmallIndices.sort(
+              (a, b) => newWidths[a] - newWidths[b]
+            );
+
+            // Keep only the 2 smallest, boost the rest to 7%
+            for (let i = 2; i < sortedSmall.length; i++) {
+              const indexToBoost = sortedSmall[i];
+              const deficit = 7 - newWidths[indexToBoost];
+              newWidths[indexToBoost] = 7;
+
+              // Take the deficit from the largest non-boosted column
+              let largestIndex = 0;
+              for (let j = 0; j < newWidths.length; j++) {
+                if (
+                  !sortedSmall.slice(2).includes(j) &&
+                  newWidths[j] > newWidths[largestIndex]
+                ) {
+                  largestIndex = j;
+                }
+              }
+              newWidths[largestIndex] = Math.max(
+                10,
+                newWidths[largestIndex] - deficit
+              );
+            }
+          }
+
           // Ensure we sum exactly to 100% (handle floating point precision)
           const total = newWidths.reduce((sum, width) => sum + width, 0);
           const adjustment = 100 - total;
 
-          // Apply adjustment to the largest non-target column
+          // Apply adjustment to the largest column
           let largestIndex = 0;
           for (let i = 0; i < newWidths.length; i++) {
-            if (i !== columnIndex && newWidths[i] > newWidths[largestIndex]) {
+            if (newWidths[i] > newWidths[largestIndex]) {
               largestIndex = i;
             }
           }
@@ -348,10 +427,101 @@ export function AnimatedGrid() {
       }, 4000); // Wait 4 seconds before making the change
     }, 2000 + Math.random() * 3000); // Every 2-5 seconds
 
+    // Spreadsheet-style selection simulation (multiple selections)
+    const selectionInterval = setInterval(() => {
+      // Only create new selection if we have less than 2
+      setSelections((prevSelections) => {
+        if (prevSelections.length >= 2) return prevSelections;
+
+        // Pick a random starting cell (rows 4-11 to allow for 2+ rows, cols biased to right side)
+        const startRow = Math.floor(Math.random() * 8) + 4; // 4-11 (leaves room for 2+ rows)
+        const biasedRandom = Math.random() * 0.6 + 0.4; // Bias towards right (0.4-1.0)
+        const startCol = Math.floor(biasedRandom * (NUM_COLUMNS - 1)) + 1; // Favor columns 4-7
+
+        const selectionId = `selection-${Date.now()}-${Math.random()}`;
+
+        // Start with minimum 2-row selection
+        const newSelection = {
+          id: selectionId,
+          startRow,
+          startCol,
+          endRow: startRow + 1, // Ensure at least 2 rows
+          endCol: startCol,
+          isFlashing: false,
+        };
+
+        // Add the new selection
+        const updatedSelections = [...prevSelections, newSelection];
+
+        // Simulate dragging - expand the selection over time
+        let currentEndRow = startRow + 1; // Start with 2 rows minimum
+        let currentEndCol = startCol;
+
+        const dragSteps = Math.floor(Math.random() * 8) + 3; // 3-10 steps
+        const dragInterval = setInterval(() => {
+          // Randomly expand in different directions
+          const direction = Math.random();
+
+          // Calculate current column span
+          const currentColSpan = currentEndCol - startCol + 1;
+
+          if (direction < 0.4) {
+            // Expand right (only if we haven't reached 3 columns)
+            if (currentColSpan < 3) {
+              currentEndCol = Math.min(NUM_COLUMNS, currentEndCol + 1);
+            }
+          } else if (direction < 0.7) {
+            // Expand down (limited to row 12)
+            currentEndRow = Math.min(12, currentEndRow + 1);
+          } else if (direction < 0.85) {
+            // Expand diagonally (only expand column if under 3 column limit)
+            if (currentColSpan < 3) {
+              currentEndCol = Math.min(NUM_COLUMNS, currentEndCol + 1);
+            }
+            currentEndRow = Math.min(12, currentEndRow + 1);
+          }
+          // 15% chance to not expand (pause)
+
+          setSelections((prevSels) =>
+            prevSels.map((sel) =>
+              sel.id === selectionId
+                ? { ...sel, endRow: currentEndRow, endCol: currentEndCol }
+                : sel
+            )
+          );
+        }, 150 + Math.random() * 100); // 150-250ms between drag steps
+
+        // Stop dragging after a few steps
+        setTimeout(() => {
+          clearInterval(dragInterval);
+
+          // Keep selection visible for a moment, then flash before clearing
+          setTimeout(() => {
+            // Start flashing before disappearing (old school computer style)
+            setSelections((prevSels) =>
+              prevSels.map((sel) =>
+                sel.id === selectionId ? { ...sel, isFlashing: true } : sel
+              )
+            );
+
+            // Flash for about 400ms (fast flashes), then clear
+            setTimeout(() => {
+              setSelections((prevSels) =>
+                prevSels.filter((sel) => sel.id !== selectionId)
+              );
+            }, 400);
+          }, 1000 + Math.random() * 2000); // Hold selection for 1-3 seconds
+        }, dragSteps * 200);
+
+        return updatedSelections;
+      });
+    }, 2000 + Math.random() * 4000); // New selection every 2-6 seconds (more frequent)
+
     return () => {
       movementIntervals.forEach(clearTimeout);
       clearInterval(addRemoveInterval);
       clearInterval(columnMorphInterval);
+      clearInterval(selectionInterval);
     };
   }, []);
 
@@ -498,7 +668,7 @@ export function AnimatedGrid() {
                   },
                 }}
               >
-                {/* Random color spark animations */}
+                {/* Random color spark animations - only for selected cells */}
                 {ENABLE_COLOR_ANIMATIONS && (
                   <motion.div
                     className="w-full h-full"
@@ -518,29 +688,16 @@ export function AnimatedGrid() {
                       })(),
                     }}
                     animate={{
-                      clipPath: isColumnChanging
-                        ? ["inset(0 100% 0 0)"] // Hide during column changes
-                        : cell.id.charCodeAt(6) % 2 === 0
-                        ? [
-                            "inset(0 100% 0 0)",
-                            "inset(0 0% 0 0)",
-                            "inset(0 0% 0 0)", // Stay visible for dwell time
-                            "inset(0 0% 0 100%)",
-                          ] // Left to right swipe in, dwell, then out
-                        : [
-                            "inset(0 0% 0 100%)",
-                            "inset(0 0% 0 0%)",
-                            "inset(0 0% 0 0%)", // Stay visible for dwell time
-                            "inset(0 100% 0 0)",
-                          ], // Right to left swipe in, dwell, then out
+                      clipPath: !isCellInSelection(cell)
+                        ? cell.id.charCodeAt(6) % 2 === 0
+                          ? "inset(0 0% 0 100%)" // Swipe out right when deselected
+                          : "inset(0 100% 0 0)" // Swipe out left when deselected
+                        : "inset(0 0% 0 0%)", // Show fully when selected (persist through column changes)
                     }}
                     transition={{
-                      duration: 0.6, // Total duration including dwell
-                      delay: 0.5 + cell.delay / 1000,
-                      repeat: isColumnChanging ? 0 : Infinity,
-                      repeatDelay: 2 + (cell.id.charCodeAt(5) % 3), // 2-5s gaps (more frequent)
+                      duration: 0.3, // Quick swipe in/out
+                      delay: 0,
                       ease: [0.25, 0.46, 0.45, 0.94],
-                      times: [0, 0.3, 0.7, 1], // 30% swipe in, 40% dwell, 30% swipe out
                     }}
                   />
                 )}
@@ -549,6 +706,116 @@ export function AnimatedGrid() {
           ))}
         </AnimatePresence>
       </div>
+
+      {/* Spreadsheet-style selection overlays */}
+      {selections.map((selection) => (
+        <motion.div
+          key={selection.id}
+          className="absolute pointer-events-none"
+          style={{
+            top: `${
+              (selection.startRow - 1) * ROW_HEIGHT - (selection.startRow - 1)
+            }px`,
+            left: `${getColumnPosition(
+              selection.startCol,
+              currentColumnWidths || COLUMN_WIDTHS_ARRAY
+            )}%`,
+            width: `${
+              getColumnPosition(
+                selection.endCol + 1,
+                currentColumnWidths || COLUMN_WIDTHS_ARRAY
+              ) -
+              getColumnPosition(
+                selection.startCol,
+                currentColumnWidths || COLUMN_WIDTHS_ARRAY
+              )
+            }%`,
+            height: `${
+              (selection.endRow - selection.startRow + 1) * ROW_HEIGHT -
+              (selection.endRow - selection.startRow)
+            }px`,
+            backgroundColor: "rgba(62, 207, 142, 0.08)", // Supabase green background
+            zIndex: 20,
+          }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{
+            opacity: selection.isFlashing ? [1, 0, 1, 0, 1, 0, 1, 0] : 1,
+            scale: 1,
+          }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{
+            duration: selection.isFlashing ? 0.4 : 0.1,
+            ease: selection.isFlashing ? "linear" : "easeOut",
+            times: selection.isFlashing
+              ? [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 1]
+              : undefined,
+          }}
+        >
+          {/* Dot grid pattern inside selection */}
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `radial-gradient(circle, rgba(62, 207, 142, 0.3) 0.5px, transparent 0.5px)`,
+              backgroundSize: "8px 8px",
+              backgroundPosition: "2px 2px",
+            }}
+          />
+
+          {/* Marching ants border animation */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              border: "2px solid rgba(62, 207, 142, 0.9)",
+              borderRadius: "2px",
+              borderStyle: "dashed",
+            }}
+            animate={{
+              borderColor: [
+                "rgba(62, 207, 142, 0.9)",
+                "rgba(62, 207, 142, 0.4)",
+                "rgba(62, 207, 142, 0.9)",
+              ],
+            }}
+            transition={{
+              duration: 1.2,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          />
+
+          {/* Resize handle triangle in bottom-right corner */}
+          <div
+            className="absolute"
+            style={{
+              bottom: "0px",
+              right: "0px",
+              width: "8px",
+              height: "8px",
+              backgroundColor: "rgba(62, 207, 142, 0.9)",
+              clipPath: "polygon(100% 0%, 100% 100%, 0% 100%)",
+            }}
+          />
+
+          {/* Extra marching ants effect with offset */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              border: "1px solid rgba(255, 255, 255, 0.6)",
+              borderRadius: "2px",
+              borderStyle: "dotted",
+              transform: "translate(1px, 1px)",
+            }}
+            animate={{
+              opacity: [0.8, 0.3, 0.8],
+            }}
+            transition={{
+              duration: 0.8,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          />
+        </motion.div>
+      ))}
     </div>
   );
 }
