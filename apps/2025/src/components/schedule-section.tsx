@@ -1,16 +1,82 @@
 "use client";
 
-import scheduleData from "../data/schedule.json";
+import { useEffect, useState } from "react";
+import {
+  fetchSchedule,
+  ScheduleData,
+  ScheduleEvent,
+} from "../lib/data-fetcher";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/components/tabs";
 import { ColumnLine } from "./column-line";
 import { Separator } from "@ui/components/separator";
 
 export function ScheduleSection() {
+  const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadSchedule() {
+      try {
+        setIsLoading(true);
+        const data = await fetchSchedule();
+        setScheduleData(data);
+      } catch (err) {
+        setError("Failed to load schedule");
+        console.error("Error loading schedule:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadSchedule();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <section className="w-full">
+        <div className="relative mx-auto max-w-site">
+          <div className="border-l border-r px-8 py-16">
+            <ColumnLine />
+            <h2 className="text-3xl font-medium">Schedule</h2>
+          </div>
+        </div>
+        <div className="max-w-site mx-auto px-8 py-12">
+          <div className="space-y-4">
+            {[...Array(6)].map((_, index) => (
+              <div key={index} className="animate-pulse">
+                <div className="h-16 bg-muted rounded"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error || !scheduleData) {
+    return (
+      <section className="w-full">
+        <div className="relative mx-auto max-w-site">
+          <div className="border-l border-r px-8 py-16">
+            <ColumnLine />
+            <h2 className="text-3xl font-medium">Schedule</h2>
+          </div>
+        </div>
+        <div className="max-w-site mx-auto px-8 py-12 text-center">
+          <p className="text-muted-foreground">
+            Unable to load schedule at this time.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   const mainEvents = scheduleData.events.filter(
-    (event) => event.stage === "main"
+    (event) => event.stage === "main-stage" || event.stage === "main"
   );
   const buildEvents = scheduleData.events.filter(
-    (event) => event.stage === "build"
+    (event) => event.stage === "build-stage" || event.stage === "build"
   );
 
   return (
@@ -62,9 +128,9 @@ export function ScheduleSection() {
             </div>
 
             {/* Events */}
-            {mainEvents.map((event, index) => (
+            {mainEvents.map((event) => (
               <div
-                key={index}
+                key={event.id}
                 className="py-6 border-b border-column-lines hover:bg-muted/20 transition-colors"
               >
                 <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
@@ -73,6 +139,11 @@ export function ScheduleSection() {
                   </div>
                   <div className="col-span-5">
                     <h3 className="font-medium text-lg">{event.title}</h3>
+                    {event.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {event.description}
+                      </p>
+                    )}
                   </div>
                   <div className="col-span-4 text-muted-foreground">
                     {event.speakers}
@@ -95,9 +166,9 @@ export function ScheduleSection() {
             </div>
 
             {/* Events */}
-            {buildEvents.map((event, index) => (
+            {buildEvents.map((event) => (
               <div
-                key={index}
+                key={event.id}
                 className="py-6 border-b border-column-lines hover:bg-muted/20 transition-colors"
               >
                 <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
@@ -106,6 +177,11 @@ export function ScheduleSection() {
                   </div>
                   <div className="col-span-5">
                     <h3 className="font-medium text-lg">{event.title}</h3>
+                    {event.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {event.description}
+                      </p>
+                    )}
                   </div>
                   <div className="col-span-4 text-muted-foreground">
                     {event.speakers}

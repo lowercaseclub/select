@@ -7,21 +7,23 @@ export function AboutSection() {
     <section className="flex border-b">
       {/* Left content block with its own padding */}
       <div className="w-[45%] px-8 py-24">
-        <h2 className="text-3xl font-medium mb-8">About the Event</h2>
+        <h2 className="text-3xl font-medium mb-8">About Supabase Select</h2>
         <div className="space-y-6 text-lg">
           <p>
-            Join us for an exclusive gathering of innovators, entrepreneurs, and
-            industry leaders as we explore the future of technology and
-            startups.
+            Supabase Select is our first user conference, built for everyone
+            building with Supabase—from weekend hackers to production-scale teams.
+            If you're shipping software, this event is for you.
           </p>
           <p>
-            This curated event brings together the brightest minds from Y
-            Combinator's portfolio companies and the broader tech ecosystem for
-            an afternoon of insights, networking, and collaboration.
+            Select is about giving builders the tools, knowledge, and confidence
+            to move faster. You'll learn how teams are scaling with Postgres,
+            shipping AI features in days not months, and taking full advantage
+            of the Supabase stack.
           </p>
           <p>
-            Experience cutting-edge presentations, interactive workshops, and
-            meaningful connections that will shape the next wave of innovation.
+            Whether you're just getting started or managing infrastructure at
+            scale, you'll leave with practical insights, better workflows, and a
+            stronger connection to the global builder community.
           </p>
         </div>
       </div>
