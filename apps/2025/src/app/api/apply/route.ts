@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CustomerioClient } from "@/lib/customerio";
 import { getBizzaboClient } from "@/lib/bizzabo-api";
+import { validateCSRFToken, extractCSRFTokenFromHeader } from "@/lib/csrf";
+import {
+  validateRequestHeaders,
+  sanitizeInput,
+  validateEmail,
+  validateURL,
+  isSuspiciousRequest,
+} from "@/lib/security";
 
 interface ApplicationData {
   firstName: string;
@@ -14,32 +22,74 @@ interface ApplicationData {
 
 export async function POST(request: NextRequest) {
   try {
+    // Additional security checks
+    if (isSuspiciousRequest(request)) {
+      return NextResponse.json(
+        { error: "Request blocked for security reasons" },
+        { status: 403 }
+      );
+    }
+
+    if (!validateRequestHeaders(request)) {
+      return NextResponse.json(
+        { error: "Invalid request headers" },
+        { status: 400 }
+      );
+    }
+
+    // CSRF validation
+    const csrfToken = extractCSRFTokenFromHeader(request);
+    if (!csrfToken || !validateCSRFToken(csrfToken)) {
+      console.log("Request blocked: CSRF token validation failed");
+      console.log("CSRF Token present:", !!csrfToken);
+      console.log(
+        "CSRF Token valid:",
+        csrfToken ? validateCSRFToken(csrfToken) : false
+      );
+      return NextResponse.json(
+        { error: "Invalid or missing CSRF token" },
+        { status: 403 }
+      );
+    }
+
     const body: ApplicationData = await request.json();
 
+    // Sanitize and validate input
+    const sanitizedData: ApplicationData = {
+      firstName: sanitizeInput(body.firstName || ""),
+      lastName: sanitizeInput(body.lastName || ""),
+      email: sanitizeInput(body.email || ""),
+      company: body.company ? sanitizeInput(body.company) : undefined,
+      linkedin: body.linkedin ? sanitizeInput(body.linkedin) : undefined,
+      github: body.github ? sanitizeInput(body.github) : undefined,
+      twitter: body.twitter ? sanitizeInput(body.twitter) : undefined,
+    };
+
     // Validation
-    if (!body.firstName || !body.lastName || !body.email) {
+    if (
+      !sanitizedData.firstName ||
+      !sanitizedData.lastName ||
+      !sanitizedData.email
+    ) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(body.email)) {
+    // Enhanced email validation
+    if (!validateEmail(sanitizedData.email)) {
       return NextResponse.json(
         { error: "Invalid email format" },
         { status: 400 }
       );
     }
 
-    // URL validation for social links
+    // Enhanced URL validation for social links
     const urlFields = ["linkedin", "github", "twitter"] as const;
     for (const field of urlFields) {
-      if (body[field] && body[field]!.trim() !== "") {
-        try {
-          new URL(body[field]!);
-        } catch {
+      if (sanitizedData[field] && sanitizedData[field]!.trim() !== "") {
+        if (!validateURL(sanitizedData[field]!)) {
           return NextResponse.json(
             { error: `Invalid ${field} URL` },
             { status: 400 }
@@ -81,18 +131,18 @@ export async function POST(request: NextRequest) {
         }
 
         // Create or update profile in Customer.io
-        await customerioClient.createOrUpdateProfile(body.email, {
-          firstName: body.firstName,
-          lastName: body.lastName,
-          company: body.company,
-          linkedin: body.linkedin,
-          github: body.github,
-          twitter: body.twitter,
+        await customerioClient.createOrUpdateProfile(sanitizedData.email, {
+          firstName: sanitizedData.firstName,
+          lastName: sanitizedData.lastName,
+          company: sanitizedData.company,
+          linkedin: sanitizedData.linkedin,
+          github: sanitizedData.github,
+          twitter: sanitizedData.twitter,
         });
 
         // Track the event_applied event with Bizzabo event data
         const customerioEvent = {
-          userId: body.email,
+          userId: sanitizedData.email,
           type: "track" as const,
           event: "Event Applied",
           properties: {
@@ -102,10 +152,10 @@ export async function POST(request: NextRequest) {
             bizzabo_customer_id: null, // Not available from application form
             source: "Select 2025 Application Form",
             application_id: applicationId,
-            company: body.company,
-            linkedin: body.linkedin,
-            github: body.github,
-            twitter: body.twitter,
+            company: sanitizedData.company,
+            linkedin: sanitizedData.linkedin,
+            github: sanitizedData.github,
+            twitter: sanitizedData.twitter,
             submitted_at: new Date().toISOString(),
           },
           timestamp: customerioClient.isoToUnixTimestamp(
@@ -113,8 +163,7 @@ export async function POST(request: NextRequest) {
           ),
         };
 
-        await customerioClient.trackEvent(body.email, customerioEvent);
-        console.log("Customer.io event tracked successfully:", customerioEvent);
+        await customerioClient.trackEvent(sanitizedData.email, customerioEvent);
       } catch (error) {
         console.error("Customer.io integration failed:", error);
         // Don't fail the entire request if Customer.io fails

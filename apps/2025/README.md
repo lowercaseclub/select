@@ -146,7 +146,6 @@ export const BIZZABO_LOCATIONS: BizzaboLocation[] = [
 
 - `GET /events/{eventId}/agenda/sessions` - Session data
 - `GET /events/{eventId}/speakers` - Speaker information
-- `GET /events` - List of available events
 
 ### Authentication
 
@@ -171,9 +170,6 @@ curl http://localhost:3000/api/bizzabo/schedule
 
 # Test speakers endpoint
 curl http://localhost:3000/api/bizzabo/speakers
-
-# Test events endpoint
-curl http://localhost:3000/api/bizzabo/events
 ```
 
 ## 🚨 Troubleshooting
@@ -197,8 +193,7 @@ curl http://localhost:3000/api/bizzabo/events
 
 ### Debug Endpoints
 
-- `/api/bizzabo/debug` - Test API connectivity and authentication
-- `/api/bizzabo/raw-sessions` - View raw session data from Bizzabo
+_No debug endpoints are currently available. The application uses fallback data when the Bizzabo API is unavailable._
 
 ## 📚 Tech Stack
 

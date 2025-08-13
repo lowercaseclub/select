@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         `Successfully fetched ${sessions.length} sessions and ${speakers.length} speakers from Bizzabo`
       );
     } catch (error) {
-      console.log(
+      console.error(
         "Failed to fetch data from Bizzabo, using fallback data:",
         error
       );
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 
             timeString = `${startTimeStr} - ${endTimeStr}`;
           } catch (error) {
-            console.log(
+            console.error(
               `Error converting time for session ${session.title}:`,
               error
             );

@@ -47,6 +47,7 @@ interface ApplicationFormProps {
 export function ApplicationForm({ trigger }: ApplicationFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
   const { toast } = useToast();
 
   const {
@@ -57,6 +58,25 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
   } = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
   });
+
+  // Fetch CSRF token when dialog opens
+  const fetchCSRFToken = async () => {
+    try {
+      console.log("Fetching CSRF token...");
+      const response = await fetch("/api/csrf");
+      console.log("CSRF response status:", response.status);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("CSRF token received:", data.token ? "Yes" : "No");
+        setCsrfToken(data.token);
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to fetch CSRF token:", errorData);
+      }
+    } catch (error) {
+      console.error("Error fetching CSRF token:", error);
+    }
+  };
 
   const onSubmit = async (data: ApplicationFormData) => {
     setIsSubmitting(true);
@@ -73,11 +93,17 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
         }
       }
 
+      // Check if we have a CSRF token
+      if (!csrfToken) {
+        throw new Error("CSRF token not available. Please try again.");
+      }
+
       // Submit to API
       const response = await fetch("/api/apply", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
         },
         body: JSON.stringify(data),
       });
@@ -121,8 +147,19 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
     reset();
   };
 
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (open) {
+      // Fetch CSRF token when dialog opens
+      fetchCSRFToken();
+    } else {
+      // Clear CSRF token when dialog closes
+      setCsrfToken(null);
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
           <Button className="bg-[#2FAE75] border-2 border-[#3ECF8E] px-8 py-4 text-xl font-medium text-white hover:bg-[#3ECF8E] transition-colors rounded-none">

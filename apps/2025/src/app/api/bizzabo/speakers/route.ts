@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     try {
       speakers = await client.getSpeakers();
     } catch (apiError) {
-      console.log("Speakers not available yet, using fallback data");
+      console.error("Speakers not available yet, using fallback data");
     }
 
     // If no speakers from Bizzabo, use fallback data
