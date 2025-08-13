@@ -38,9 +38,6 @@ export async function GET(request: NextRequest) {
     // Always use fallback stages since we don't fetch them from Bizzabo
     const stages = FALLBACK_STAGES;
 
-    console.log(`Processing ${sessions.length} sessions for transformation`);
-    console.log(`Sessions array:`, sessions.slice(0, 2)); // Log first 2 sessions
-
     // Transform Bizzabo sessions to match our component's expected format
     const transformedEvents = sessions
       // .filter((session) => !session.hidden) // Temporarily disabled filter
@@ -93,10 +90,6 @@ export async function GET(request: NextRequest) {
         );
         const stageName = location ? location.nameId : "main-stage";
 
-        console.log(
-          `Session ${session.title}: timeString="${timeString}", title="${session.title}"`
-        );
-
         return {
           id: session.id,
           time: timeString,
@@ -120,8 +113,6 @@ export async function GET(request: NextRequest) {
 
         return getMinutes(timeA) - getMinutes(timeB);
       });
-
-    console.log(`Transformed ${transformedEvents.length} events`);
 
     // Transform stages to match our component's expected format
     const transformedStages = stages.map((stage) => ({

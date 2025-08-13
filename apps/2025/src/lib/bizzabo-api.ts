@@ -105,10 +105,7 @@ export class BizzaboApiClient {
     if (!eventId) {
       throw new Error("BIZZABO_EVENT_ID is required to fetch event details.");
     }
-    const response = await this.makeRequest<BizzaboApiResponse<BizzaboEvent>>(
-      `/events/${eventId}`
-    );
-    return response.data;
+    return await this.makeRequest<BizzaboEvent>(`/events/${eventId}`);
   }
 
   async getSpeakers(): Promise<BizzaboSpeaker[]> {

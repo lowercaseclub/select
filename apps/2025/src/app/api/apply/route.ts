@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { CustomerioClient } from "@/lib/customerio";
+import { getBizzaboClient } from "@/lib/bizzabo-api";
 
 interface ApplicationData {
   firstName: string;
@@ -14,13 +16,7 @@ export async function POST(request: NextRequest) {
   try {
     const body: ApplicationData = await request.json();
 
-    // Log the application data to console
-    console.log("=== APPLICATION SUBMISSION ===");
-    console.log("Timestamp:", new Date().toISOString());
-    console.log("Application Data:", JSON.stringify(body, null, 2));
-    console.log("================================");
-
-    // TODO: Add validation here
+    // Validation
     if (!body.firstName || !body.lastName || !body.email) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -28,7 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Add email validation
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(body.email)) {
       return NextResponse.json(
@@ -37,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Add URL validation for social links
+    // URL validation for social links
     const urlFields = ["linkedin", "github", "twitter"] as const;
     for (const field of urlFields) {
       if (body[field] && body[field]!.trim() !== "") {
@@ -52,19 +48,86 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // TODO: Here you would typically:
-    // 1. Save to database
-    // 2. Send confirmation email
-    // 3. Notify admins
-    // 4. Add to mailing list, etc.
+    // Generate application ID once, use across all destinations
+    const applicationId = `app_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+
+    // 1. Save to Supabase (skip for now)
+
+    // 2. Save to Customer.io
+    // Get environment variables
+    const customerioSiteId = process.env.CUSTOMERIO_SITE_ID;
+    const customerioApiKey = process.env.CUSTOMERIO_API_KEY;
+
+    if (!customerioSiteId || !customerioApiKey) {
+      console.warn(
+        "Customer.io credentials not found, skipping Customer.io integration"
+      );
+    } else {
+      try {
+        const customerioClient = new CustomerioClient(
+          customerioSiteId,
+          customerioApiKey
+        );
+
+        // Get Bizzabo event information for consistency with the sync tool
+        let eventInfo = null;
+        try {
+          const bizzaboClient = getBizzaboClient();
+          eventInfo = await bizzaboClient.getEvent();
+        } catch (error) {
+          console.warn("Failed to fetch Bizzabo event info:", error);
+        }
+
+        // Create or update profile in Customer.io
+        await customerioClient.createOrUpdateProfile(body.email, {
+          firstName: body.firstName,
+          lastName: body.lastName,
+          company: body.company,
+          linkedin: body.linkedin,
+          github: body.github,
+          twitter: body.twitter,
+        });
+
+        // Track the event_applied event with Bizzabo event data
+        const customerioEvent = {
+          userId: body.email,
+          type: "track" as const,
+          event: "Event Applied",
+          properties: {
+            event_id: eventInfo?.id || "supabase_select_2025",
+            event_name: eventInfo?.name || "Supabase Select 2025",
+            event_type: "event_applied",
+            bizzabo_customer_id: null, // Not available from application form
+            source: "Select 2025 Application Form",
+            application_id: applicationId,
+            company: body.company,
+            linkedin: body.linkedin,
+            github: body.github,
+            twitter: body.twitter,
+            submitted_at: new Date().toISOString(),
+          },
+          timestamp: customerioClient.isoToUnixTimestamp(
+            new Date().toISOString()
+          ),
+        };
+
+        await customerioClient.trackEvent(body.email, customerioEvent);
+        console.log("Customer.io event tracked successfully:", customerioEvent);
+      } catch (error) {
+        console.error("Customer.io integration failed:", error);
+        // Don't fail the entire request if Customer.io fails
+      }
+    }
+
+    // 3. Save to Bizzabo (this is not possible, so skip for now)
 
     return NextResponse.json(
       {
         success: true,
         message: "Application submitted successfully",
-        applicationId: `app_${Date.now()}_${Math.random()
-          .toString(36)
-          .substr(2, 9)}`,
+        applicationId: applicationId,
       },
       { status: 200 }
     );
