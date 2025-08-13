@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CustomerioClient } from "@/lib/customerio";
+import { CustomerioTrackClient, CustomerioAppClient } from "@/lib/customerio";
 import { getBizzaboClient } from "@/lib/bizzabo-api";
+import { rateCustomer } from "@/lib/rate-customer";
 import { validateCSRFToken, extractCSRFTokenFromHeader } from "@/lib/csrf";
 import {
   validateRequestHeaders,
@@ -103,74 +104,117 @@ export async function POST(request: NextRequest) {
       .toString(36)
       .substr(2, 9)}`;
 
-    // 1. Save to Supabase (skip for now)
+    // 1. Use Customer.io App API to get customer data and do an initial pass at rating the application
+    const customerioAppApiKey = process.env.CUSTOMERIO_APP_API_KEY;
 
-    // 2. Save to Customer.io
-    // Get environment variables
-    const customerioSiteId = process.env.CUSTOMERIO_SITE_ID;
-    const customerioApiKey = process.env.CUSTOMERIO_API_KEY;
+    if (!customerioAppApiKey) {
+      console.warn("CUSTOMERIO_APP_API_KEY not found in environment variables");
+    }
 
-    if (!customerioSiteId || !customerioApiKey) {
-      console.warn(
-        "Customer.io credentials not found, skipping Customer.io integration"
-      );
-    } else {
+    const customerioAppClient = new CustomerioAppClient(
+      customerioAppApiKey || ""
+    );
+
+    let customerSegments: any[] = [];
+    let customerRating: any = null;
+
+    if (customerioAppApiKey) {
       try {
-        const customerioClient = new CustomerioClient(
-          customerioSiteId,
-          customerioApiKey
+        customerSegments = await customerioAppClient.getCustomerSegments(
+          sanitizedData.email
         );
-
-        // Get Bizzabo event information for consistency with the sync tool
-        let eventInfo = null;
-        try {
-          const bizzaboClient = getBizzaboClient();
-          eventInfo = await bizzaboClient.getEvent();
-        } catch (error) {
-          console.warn("Failed to fetch Bizzabo event info:", error);
-        }
-
-        // Create or update profile in Customer.io
-        await customerioClient.createOrUpdateProfile(sanitizedData.email, {
-          firstName: sanitizedData.firstName,
-          lastName: sanitizedData.lastName,
-          company: sanitizedData.company,
-          linkedin: sanitizedData.linkedin,
-          github: sanitizedData.github,
-          twitter: sanitizedData.twitter,
-        });
-
-        // Track the event_applied event with Bizzabo event data
-        const customerioEvent = {
-          userId: sanitizedData.email,
-          type: "track" as const,
-          event: "Event Applied",
-          properties: {
-            event_id: eventInfo?.id || "supabase_select_2025",
-            event_name: eventInfo?.name || "Supabase Select 2025",
-            event_type: "event_applied",
-            bizzabo_customer_id: null, // Not available from application form
-            source: "Select 2025 Application Form",
-            application_id: applicationId,
-            company: sanitizedData.company,
-            linkedin: sanitizedData.linkedin,
-            github: sanitizedData.github,
-            twitter: sanitizedData.twitter,
-            submitted_at: new Date().toISOString(),
-          },
-          timestamp: customerioClient.isoToUnixTimestamp(
-            new Date().toISOString()
-          ),
-        };
-
-        await customerioClient.trackEvent(sanitizedData.email, customerioEvent);
       } catch (error) {
-        console.error("Customer.io integration failed:", error);
-        // Don't fail the entire request if Customer.io fails
+        console.error("Failed to fetch customer segments:", error);
+        // Continue processing even if Customer.io fails
       }
     }
 
-    // 3. Save to Bizzabo (this is not possible, so skip for now)
+    if (customerSegments.length === 0) {
+      console.warn(
+        "Customer.io profile not found or no segments, skipping Customer.io integration"
+      );
+    } else {
+      // Rate the customer based on their segments
+      customerRating = rateCustomer(customerSegments);
+      console.log("Customer rating:", customerRating);
+    }
+
+    // Format of customerRating:
+    // {
+    //   score: 100,
+    //   tier: "tier1",
+    //   factors: ["Enterprise plan subscriber", "Current launch week signup", "2 Supabase services activated"]
+    // }
+
+    // 2. Save to Supabase (skip for now)
+
+    // TODO: Uncomment this out once we are ready to deploy
+    // 3. Save to Customer.io
+    // Get environment variables
+    // const customerioSiteId = process.env.CUSTOMERIO_SITE_ID;
+    // const customerioApiKey = process.env.CUSTOMERIO_API_KEY;
+
+    // if (!customerioSiteId || !customerioApiKey) {
+    //   console.warn(
+    //     "Customer.io credentials not found, skipping Customer.io integration"
+    //   );
+    // } else {
+    //   try {
+    //     const customerioClient = new CustomerioTrackClient(
+    //       customerioSiteId,
+    //       customerioApiKey
+    //     );
+
+    //     // Get Bizzabo event information for consistency with the sync tool
+    //     let eventInfo = null;
+    //     try {
+    //       const bizzaboClient = getBizzaboClient();
+    //       eventInfo = await bizzaboClient.getEvent();
+    //     } catch (error) {
+    //       console.warn("Failed to fetch Bizzabo event info:", error);
+    //     }
+
+    //     // Create or update profile in Customer.io
+    //     await customerioClient.createOrUpdateProfile(sanitizedData.email, {
+    //       firstName: sanitizedData.firstName,
+    //       lastName: sanitizedData.lastName,
+    //       company: sanitizedData.company,
+    //       linkedin: sanitizedData.linkedin,
+    //       github: sanitizedData.github,
+    //       twitter: sanitizedData.twitter,
+    //     });
+
+    //     // Track the event_applied event with Bizzabo event data
+    //     const customerioEvent = {
+    //       userId: sanitizedData.email,
+    //       type: "track" as const,
+    //       event: "Event Applied",
+    //       properties: {
+    //         event_id: eventInfo?.id || "supabase_select_2025",
+    //         event_name: eventInfo?.name || "Supabase Select 2025",
+    //         event_type: "event_applied",
+    //         bizzabo_customer_id: null, // Not available from application form
+    //         source: "Select 2025 Application Form",
+    //         application_id: applicationId,
+    //         company: sanitizedData.company,
+    //         linkedin: sanitizedData.linkedin,
+    //         github: sanitizedData.github,
+    //         twitter: sanitizedData.twitter,
+    //         submitted_at: new Date().toISOString(),
+    //       },
+    //       timestamp: customerioClient.isoToUnixTimestamp(
+    //         new Date().toISOString()
+    //       ),
+    //     };
+
+    //     await customerioClient.trackEvent(sanitizedData.email, customerioEvent);
+    //   } catch (error) {
+    //     console.error("Customer.io integration failed:", error);
+    //     // Don't fail the entire request if Customer.io fails
+    //   }
+    // }
+
+    // 4. Save to Bizzabo (this is not possible, so skip for now)
 
     return NextResponse.json(
       {
