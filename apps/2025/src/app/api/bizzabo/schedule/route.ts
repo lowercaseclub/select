@@ -4,8 +4,8 @@ import {
   FALLBACK_SESSIONS,
   FALLBACK_STAGES,
   FALLBACK_SPEAKERS,
-  BIZZABO_LOCATIONS,
 } from "@/types/fallback-data";
+import { BIZZABO_LOCATIONS } from "@/types/bizzabo-locations";
 
 export async function GET(request: NextRequest) {
   try {

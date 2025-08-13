@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchSpeakers, Speaker } from "../lib/data-fetcher";
+import { fetchSpeakers, DisplaySpeaker } from "../lib/data-fetcher";
 
 export function SpeakersSection() {
-  const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const [speakers, setSpeakers] = useState<DisplaySpeaker[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,8 +15,8 @@ export function SpeakersSection() {
         const speakersData = await fetchSpeakers();
         setSpeakers(speakersData);
       } catch (err) {
-        setError('Failed to load speakers');
-        console.error('Error loading speakers:', err);
+        setError("Failed to load speakers");
+        console.error("Error loading speakers:", err);
       } finally {
         setIsLoading(false);
       }
@@ -63,7 +63,9 @@ export function SpeakersSection() {
           </p>
         </div>
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Unable to load speakers at this time.</p>
+          <p className="text-muted-foreground">
+            Unable to load speakers at this time.
+          </p>
         </div>
       </section>
     );
@@ -84,8 +86,8 @@ export function SpeakersSection() {
           <div key={speaker.id} className="space-y-4">
             <div className="aspect-square bg-muted border border-column-lines overflow-hidden">
               {speaker.imageUrl && (
-                <img 
-                  src={speaker.imageUrl} 
+                <img
+                  src={speaker.imageUrl}
                   alt={speaker.name}
                   className="w-full h-full object-cover"
                 />
@@ -101,7 +103,7 @@ export function SpeakersSection() {
               {speaker.socialLinks && (
                 <div className="flex gap-2 mt-3">
                   {speaker.socialLinks.linkedin && (
-                    <a 
+                    <a
                       href={speaker.socialLinks.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -111,7 +113,7 @@ export function SpeakersSection() {
                     </a>
                   )}
                   {speaker.socialLinks.twitter && (
-                    <a 
+                    <a
                       href={speaker.socialLinks.twitter}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -121,7 +123,7 @@ export function SpeakersSection() {
                     </a>
                   )}
                   {speaker.socialLinks.website && (
-                    <a 
+                    <a
                       href={speaker.socialLinks.website}
                       target="_blank"
                       rel="noopener noreferrer"

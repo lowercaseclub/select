@@ -1,3 +1,7 @@
+// Server-side fallback data types (used when Bizzabo API is unavailable)
+// These types represent the structure of hardcoded fallback data
+// They are transformed into DisplayScheduleData for the client
+
 export interface FallbackSpeaker {
   id: number;
   firstName: string;
@@ -30,13 +34,6 @@ export interface FallbackStage {
   name: string;
   location: string;
   isActive: boolean;
-}
-
-export interface BizzaboLocation {
-  id: number;
-  name: string;
-  nameId: string;
-  description: string;
 }
 
 export const FALLBACK_SPEAKERS: FallbackSpeaker[] = [
@@ -107,22 +104,6 @@ export const FALLBACK_STAGES: FallbackStage[] = [
     name: "Build Stage",
     location: "520 YC",
     isActive: true,
-  },
-];
-
-// Bizzabo location ID mappings
-export const BIZZABO_LOCATIONS: BizzaboLocation[] = [
-  {
-    id: 131741,
-    name: "Main Stage",
-    nameId: "main-stage",
-    description: "HQ Building 1",
-  },
-  {
-    id: 131743,
-    name: "Build Stage",
-    nameId: "build-stage",
-    description: "520 YC",
   },
 ];
 

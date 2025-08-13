@@ -1,9 +1,18 @@
-// client side interface to our Next.js API
+// Client-side data fetching and display types
+//
+// Architecture:
+// 1. This file provides client-side functions that fetch data from our Next.js API routes
+// 2. The API routes transform raw Bizzabo API data into these display-ready types
+// 3. React components use these types for rendering
+//
+// Data Flow: Bizzabo API → Next.js API Routes → Client (this file) → React Components
+//
+// These types represent the final, display-ready data structure for React components
 
 import speakersData from "@/data/speakers.json";
 import scheduleData from "@/data/schedule.json";
 
-export interface Speaker {
+export interface DisplaySpeaker {
   id: string;
   name: string;
   title: string;
@@ -17,7 +26,7 @@ export interface Speaker {
   };
 }
 
-export interface ScheduleEvent {
+export interface DisplayScheduleEvent {
   id: string;
   time: string;
   title: string;
@@ -27,18 +36,18 @@ export interface ScheduleEvent {
   sessionType?: string;
 }
 
-export interface Stage {
+export interface DisplayStage {
   name: string;
   location: string;
   active: boolean;
 }
 
-export interface ScheduleData {
-  stages: Stage[];
-  events: ScheduleEvent[];
+export interface DisplayScheduleData {
+  stages: DisplayStage[];
+  events: DisplayScheduleEvent[];
 }
 
-export async function fetchSpeakers(): Promise<Speaker[]> {
+export async function fetchSpeakers(): Promise<DisplaySpeaker[]> {
   try {
     // Try to fetch from Bizzabo API first
     const response = await fetch("/api/bizzabo/speakers");
@@ -62,7 +71,7 @@ export async function fetchSpeakers(): Promise<Speaker[]> {
   }));
 }
 
-export async function fetchSchedule(): Promise<ScheduleData> {
+export async function fetchSchedule(): Promise<DisplayScheduleData> {
   try {
     // Try to fetch from Bizzabo API first
     const response = await fetch("/api/bizzabo/schedule");

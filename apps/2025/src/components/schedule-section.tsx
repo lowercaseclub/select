@@ -3,15 +3,17 @@
 import { useEffect, useState } from "react";
 import {
   fetchSchedule,
-  ScheduleData,
-  ScheduleEvent,
+  DisplayScheduleData,
+  DisplayScheduleEvent,
 } from "../lib/data-fetcher";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/components/tabs";
 import { ColumnLine } from "./column-line";
 import { Separator } from "@ui/components/separator";
 
 export function ScheduleSection() {
-  const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
+  const [scheduleData, setScheduleData] = useState<DisplayScheduleData | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
