@@ -15,7 +15,7 @@ function createColumnWidths(widths: readonly number[]): string {
 
 // Grid configuration
 const ROW_HEIGHT = 38; // px
-const COLUMN_WIDTHS_ARRAY = [30, 15, 8, 22, 5, 5, 10, 5] as const;
+const COLUMN_WIDTHS_ARRAY = [30, 15, 8, 22, 5, 5, 10, 5];
 const COLUMN_WIDTHS = createColumnWidths(COLUMN_WIDTHS_ARRAY);
 const NUM_COLUMNS = COLUMN_WIDTHS_ARRAY.length;
 
@@ -90,6 +90,18 @@ export function AnimatedGrid() {
   // Helper function to check if a cell is within any selection
   const isCellInSelection = (cell: GridCell) => {
     return selections.some((selection) => {
+      const cellInRowRange =
+        cell.row >= selection.startRow && cell.row <= selection.endRow;
+      const cellInColRange =
+        cell.colStart <= selection.endCol && cell.colEnd >= selection.startCol;
+      return cellInRowRange && cellInColRange;
+    });
+  };
+
+  // Helper function to check if a cell is within a flashing selection
+  const isCellInFlashingSelection = (cell: GridCell) => {
+    return selections.some((selection) => {
+      if (!selection.isFlashing) return false;
       const cellInRowRange =
         cell.row >= selection.startRow && cell.row <= selection.endRow;
       const cellInColRange =
@@ -325,18 +337,25 @@ export function AnimatedGrid() {
           } else {
             // Contract: shrink the column
             const shrinkAmount = Math.random() * 15 + 10; // 10-25% shrink
-            const proposedWidth = Math.max(5, currentWidth - shrinkAmount);
+            let proposedWidth = Math.max(7, currentWidth - shrinkAmount); // Minimum 7% for all columns
 
-            // Check how many columns would be very small (< 8%) if we shrink this one
+            // Apply column-specific minimum constraints
+            if (columnIndex === 0) {
+              proposedWidth = Math.max(25, proposedWidth); // First column min 25%
+            } else if (columnIndex === 1) {
+              proposedWidth = Math.max(10, proposedWidth); // Second column min 10%
+            }
+
+            // Check how many columns would be very small (< 9%) if we shrink this one
             const verySmallCount = prevWidths.filter((w, i) =>
-              i === columnIndex ? proposedWidth < 8 : w < 8
+              i === columnIndex ? proposedWidth < 9 : w < 9
             ).length;
 
-            // Don't allow more than 2 very small columns
-            if (verySmallCount > 2) {
-              targetWidth = Math.max(8, currentWidth - shrinkAmount); // Keep it at least 8%
+            // Don't allow more than 1 very small columns
+            if (verySmallCount > 1) {
+              targetWidth = Math.max(9, proposedWidth); // Keep it at least 9%
             } else {
-              targetWidth = proposedWidth; // Allow shrinking to 5%
+              targetWidth = proposedWidth; // Allow shrinking within constraints
             }
           }
 
@@ -363,23 +382,90 @@ export function AnimatedGrid() {
             }
           }
 
-          // Prevent too many columns from being very small (< 7%)
+          // Apply column-specific minimums after redistribution
+          let totalAdjustment = 0;
+          if (newWidths[0] < 25) {
+            totalAdjustment += 25 - newWidths[0];
+            newWidths[0] = 25;
+          }
+          if (newWidths[1] < 10) {
+            totalAdjustment += 10 - newWidths[1];
+            newWidths[1] = 10;
+          }
+          // Apply 7% minimum to all other columns
+          for (let i = 2; i < newWidths.length; i++) {
+            if (newWidths[i] < 7) {
+              totalAdjustment += 7 - newWidths[i];
+              newWidths[i] = 7;
+            }
+          }
+
+          // If we had to boost columns, take the deficit from the target column if it's expandable
+          if (totalAdjustment > 0) {
+            // First try to take from the target column if it was expanded and is large enough
+            if (action === "expand" && newWidths[columnIndex] > 25) {
+              const maxFromTarget = Math.min(
+                totalAdjustment,
+                newWidths[columnIndex] - 25
+              );
+              newWidths[columnIndex] -= maxFromTarget;
+              totalAdjustment -= maxFromTarget;
+            }
+
+            // If still need adjustment, take from other large columns
+            if (totalAdjustment > 0) {
+              // Find the largest non-protected columns
+              let largestIndex = -1;
+              let largestWidth = 0;
+              for (let i = 0; i < newWidths.length; i++) {
+                if (i !== columnIndex && newWidths[i] > largestWidth) {
+                  largestIndex = i;
+                  largestWidth = newWidths[i];
+                }
+              }
+
+              if (largestIndex !== -1) {
+                const minForLargest =
+                  largestIndex === 0 ? 25 : largestIndex === 1 ? 10 : 12;
+                const maxReduction = Math.max(
+                  0,
+                  newWidths[largestIndex] - minForLargest
+                );
+                const actualReduction = Math.min(totalAdjustment, maxReduction);
+                newWidths[largestIndex] -= actualReduction;
+              }
+            }
+          }
+
+          // Prevent too many columns from being very small (< 10%)
           const verySmallIndices = newWidths
             .map((width, index) => ({ width, index }))
-            .filter((col) => col.width < 7)
+            .filter((col) => col.width < 10)
             .map((col) => col.index);
 
-          if (verySmallIndices.length > 2) {
-            // Boost the smallest columns back to 7%
+          if (verySmallIndices.length > 1) {
+            // Allow only 1 very small column
+            // Boost the smallest columns back to appropriate minimums
             const sortedSmall = verySmallIndices.sort(
               (a, b) => newWidths[a] - newWidths[b]
             );
 
-            // Keep only the 2 smallest, boost the rest to 7%
-            for (let i = 2; i < sortedSmall.length; i++) {
+            // Keep only the 1 smallest, boost the rest to appropriate minimums
+            for (let i = 1; i < sortedSmall.length; i++) {
               const indexToBoost = sortedSmall[i];
-              const deficit = 7 - newWidths[indexToBoost];
-              newWidths[indexToBoost] = 7;
+              let minimumWidth = 10;
+
+              // Apply column-specific minimums
+              if (indexToBoost === 0) {
+                minimumWidth = 25; // First column min 25%
+              } else if (indexToBoost === 1) {
+                minimumWidth = 10; // Second column min 10%
+              } else {
+                minimumWidth = 12; // All other columns min 12%
+              }
+
+              const deficit = minimumWidth - newWidths[indexToBoost];
+              newWidths[indexToBoost] = minimumWidth;
 
               // Take the deficit from the largest non-boosted column
               let largestIndex = 0;
@@ -693,11 +779,22 @@ export function AnimatedGrid() {
                           ? "inset(0 0% 0 100%)" // Swipe out right when deselected
                           : "inset(0 100% 0 0)" // Swipe out left when deselected
                         : "inset(0 0% 0 0%)", // Show fully when selected (persist through column changes)
+                      opacity: isCellInFlashingSelection(cell)
+                        ? [1, 0.2, 1] // Single flash: full → dim → full
+                        : 1,
                     }}
                     transition={{
                       duration: 0.3, // Quick swipe in/out
                       delay: 0,
                       ease: [0.25, 0.46, 0.45, 0.94],
+                      opacity: isCellInFlashingSelection(cell)
+                        ? {
+                            duration: 0.3,
+                            delay: (cell.id.charCodeAt(2) % 6) * 0.03, // Staggered delay: 0-0.15s
+                            ease: [0.68, -0.55, 0.265, 1.55], // Elastic bounce
+                            times: [0, 0.6, 1], // 60% down, 40% back up
+                          }
+                        : {},
                     }}
                   />
                 )}
