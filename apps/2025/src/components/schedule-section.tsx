@@ -1,3 +1,5 @@
+"use client";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/components/tabs";
 import { ColumnLine } from "./column-line";
 import { Separator } from "@ui/components/separator";
@@ -11,64 +13,92 @@ import {
   BizzaboSpeaker,
   ScheduleData,
 } from "../types/bizzabo.types";
+import { useEffect, useState } from "react";
 
-export async function ScheduleSection() {
-  // Move ALL API route logic here
-  let scheduleData: ScheduleData = { stages: [], events: [] };
+export function ScheduleSection() {
+  const [scheduleData, setScheduleData] = useState<ScheduleData>({
+    stages: [],
+    events: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  try {
-    // Fetch sessions and speakers from Bizzabo
-    let sessions: BizzaboSession[] = [];
-    let speakers: BizzaboSpeaker[] = [];
+  useEffect(() => {
+    async function fetchScheduleData() {
+      try {
+        // Fetch sessions and speakers from Bizzabo
+        let sessions: BizzaboSession[] = [];
+        let speakers: BizzaboSpeaker[] = [];
 
-    try {
-      const [sessionsResponse, speakersResponse] = await Promise.all([
-        getSessions(),
-        getSpeakers(),
-      ]);
+        try {
+          const [sessionsResponse, speakersResponse] = await Promise.all([
+            getSessions(),
+            getSpeakers(),
+          ]);
 
-      sessions = sessionsResponse || [];
-      speakers = speakersResponse || [];
-      console.log("Sessions data:", JSON.stringify(sessions, null, 2));
-      console.log(
-        "Speakers data for schedule:",
-        JSON.stringify(speakers, null, 2)
-      );
-    } catch (error) {
-      console.error("Failed to fetch data from Bizzabo:", error);
-      sessions = [];
-      speakers = [];
+          sessions = sessionsResponse || [];
+          speakers = speakersResponse || [];
+          console.log("Sessions data:", JSON.stringify(sessions, null, 2));
+          console.log(
+            "Speakers data for schedule:",
+            JSON.stringify(speakers, null, 2)
+          );
+        } catch (error) {
+          console.error("Failed to fetch data from Bizzabo:", error);
+          sessions = [];
+          speakers = [];
+        }
+
+        // Use hardcoded stages since we don't fetch them from Bizzabo
+        const stages = [
+          {
+            id: 1,
+            name: "Main Stage",
+            location: "Union Iron Works",
+            isActive: true,
+          },
+          { id: 2, name: "Build Stage", location: "520 YC", isActive: true },
+        ];
+
+        // Transform sessions using utility functions
+        const transformedEvents = sortEventsByTime(
+          sessions.map((session) => transformSessionToEvent(session, speakers))
+        );
+
+        // Transform stages to match our component's expected format
+        const transformedStages = stages.map((stage) => ({
+          name: stage.name,
+          location: stage.location,
+          active: stage.isActive,
+        }));
+
+        setScheduleData({
+          stages: transformedStages,
+          events: transformedEvents,
+        });
+      } catch (error) {
+        console.error("Error fetching schedule from Bizzabo:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
 
-    // Use hardcoded stages since we don't fetch them from Bizzabo
-    const stages = [
-      {
-        id: 1,
-        name: "Main Stage",
-        location: "Union Iron Works",
-        isActive: true,
-      },
-      { id: 2, name: "Build Stage", location: "520 YC", isActive: true },
-    ];
+    fetchScheduleData();
+  }, []);
 
-    // Transform sessions using utility functions
-    const transformedEvents = sortEventsByTime(
-      sessions.map((session) => transformSessionToEvent(session, speakers))
+  if (isLoading) {
+    return (
+      <section className="w-full">
+        <div className="relative mx-auto max-w-site">
+          <div className="border-l border-r px-8 py-16">
+            <ColumnLine />
+            <h2 className="text-3xl font-medium">Schedule</h2>
+          </div>
+        </div>
+        <div className="max-w-site mx-auto px-8 py-12 text-center">
+          <p className="text-muted-foreground">Loading schedule...</p>
+        </div>
+      </section>
     );
-
-    // Transform stages to match our component's expected format
-    const transformedStages = stages.map((stage) => ({
-      name: stage.name,
-      location: stage.location,
-      active: stage.isActive,
-    }));
-
-    scheduleData = {
-      stages: transformedStages,
-      events: transformedEvents,
-    };
-  } catch (error) {
-    console.error("Error fetching schedule from Bizzabo:", error);
   }
 
   if (!scheduleData || scheduleData.events.length === 0) {

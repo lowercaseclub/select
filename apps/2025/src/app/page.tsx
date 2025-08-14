@@ -5,6 +5,7 @@ import { ColumnLine } from "../components/column-line";
 import { Footer } from "../components/footer";
 import { Header } from "../components/header";
 import { HeroSection } from "../components/hero-section";
+import { MapSection } from "../components/map-section";
 import { ScheduleSection } from "../components/schedule-section";
 import { SpeakersSection } from "../components/speakers-section";
 import { SpeakersLoading } from "../components/speakers-loading";
@@ -32,6 +33,7 @@ export default function HomePage() {
           </div>
         </div>
         <AboutSection />
+        <MapSection />
         <Suspense fallback={<SpeakersLoading />}>
           <SpeakersSection />
         </Suspense>
