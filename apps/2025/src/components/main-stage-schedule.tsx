@@ -12,7 +12,7 @@ export async function MainStageSchedule() {
       getSpeakers(),
     ]);
 
-    console.log("Main Stage - Raw sessions:", sessions);
+    // Debug: Main Stage sessions loaded
 
     const events = sortEventsByTime(
       sessions.map((session) => transformSessionToEvent(session, speakers))
@@ -49,8 +49,8 @@ export async function MainStageSchedule() {
         ))}
       </div>
     );
-  } catch (error) {
-    console.error("Failed to fetch Main Stage schedule:", error);
+  } catch {
+    // Error handled gracefully - fallback schedule will be shown
     return (
       <div className="text-center py-8">
         <p className="text-muted-foreground">

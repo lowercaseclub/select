@@ -51,8 +51,8 @@ export async function BuildStageSchedule() {
         ))}
       </div>
     );
-  } catch (error) {
-    console.error("Failed to fetch Build Stage schedule:", error);
+  } catch {
+    // Error handled gracefully - fallback schedule will be shown
     return (
       <div className="text-center py-8">
         <p className="text-muted-foreground">

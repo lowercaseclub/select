@@ -10,9 +10,9 @@ export async function SpeakersSection() {
 
   try {
     speakers = await getSpeakers();
-    console.log("Speakers data:", JSON.stringify(speakers, null, 2));
-  } catch (error) {
-    console.error("Error fetching speakers from Bizzabo:", error);
+    // Debug: Speakers data loaded successfully
+  } catch {
+    // Error handled gracefully - empty speakers array will be used
     speakers = [];
   }
 
