@@ -1,129 +1,11 @@
-"use client";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/components/tabs";
+import { Tabs, TabsContent, TabsList } from "@ui/components/tabs";
 import { ColumnLine } from "./column-line";
 import { Separator } from "@ui/components/separator";
-import { getSessions, getSpeakers } from "../lib/bizzabo-api";
-import {
-  transformSessionToEvent,
-  sortEventsByTime,
-} from "../lib/bizzabo-transformers";
-import {
-  BizzaboSession,
-  BizzaboSpeaker,
-  ScheduleData,
-} from "../types/bizzabo.types";
-import { useEffect, useState } from "react";
+import { MainStageSchedule } from "./main-stage-schedule";
+import { BuildStageSchedule } from "./build-stage-schedule";
+import { ScheduleTabTrigger } from "./schedule-tab-trigger";
 
 export function ScheduleSection() {
-  const [scheduleData, setScheduleData] = useState<ScheduleData>({
-    stages: [],
-    events: [],
-  });
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchScheduleData() {
-      try {
-        // Fetch sessions and speakers from Bizzabo
-        let sessions: BizzaboSession[] = [];
-        let speakers: BizzaboSpeaker[] = [];
-
-        try {
-          const [sessionsResponse, speakersResponse] = await Promise.all([
-            getSessions(),
-            getSpeakers(),
-          ]);
-
-          sessions = sessionsResponse || [];
-          speakers = speakersResponse || [];
-          console.log("Sessions data:", JSON.stringify(sessions, null, 2));
-          console.log(
-            "Speakers data for schedule:",
-            JSON.stringify(speakers, null, 2)
-          );
-        } catch (error) {
-          console.error("Failed to fetch data from Bizzabo:", error);
-          sessions = [];
-          speakers = [];
-        }
-
-        // Use hardcoded stages since we don't fetch them from Bizzabo
-        const stages = [
-          {
-            id: 1,
-            name: "Main Stage",
-            location: "Union Iron Works",
-            isActive: true,
-          },
-          { id: 2, name: "Build Stage", location: "520 YC", isActive: true },
-        ];
-
-        // Transform sessions using utility functions
-        const transformedEvents = sortEventsByTime(
-          sessions.map((session) => transformSessionToEvent(session, speakers))
-        );
-
-        // Transform stages to match our component's expected format
-        const transformedStages = stages.map((stage) => ({
-          name: stage.name,
-          location: stage.location,
-          active: stage.isActive,
-        }));
-
-        setScheduleData({
-          stages: transformedStages,
-          events: transformedEvents,
-        });
-      } catch (error) {
-        console.error("Error fetching schedule from Bizzabo:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchScheduleData();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <section className="w-full">
-        <div className="relative mx-auto max-w-site">
-          <div className="border-l border-r px-8 py-16">
-            <ColumnLine />
-            <h2 className="text-3xl font-medium">Schedule</h2>
-          </div>
-        </div>
-        <div className="max-w-site mx-auto px-8 py-12 text-center">
-          <p className="text-muted-foreground">Loading schedule...</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (!scheduleData || scheduleData.events.length === 0) {
-    return (
-      <section className="w-full">
-        <div className="relative mx-auto max-w-site">
-          <div className="border-l border-r px-8 py-16">
-            <ColumnLine />
-            <h2 className="text-3xl font-medium">Schedule</h2>
-          </div>
-        </div>
-        <div className="max-w-site mx-auto px-8 py-12 text-center">
-          <p className="text-muted-foreground">No events scheduled yet.</p>
-        </div>
-      </section>
-    );
-  }
-
-  const mainEvents = scheduleData.events.filter(
-    (event) => event.stage === "main-stage" || event.stage === "main"
-  );
-  const buildEvents = scheduleData.events.filter(
-    (event) => event.stage === "build-stage" || event.stage === "build"
-  );
-
   return (
     <section className="w-full">
       <div className="relative mx-auto max-w-site">
@@ -136,104 +18,35 @@ export function ScheduleSection() {
         <div className="max-w-site relative mx-auto">
           <ColumnLine />
           <div className="max-w-site mx-auto px-8 border-l border-r">
-            <TabsList className="bg-transparent h-auto p-0 border-b border-column-lines">
-              <TabsTrigger
+            <TabsList className="bg-transparent h-auto p-0 rounded-none">
+              <ScheduleTabTrigger
                 value="main"
-                className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent rounded-none px-0 pb-3 mr-8"
-              >
-                <span className="text-lg font-medium">Main Stage</span>
-                <span className="text-muted-foreground data-[state=active]:text-foreground ml-2">
-                  @ Union Iron Works
-                </span>
-              </TabsTrigger>
-              <TabsTrigger
+                stageName="Main Stage"
+                locationName="Union Iron Works"
+                locationDisplayName="Union Iron Works"
+                address="5 Pier 70 Blvd, San Francisco, CA 94107"
+                mapUrl="https://maps.google.com/maps?q=Union%20Iron%20Works,%205%20Pier%2070%20Blvd,%20San%20Francisco,%20CA%2094107&t=&z=17&ie=UTF8&iwloc=&output=embed"
+                className="mr-8"
+              />
+              <ScheduleTabTrigger
                 value="build"
-                className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent rounded-none px-0 pb-3"
-              >
-                <span className="text-lg font-medium">Build Stage</span>
-                <span className="text-muted-foreground data-[state=active]:text-foreground ml-2">
-                  @ 520 YC
-                </span>
-              </TabsTrigger>
+                stageName="Build Stage"
+                locationName="Y Combinator"
+                locationDisplayName="520 YC"
+                address="580 20th St, San Francisco, CA 94107"
+                mapUrl="https://maps.google.com/maps?q=580%2020th%20Street,%20San%20Francisco,%20CA%2094107&t=&z=17&ie=UTF8&iwloc=&output=embed"
+              />
             </TabsList>
           </div>
         </div>
         <Separator />
 
         <TabsContent value="main" className="mt-8">
-          <div className="space-y-0">
-            {/* Header */}
-            <div className="py-4 border-b border-column-lines text-muted-foreground text-sm font-medium">
-              <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
-                <div className="col-span-3">TIME</div>
-                <div className="col-span-5">TITLE</div>
-                <div className="col-span-4">SPEAKERS</div>
-              </div>
-            </div>
-
-            {/* Events */}
-            {mainEvents.map((event) => (
-              <div
-                key={event.id}
-                className="py-6 border-b border-column-lines hover:bg-muted/20 transition-colors"
-              >
-                <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
-                  <div className="col-span-3 text-sm font-mono">
-                    {event.time}
-                  </div>
-                  <div className="col-span-5">
-                    <h3 className="font-medium text-lg">{event.title}</h3>
-                    {event.description && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {event.description}
-                      </p>
-                    )}
-                  </div>
-                  <div className="col-span-4 text-muted-foreground">
-                    {event.speakers}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <MainStageSchedule />
         </TabsContent>
 
         <TabsContent value="build" className="mt-8">
-          <div className="space-y-0">
-            {/* Header */}
-            <div className="py-4 border-b border-column-lines text-muted-foreground text-sm font-medium">
-              <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
-                <div className="col-span-3">TIME</div>
-                <div className="col-span-5">TITLE</div>
-                <div className="col-span-4">SPEAKERS</div>
-              </div>
-            </div>
-
-            {/* Events */}
-            {buildEvents.map((event) => (
-              <div
-                key={event.id}
-                className="py-6 border-b border-column-lines hover:bg-muted/20 transition-colors"
-              >
-                <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
-                  <div className="col-span-3 text-sm font-mono">
-                    {event.time}
-                  </div>
-                  <div className="col-span-5">
-                    <h3 className="font-medium text-lg">{event.title}</h3>
-                    {event.description && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {event.description}
-                      </p>
-                    )}
-                  </div>
-                  <div className="col-span-4 text-muted-foreground">
-                    {event.speakers}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <BuildStageSchedule />
         </TabsContent>
       </Tabs>
     </section>

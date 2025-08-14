@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@repo/ui/src/components/button";
+import { CrosshairButton } from "./crosshair-button";
 import { ApplicationForm } from "./application-form";
 
 export function HeroSection() {
@@ -27,9 +27,13 @@ export function HeroSection() {
           <div>
             <ApplicationForm
               trigger={
-                <Button className="bg-[rgba(235,242,45,0.33)] border-2 border-dashed border-[#ebf22d] px-8 py-4 text-xl font-medium hover:bg-[rgba(235,242,45,0.5)] transition-colors rounded-none">
+                <CrosshairButton
+                  className="bg-[rgba(235,242,45,0.33)] border border-dashed border-[#ebf22d]/50 text-base font-medium hover:bg-[rgba(235,242,45,0.5)] transition-colors rounded-none text-white"
+                  crosshairColor="#ebf22d"
+                  crosshairSize={4}
+                >
                   Apply Now
-                </Button>
+                </CrosshairButton>
               }
             />
           </div>

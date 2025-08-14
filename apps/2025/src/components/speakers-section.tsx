@@ -24,9 +24,11 @@ export async function SpeakersSection() {
 
   return (
     <section className="px-8 py-24">
-      <div className="mb-16">
-        <h2 className="text-3xl font-medium mb-4">Featured Speakers</h2>
-        <p className="text-lg text-muted-foreground">
+      <div className="mb-12 sm:mb-16">
+        <h2 className="text-2xl sm:text-3xl font-medium mb-3 sm:mb-4">
+          Featured Speakers
+        </h2>
+        <p className="text-base sm:text-lg text-muted-foreground">
           Learn from industry leaders and successful founders who are shaping
           the future of technology.
         </p>
@@ -54,26 +56,26 @@ export async function SpeakersSection() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {speakers.map((speaker) => (
-            <div key={speaker.id} className="space-y-4">
-              <div className="aspect-square bg-muted border border-column-lines relative">
+            <div key={speaker.id} className="space-y-3 sm:space-y-4">
+              <div className="aspect-square bg-muted border border-column-lines relative overflow-hidden">
                 {speaker.photoSet?.large && (
                   <Image
                     src={speaker.photoSet.large}
                     alt={`${speaker.firstname} ${speaker.lastname}`}
                     fill
-                    className="object-cover"
+                    className="object-cover transition-transform duration-300 hover:scale-105"
                   />
                 )}
               </div>
-              <div>
-                <h3 className="text-xl font-medium">
+              <div className="space-y-2">
+                <h3 className="text-lg sm:text-xl font-medium leading-tight">
                   {speaker.prefix && `${speaker.prefix} `}
                   {speaker.firstname} {speaker.lastname}
                 </h3>
                 {speaker.title && (
-                  <p className="text-accent-1-foreground">
+                  <p className="text-sm sm:text-base text-accent-1-foreground leading-snug">
                     {speaker.title}{" "}
                     <span className="text-foreground">
                       {" "}
@@ -86,16 +88,16 @@ export async function SpeakersSection() {
                   speaker.twitterHandle ||
                   speaker.web ||
                   speaker.blog) && (
-                  <div className="flex gap-2 mb-3">
+                  <div className="flex gap-2">
                     {speaker.linkedIn && (
                       <a
                         href={speaker.linkedIn}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                        className="text-muted-foreground hover:text-foreground transition-colors duration-200 p-1 -m-1"
                         title="LinkedIn"
                       >
-                        <LinkIcon className="w-4 h-4" />
+                        <LinkIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </a>
                     )}
                     {speaker.twitterHandle && (
@@ -106,11 +108,11 @@ export async function SpeakersSection() {
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                        className="text-muted-foreground hover:text-foreground transition-colors duration-200 p-1 -m-1"
                         title="Twitter"
                       >
                         <svg
-                          className="w-4 h-4"
+                          className="w-3.5 h-3.5 sm:w-4 sm:h-4"
                           fill="currentColor"
                           viewBox="0 0 24 24"
                         >
@@ -123,10 +125,10 @@ export async function SpeakersSection() {
                         href={speaker.web}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                        className="text-muted-foreground hover:text-foreground transition-colors duration-200 p-1 -m-1"
                         title="Website"
                       >
-                        <GlobeAltIcon className="w-4 h-4" />
+                        <GlobeAltIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </a>
                     )}
                     {speaker.blog && (
@@ -134,23 +136,28 @@ export async function SpeakersSection() {
                         href={speaker.blog}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                        className="text-muted-foreground hover:text-foreground transition-colors duration-200 p-1 -m-1"
                         title="Blog"
                       >
-                        <LinkIcon className="w-4 h-4" />
+                        <LinkIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </a>
                     )}
                   </div>
                 )}
 
                 {speaker.bio && (
-                  <p className="text-sm leading-relaxed">{speaker.bio}</p>
+                  <p className="text-xs sm:text-sm leading-relaxed line-clamp-4">
+                    {speaker.bio}
+                  </p>
                 )}
               </div>
             </div>
           ))}
           {Array.from({ length: announcingSoonCount }, (_, index) => (
-            <div key={`announcing-soon-${index}`} className="space-y-4">
+            <div
+              key={`announcing-soon-${index}`}
+              className="space-y-3 sm:space-y-4"
+            >
               <AnnouncingSoonTile />
             </div>
           ))}

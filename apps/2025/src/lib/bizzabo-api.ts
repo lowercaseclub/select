@@ -79,7 +79,9 @@ async function makeRequest<T>(endpoint: string): Promise<T> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Bizzabo API request failed: ${response.status} - ${errorText}`);
+    throw new Error(
+      `Bizzabo API request failed: ${response.status} - ${errorText}`
+    );
   }
 
   return response.json();
@@ -98,7 +100,9 @@ export async function getSpeakers(): Promise<BizzaboSpeaker[]> {
   if (!eventId) {
     throw new Error("BIZZABO_EVENT_ID is required to fetch speakers.");
   }
-  const response = await makeRequest<{ content: BizzaboSpeaker[] }>(`/events/${eventId}/speakers`);
+  const response = await makeRequest<{ content: BizzaboSpeaker[] }>(
+    `/events/${eventId}/speakers`
+  );
   return response.content || [];
 }
 
@@ -107,7 +111,9 @@ export async function getSessions(): Promise<BizzaboSession[]> {
   if (!eventId) {
     throw new Error("BIZZABO_EVENT_ID is required to fetch sessions.");
   }
-  const response = await makeRequest<{ content: BizzaboSession[] }>(`/events/${eventId}/agenda/sessions`);
+  const response = await makeRequest<{ content: BizzaboSession[] }>(
+    `/events/${eventId}/agenda/sessions`
+  );
   return response.content || [];
 }
 
@@ -116,7 +122,9 @@ export async function getStages(): Promise<BizzaboStage[]> {
   if (!eventId) {
     throw new Error("BIZZABO_EVENT_ID is required to fetch stages.");
   }
-  const response = await makeRequest<BizzaboApiResponse<BizzaboStage[]>>(`/events/${eventId}/stages`);
+  const response = await makeRequest<BizzaboApiResponse<BizzaboStage[]>>(
+    `/events/${eventId}/stages`
+  );
   return response.data;
 }
 

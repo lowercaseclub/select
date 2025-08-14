@@ -1,3 +1,6 @@
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { BIZZABO_LOCATIONS } from "../types/bizzabo-locations";
 import {
   BizzaboSpeaker,
@@ -5,6 +8,9 @@ import {
   ScheduleEvent,
   SessionSpeakerRef,
 } from "../types/bizzabo.types";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export function convertMinutesToTimeString(
   startMinute: number,
@@ -56,15 +62,23 @@ export function transformSessionToEvent(
   session: BizzaboSession,
   speakers: BizzaboSpeaker[]
 ): ScheduleEvent {
+  console.log("SESSION OBJECT:", session);
+
   const speakerNames = getSpeakerNames(
     (session.speakers || []).map((s) => ({ speakerId: s.id })),
     speakers
   );
 
-  let timeString = "10:00 AM - 11:00 AM";
-  if (session.startTime && session.endTime) {
-    // For now, use the time strings directly - we'd need to parse these properly
-    timeString = `${session.startTime} - ${session.endTime}`;
+  let timeString = "TBD";
+
+  if (session.startMinute !== undefined && session.endMinute !== undefined) {
+    console.log("FOUND MINUTES:", session.startMinute, session.endMinute);
+    timeString = convertMinutesToTimeString(
+      session.startMinute,
+      session.endMinute
+    );
+  } else {
+    console.log("NO MINUTES FOUND IN SESSION");
   }
 
   const stageName = session.stageName || "main-stage";
