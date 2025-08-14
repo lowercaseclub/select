@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMediaQuery } from "../hooks/use-media-query";
 
 function createColumnWidths(widths: readonly number[]): string {
   const sum = widths.reduce((acc, width) => acc + width, 0);
@@ -13,11 +14,13 @@ function createColumnWidths(widths: readonly number[]): string {
   return widths.map((w) => `${w}%`).join(" ") as string;
 }
 
-// Grid configuration
-const ROW_HEIGHT = 38; // px
-const COLUMN_WIDTHS_ARRAY: number[] = [30, 15, 8, 22, 5, 5, 10, 5];
-// const COLUMN_WIDTHS = createColumnWidths(COLUMN_WIDTHS_ARRAY);
-const NUM_COLUMNS = COLUMN_WIDTHS_ARRAY.length;
+// Grid configuration - responsive
+const DESKTOP_rowHeight = 38; // px
+const MOBILE_rowHeight = 28; // px - smaller for mobile
+const DESKTOP_columnWidthsArray: number[] = [30, 15, 8, 22, 5, 5, 10, 5];
+const MOBILE_columnWidthsArray: number[] = [25, 25, 25, 25]; // Equal columns spanning full width
+const DESKTOP_numColumns = DESKTOP_columnWidthsArray.length;
+const MOBILE_numColumns = MOBILE_columnWidthsArray.length;
 
 // Animation configuration
 const ENABLE_COLOR_ANIMATIONS = true; // Toggle to easily disable color swipes
@@ -25,7 +28,7 @@ const ENABLE_COLOR_ANIMATIONS = true; // Toggle to easily disable color swipes
 // Calculate cumulative column positions for proper cell positioning
 const getColumnPosition = (
   colIndex: number,
-  columnWidths: number[] = COLUMN_WIDTHS_ARRAY
+  columnWidths: number[]
 ): number => {
   if (!columnWidths || columnWidths.length === 0) return 0;
   const basePosition = columnWidths
@@ -37,7 +40,7 @@ const getColumnPosition = (
 const getColumnWidth = (
   colStart: number,
   colEnd: number,
-  columnWidths: number[] = COLUMN_WIDTHS_ARRAY
+  columnWidths: number[]
 ): number => {
   if (!columnWidths || columnWidths.length === 0) return 10;
   const baseWidth = columnWidths
@@ -55,10 +58,22 @@ interface GridCell {
 }
 
 export function AnimatedGrid() {
-  const [cells, setCells] = useState<GridCell[]>([]);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
   const [movingCells, setMovingCells] = useState<GridCell[]>([]);
-  const [currentColumnWidths, setCurrentColumnWidths] =
-    useState(COLUMN_WIDTHS_ARRAY);
+  const selectionsRef = useRef<
+    Array<{
+      id: string;
+      startRow: number;
+      startCol: number;
+      endRow: number;
+      endCol: number;
+      isFlashing: boolean;
+    }>
+  >([]);
+  const [currentColumnWidths, setCurrentColumnWidths] = useState(
+    isMobile ? MOBILE_columnWidthsArray : DESKTOP_columnWidthsArray
+  );
   const [isColumnChanging, setIsColumnChanging] = useState(false);
   const [movingCellId, setMovingCellId] = useState<string | null>(null);
   const [selections, setSelections] = useState<
@@ -71,6 +86,18 @@ export function AnimatedGrid() {
       isFlashing: boolean;
     }>
   >([]);
+
+  // Keep ref in sync with selections state
+  useEffect(() => {
+    selectionsRef.current = selections;
+  }, [selections]);
+
+  // Get responsive configuration values
+  const rowHeight = isMobile ? MOBILE_rowHeight : DESKTOP_rowHeight;
+  const columnWidthsArray = isMobile
+    ? MOBILE_columnWidthsArray
+    : DESKTOP_columnWidthsArray;
+  const numColumns = isMobile ? MOBILE_numColumns : DESKTOP_numColumns;
 
   // Helper function to check if two cells overlap
   const cellsOverlap = (cell1: GridCell, cell2: GridCell) => {
@@ -111,29 +138,43 @@ export function AnimatedGrid() {
   };
 
   useEffect(() => {
-    // Generate initial cells
-    const animatedCells: GridCell[] = [
-      { id: "cell-1", row: 4, colStart: 4, colEnd: 4, delay: 80 },
-      { id: "cell-2", row: 5, colStart: 4, colEnd: 6, delay: 220 },
-      { id: "cell-3", row: 6, colStart: 4, colEnd: 4, delay: 150 },
-      { id: "cell-4", row: 7, colStart: 4, colEnd: 5, delay: 350 },
-      { id: "cell-5", row: 8, colStart: 4, colEnd: 4, delay: 290 },
-      { id: "cell-6", row: 9, colStart: 4, colEnd: 4, delay: 450 },
-      { id: "cell-7", row: 10, colStart: 4, colEnd: 4, delay: 600 },
-      { id: "cell-8", row: 11, colStart: 4, colEnd: 4, delay: 180 },
-      { id: "cell-9", row: 12, colStart: 4, colEnd: 4, delay: 400 },
-    ];
+    // Generate initial cells - different patterns for mobile vs desktop
+    const animatedCells: GridCell[] = isMobile
+      ? [
+          // Mobile: cells start much lower (15+) to stay well below text
+          { id: "cell-1", row: 15, colStart: 2, colEnd: 2, delay: 80 },
+          { id: "cell-2", row: 18, colStart: 2, colEnd: 3, delay: 220 },
+          { id: "cell-3", row: 21, colStart: 3, colEnd: 3, delay: 150 },
+          { id: "cell-4", row: 24, colStart: 2, colEnd: 2, delay: 350 },
+          { id: "cell-5", row: 27, colStart: 4, colEnd: 4, delay: 290 },
+          { id: "cell-6", row: 16, colStart: 1, colEnd: 1, delay: 400 },
+          { id: "cell-7", row: 20, colStart: 4, colEnd: 4, delay: 180 },
+          { id: "cell-8", row: 23, colStart: 1, colEnd: 1, delay: 600 },
+          { id: "cell-9", row: 19, colStart: 3, colEnd: 4, delay: 450 },
+        ]
+      : [
+          // Original desktop pattern
+          { id: "cell-1", row: 4, colStart: 4, colEnd: 4, delay: 80 },
+          { id: "cell-2", row: 5, colStart: 4, colEnd: 6, delay: 220 },
+          { id: "cell-3", row: 6, colStart: 4, colEnd: 4, delay: 150 },
+          { id: "cell-4", row: 7, colStart: 4, colEnd: 5, delay: 350 },
+          { id: "cell-5", row: 8, colStart: 4, colEnd: 4, delay: 290 },
+          { id: "cell-6", row: 9, colStart: 4, colEnd: 4, delay: 450 },
+          { id: "cell-7", row: 10, colStart: 4, colEnd: 4, delay: 600 },
+          { id: "cell-8", row: 11, colStart: 4, colEnd: 4, delay: 180 },
+          { id: "cell-9", row: 12, colStart: 4, colEnd: 4, delay: 400 },
+        ];
 
     // Validate cell column references
     animatedCells.forEach((cell) => {
-      if (cell.colStart < 1 || cell.colStart > NUM_COLUMNS) {
+      if (cell.colStart < 1 || cell.colStart > numColumns) {
         throw new Error(
-          `Cell ${cell.id}: colStart ${cell.colStart} is out of range (1-${NUM_COLUMNS})`
+          `Cell ${cell.id}: colStart ${cell.colStart} is out of range (1-${numColumns})`
         );
       }
-      if (cell.colEnd < 1 || cell.colEnd > NUM_COLUMNS) {
+      if (cell.colEnd < 1 || cell.colEnd > numColumns) {
         throw new Error(
-          `Cell ${cell.id}: colEnd ${cell.colEnd} is out of range (1-${NUM_COLUMNS})`
+          `Cell ${cell.id}: colEnd ${cell.colEnd} is out of range (1-${numColumns})`
         );
       }
       if (cell.colStart > cell.colEnd) {
@@ -143,7 +184,6 @@ export function AnimatedGrid() {
       }
     });
 
-    setCells(animatedCells);
     setMovingCells(animatedCells);
 
     // Multiple movement timers for simultaneous action, but with proper collision detection
@@ -168,14 +208,34 @@ export function AnimatedGrid() {
               if (cellIndex === -1) return prevCells; // Cell doesn't exist anymore
 
               const currentCell = prevCells[cellIndex];
+
+              // Don't move cells that are currently in a selection (check with current selections)
+              const isCurrentlySelected = selectionsRef.current.some(
+                (selection) => {
+                  const cellInRowRange =
+                    currentCell.row >= selection.startRow &&
+                    currentCell.row <= selection.endRow;
+                  const cellInColRange =
+                    currentCell.colStart <= selection.endCol &&
+                    currentCell.colEnd >= selection.startCol;
+                  return cellInRowRange && cellInColRange;
+                }
+              );
+
+              if (isCurrentlySelected) {
+                return prevCells;
+              }
+
               const moveType = Math.random();
 
               if (moveType < 0.05) {
                 // 5% chance: Move vertically (up or down 1 row only)
                 const direction = Math.random() < 0.5 ? -1 : 1;
+                const minRow = isMobile ? 12 : 1; // Mobile: prevent going above row 12
+                const maxRow = isMobile ? 30 : 20; // Mobile: allow more room below
                 const newRow = Math.max(
-                  1,
-                  Math.min(20, currentCell.row + direction)
+                  minRow,
+                  Math.min(maxRow, currentCell.row + direction)
                 );
 
                 if (newRow !== currentCell.row) {
@@ -200,8 +260,11 @@ export function AnimatedGrid() {
               } else {
                 // 95% chance: Move horizontally (change columns only)
                 const biasedRandom = Math.random() * 0.8 + 0.2;
-                const newColStart = Math.floor(biasedRandom * NUM_COLUMNS) + 1;
-                const maxSpan = Math.min(NUM_COLUMNS - newColStart + 1, 4);
+                const newColStart = Math.floor(biasedRandom * numColumns) + 1;
+                const maxSpan = Math.min(
+                  numColumns - newColStart + 1,
+                  isMobile ? 2 : 4
+                );
                 const newSpan = Math.floor(Math.random() * maxSpan) + 1;
                 const newColEnd = newColStart + newSpan - 1;
 
@@ -228,7 +291,7 @@ export function AnimatedGrid() {
 
             // Schedule the next move
             scheduleNextMove();
-          }, 1200 + Math.random() * 1800); // Each cell moves every 1.2-3.0 seconds (slower)
+          }, 2000 + Math.random() * 3000); // Each cell moves every 2.0-5.0 seconds (slower)
 
           movementIntervals.push(intervalId);
         };
@@ -507,10 +570,14 @@ export function AnimatedGrid() {
       setSelections((prevSelections) => {
         if (prevSelections.length >= 2) return prevSelections;
 
-        // Pick a random starting cell (rows 4-11 to allow for 2+ rows, cols biased to right side)
-        const startRow = Math.floor(Math.random() * 8) + 4; // 4-11 (leaves room for 2+ rows)
+        // Pick a random starting cell - different ranges for mobile vs desktop
+        const minSelectionRow = isMobile ? 15 : 4; // Mobile: start at row 15, Desktop: row 4
+        const maxSelectionRow = isMobile ? 28 : 11; // Mobile: up to row 28, Desktop: up to row 11
+        const rowRange = maxSelectionRow - minSelectionRow + 1;
+        const startRow =
+          Math.floor(Math.random() * (rowRange - 2)) + minSelectionRow; // Leave room for 2+ rows
         const biasedRandom = Math.random() * 0.6 + 0.4; // Bias towards right (0.4-1.0)
-        const startCol = Math.floor(biasedRandom * (NUM_COLUMNS - 1)) + 1; // Favor columns 4-7
+        const startCol = Math.floor(biasedRandom * (numColumns - 1)) + 1; // Favor columns 4-7
 
         const selectionId = `selection-${Date.now()}-${Math.random()}`;
 
@@ -542,17 +609,19 @@ export function AnimatedGrid() {
           if (direction < 0.4) {
             // Expand right (only if we haven't reached 3 columns)
             if (currentColSpan < 3) {
-              currentEndCol = Math.min(NUM_COLUMNS, currentEndCol + 1);
+              currentEndCol = Math.min(numColumns, currentEndCol + 1);
             }
           } else if (direction < 0.7) {
-            // Expand down (limited to row 12)
-            currentEndRow = Math.min(12, currentEndRow + 1);
+            // Expand down (different limits for mobile vs desktop)
+            const maxExpandRow = isMobile ? 28 : 12;
+            currentEndRow = Math.min(maxExpandRow, currentEndRow + 1);
           } else if (direction < 0.85) {
             // Expand diagonally (only expand column if under 3 column limit)
             if (currentColSpan < 3) {
-              currentEndCol = Math.min(NUM_COLUMNS, currentEndCol + 1);
+              currentEndCol = Math.min(numColumns, currentEndCol + 1);
             }
-            currentEndRow = Math.min(12, currentEndRow + 1);
+            const maxExpandRow = isMobile ? 28 : 12;
+            currentEndRow = Math.min(maxExpandRow, currentEndRow + 1);
           }
           // 15% chance to not expand (pause)
 
@@ -597,10 +666,41 @@ export function AnimatedGrid() {
       clearInterval(columnMorphInterval);
       clearInterval(selectionInterval);
     };
-  }, []);
+  }, [isMobile]);
+
+  // Handle screen resize: move cells to appropriate rows when switching mobile/desktop
+  useEffect(() => {
+    setMovingCells((prevCells) => {
+      return prevCells.map((cell) => {
+        if (isMobile && cell.row < 12) {
+          // Moving to mobile: push cells below row 12
+          return {
+            ...cell,
+            row: Math.max(12, cell.row + 12), // Push down by 12 rows minimum
+          };
+        } else if (!isMobile && cell.row > 15) {
+          // Moving to desktop: allow cells to move up to middle area
+          return {
+            ...cell,
+            row: Math.max(4, cell.row - 8), // Pull up by 8 rows
+          };
+        }
+        return cell;
+      });
+    });
+  }, [isMobile]);
+
+  // Update column widths when screen size changes
+  useEffect(() => {
+    setCurrentColumnWidths(
+      isMobile ? MOBILE_columnWidthsArray : DESKTOP_columnWidthsArray
+    );
+    // Clear selections when switching between mobile/desktop since they may be in wrong row ranges
+    setSelections([]);
+  }, [isMobile]);
 
   return (
-    <div className="absolute top-0 left-0 right-0 bottom-0">
+    <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden">
       {/* 2 left vertical lines - like spreadsheet margins */}
 
       {/* Vertical columns in main grid */}
@@ -608,7 +708,8 @@ export function AnimatedGrid() {
         className="grid h-full"
         animate={{
           gridTemplateColumns: createColumnWidths(
-            currentColumnWidths || COLUMN_WIDTHS_ARRAY
+            currentColumnWidths ||
+              (isMobile ? MOBILE_columnWidthsArray : DESKTOP_columnWidthsArray)
           ),
         }}
         transition={{
@@ -623,7 +724,7 @@ export function AnimatedGrid() {
           already provides the final edge line.
         */}
         {Array.from({
-          length: NUM_COLUMNS - 1, // Skip last column - container border handles final edge
+          length: numColumns - 1, // Skip last column - container border handles final edge
         }).map((_, i) => (
           <div key={i} className="border-r border-column-lines" />
         ))}
@@ -645,22 +746,22 @@ export function AnimatedGrid() {
               className="absolute overflow-hidden"
               style={{
                 position: "absolute",
-                height: `${ROW_HEIGHT}px`,
+                height: `${rowHeight}px`,
                 border: "1px solid var(--muted-foreground)",
                 zIndex: movingCellId === cell.id ? 10 : 1,
               }}
               initial={{ opacity: 0 }}
               animate={{
                 opacity: 1,
-                top: `${(cell.row - 1) * ROW_HEIGHT - (cell.row - 1)}px`, // Animate vertical position (subtract 1px per row for border overlap)
+                top: `${(cell.row - 1) * rowHeight - (cell.row - 1)}px`, // Animate vertical position (subtract 1px per row for border overlap)
                 left: `${getColumnPosition(
                   cell.colStart,
-                  currentColumnWidths || COLUMN_WIDTHS_ARRAY
+                  currentColumnWidths || columnWidthsArray
                 )}%`,
                 width: `${getColumnWidth(
                   cell.colStart,
                   cell.colEnd,
-                  currentColumnWidths || COLUMN_WIDTHS_ARRAY
+                  currentColumnWidths || columnWidthsArray
                 )}%`,
               }}
               transition={{
@@ -799,24 +900,24 @@ export function AnimatedGrid() {
           className="absolute pointer-events-none"
           style={{
             top: `${
-              (selection.startRow - 1) * ROW_HEIGHT - (selection.startRow - 1)
+              (selection.startRow - 1) * rowHeight - (selection.startRow - 1)
             }px`,
             left: `${getColumnPosition(
               selection.startCol,
-              currentColumnWidths || COLUMN_WIDTHS_ARRAY
+              currentColumnWidths || columnWidthsArray
             )}%`,
             width: `${
               getColumnPosition(
                 selection.endCol + 1,
-                currentColumnWidths || COLUMN_WIDTHS_ARRAY
+                currentColumnWidths || columnWidthsArray
               ) -
               getColumnPosition(
                 selection.startCol,
-                currentColumnWidths || COLUMN_WIDTHS_ARRAY
+                currentColumnWidths || columnWidthsArray
               )
             }%`,
             height: `${
-              (selection.endRow - selection.startRow + 1) * ROW_HEIGHT -
+              (selection.endRow - selection.startRow + 1) * rowHeight -
               (selection.endRow - selection.startRow)
             }px`,
             backgroundColor: "rgba(62, 207, 142, 0.08)", // Supabase green background

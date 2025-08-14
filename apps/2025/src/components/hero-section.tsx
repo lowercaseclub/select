@@ -6,7 +6,7 @@ import { ApplicationForm } from "./application-form";
 export function HeroSection() {
   return (
     <>
-      <section className="px-8 py-48">
+      <section className="px-8 pt-24 pb-[366px] md:py-48">
         <div className="flex flex-col gap-2">
           <p className="text-gray-400 text-3xl">Hosted with Y Combinator</p>
 

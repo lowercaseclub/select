@@ -23,11 +23,18 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@ui/components/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@ui/components/drawer";
 import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
 import {
@@ -39,6 +46,7 @@ import {
   FormMessage,
 } from "@ui/components/form";
 import { Alert, AlertDescription } from "@ui/components/alert";
+import { useMediaQuery } from "../hooks/use-media-query";
 
 const applicationSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -65,6 +73,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
@@ -175,65 +184,148 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">
-            Apply to attend Supabase Select
-          </DialogTitle>
-          <DialogDescription className="text-muted-foreground">
-            Because of space limitations, we must limit the number of attendees.
-            Please fill out as much information as you can, and be sure to use
-            the email address with which you have signed up for Supabase.
-          </DialogDescription>
-        </DialogHeader>
+  // Shared header content
+  const headerContent = {
+    title: "Apply to attend Supabase Select",
+    description:
+      "Because of space limitations, we must limit the number of attendees. Please fill out as much information as you can, and be sure to use the email address with which you have signed up for Supabase.",
+  };
 
-        {isSubmitted ? (
-          <div className="flex flex-col items-center gap-6 py-8">
-            <Alert>
-              <CheckCircleIcon className="h-4 w-4" />
-              <AlertDescription>
-                <div className="flex flex-col gap-2">
-                  <div className="font-medium text-lg">
-                    Application Submitted!
-                  </div>
-                  <p>
-                    Thank you for your submission. We will review all
-                    applications carefully and will inform you soon.
-                  </p>
+  // Shared form content component
+  const FormContent = () => (
+    <>
+      {isSubmitted ? (
+        <div className="flex flex-col items-center gap-6 py-8">
+          <Alert>
+            <CheckCircleIcon className="h-4 w-4" />
+            <AlertDescription>
+              <div className="flex flex-col gap-2">
+                <div className="font-medium text-lg">
+                  Application Submitted!
                 </div>
-              </AlertDescription>
+                <p>
+                  Thank you for your submission. We will review all applications
+                  carefully and will inform you soon.
+                </p>
+              </div>
+            </AlertDescription>
+          </Alert>
+          <Button onClick={handleCancel}>Close</Button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-6">
+          {submitError && (
+            <Alert variant="destructive">
+              <ExclamationTriangleIcon className="h-4 w-4" />
+              <AlertDescription>{submitError}</AlertDescription>
             </Alert>
-            <Button onClick={handleCancel}>Close</Button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-6">
-            {submitError && (
-              <Alert variant="destructive">
-                <ExclamationTriangleIcon className="h-4 w-4" />
-                <AlertDescription>{submitError}</AlertDescription>
-              </Alert>
-            )}
+          )}
 
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
-                <div className="grid grid-cols-2 gap-4">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name *</FormLabel>
+                      <FormControl>
+                        <div className="relative mt-1">
+                          <UserIcon className={iconClasses} />
+                          <Input
+                            placeholder="Enter your first name"
+                            className="pl-10"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name *</FormLabel>
+                      <FormControl>
+                        <div className="relative mt-1">
+                          <Input
+                            placeholder="Enter your last name"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address *</FormLabel>
+                    <FormControl>
+                      <div className="relative mt-1">
+                        <EnvelopeIcon className={iconClasses} />
+                        <Input
+                          type="email"
+                          placeholder="Enter your email address"
+                          className="pl-10"
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="company"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company Name</FormLabel>
+                    <FormControl>
+                      <div className="relative mt-1">
+                        <BuildingOfficeIcon className={iconClasses} />
+                        <Input
+                          placeholder="Enter your company name"
+                          className="pl-10"
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-foreground">
+                  Social Links
+                </h3>
+
+                <div className="space-y-3">
                   <FormField
                     control={form.control}
-                    name="firstName"
+                    name="linkedin"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First Name *</FormLabel>
+                        <FormLabel>LinkedIn</FormLabel>
                         <FormControl>
                           <div className="relative mt-1">
-                            <UserIcon className={iconClasses} />
+                            <LinkedInIcon className={iconClasses} />
                             <Input
-                              placeholder="Enter your first name"
+                              type="url"
+                              placeholder="https://linkedin.com/in/yourprofile"
                               className="pl-10"
                               {...field}
                             />
@@ -246,14 +338,39 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
 
                   <FormField
                     control={form.control}
-                    name="lastName"
+                    name="github"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last Name *</FormLabel>
+                        <FormLabel>GitHub</FormLabel>
                         <FormControl>
                           <div className="relative mt-1">
+                            <GitHubIcon className={iconClasses} />
                             <Input
-                              placeholder="Enter your last name"
+                              type="url"
+                              placeholder="https://github.com/yourusername"
+                              className="pl-10"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="twitter"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Twitter</FormLabel>
+                        <FormControl>
+                          <div className="relative mt-1">
+                            <TwitterIcon className={iconClasses} />
+                            <Input
+                              type="url"
+                              placeholder="https://twitter.com/yourusername"
+                              className="pl-10"
                               {...field}
                             />
                           </div>
@@ -263,125 +380,10 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                     )}
                   />
                 </div>
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email Address *</FormLabel>
-                      <FormControl>
-                        <div className="relative mt-1">
-                          <EnvelopeIcon className={iconClasses} />
-                          <Input
-                            type="email"
-                            placeholder="Enter your email address"
-                            className="pl-10"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="company"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Company Name</FormLabel>
-                      <FormControl>
-                        <div className="relative mt-1">
-                          <BuildingOfficeIcon className={iconClasses} />
-                          <Input
-                            placeholder="Enter your company name"
-                            className="pl-10"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-foreground">
-                    Social Links
-                  </h3>
-
-                  <div className="space-y-3">
-                    <FormField
-                      control={form.control}
-                      name="linkedin"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>LinkedIn</FormLabel>
-                          <FormControl>
-                            <div className="relative mt-1">
-                              <LinkedInIcon className={iconClasses} />
-                              <Input
-                                type="url"
-                                placeholder="https://linkedin.com/in/yourprofile"
-                                className="pl-10"
-                                {...field}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="github"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>GitHub</FormLabel>
-                          <FormControl>
-                            <div className="relative mt-1">
-                              <GitHubIcon className={iconClasses} />
-                              <Input
-                                type="url"
-                                placeholder="https://github.com/yourusername"
-                                className="pl-10"
-                                {...field}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="twitter"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Twitter</FormLabel>
-                          <FormControl>
-                            <div className="relative mt-1">
-                              <TwitterIcon className={iconClasses} />
-                              <Input
-                                type="url"
-                                placeholder="https://twitter.com/yourusername"
-                                className="pl-10"
-                                {...field}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <DialogFooter>
+              {!isSubmitted && (
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                   <Button
                     type="button"
                     variant="outline"
@@ -404,11 +406,49 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                       </>
                     )}
                   </Button>
-                </DialogFooter>
-              </form>
-            </Form>
+                </div>
+              )}
+            </form>
+          </Form>
+        </div>
+      )}
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={handleOpenChange}>
+        <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+        <DrawerContent className="px-4 pb-4">
+          <DrawerHeader>
+            <DrawerTitle className="text-2xl font-bold text-foreground">
+              {headerContent.title}
+            </DrawerTitle>
+            <DrawerDescription className="text-muted-foreground">
+              {headerContent.description}
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4">
+            <FormContent />
           </div>
-        )}
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-foreground">
+            {headerContent.title}
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            {headerContent.description}
+          </DialogDescription>
+        </DialogHeader>
+        <FormContent />
       </DialogContent>
     </Dialog>
   );
