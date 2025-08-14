@@ -215,6 +215,49 @@ export async function POST(request: NextRequest) {
 
     // 4. Save to Bizzabo (this is not possible, so skip for now)
 
+    // 5. Send transactional email to the applicant
+    if (customerioAppApiKey) {
+      try {
+        const emailRequest = {
+          transactional_message_id: 2,
+          to: sanitizedData.email,
+          identifiers: {
+            email: sanitizedData.email,
+          },
+          message_data: {
+            firstName: sanitizedData.firstName,
+            lastName: sanitizedData.lastName,
+            fullName: `${sanitizedData.firstName} ${sanitizedData.lastName}`,
+            company: sanitizedData.company || "Not specified",
+            linkedin: sanitizedData.linkedin || "Not provided",
+            github: sanitizedData.github || "Not provided",
+            twitter: sanitizedData.twitter || "Not provided",
+            applicationId: applicationId,
+            submittedAt: new Date().toISOString(),
+            customerRating: customerRating
+              ? {
+                  score: customerRating.score,
+                  tier: customerRating.tier,
+                  factors: customerRating.factors,
+                }
+              : null,
+          },
+        };
+
+        const emailResponse = await customerioAppClient.sendTransactionalEmail(
+          emailRequest
+        );
+        console.log("Transactional email sent successfully:", emailResponse);
+      } catch (error) {
+        console.error("Failed to send transactional email:", error);
+        // Don't fail the entire request if email sending fails
+      }
+    } else {
+      console.warn(
+        "Customer.io App API key not available, skipping transactional email"
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,
