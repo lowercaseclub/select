@@ -130,19 +130,14 @@ export async function SpeakersSection() {
                       {item.firstname} {item.lastname}
                     </h3>
                     {item.title && (
-                      <p className="text-accent-1-foreground">{item.title}</p>
-                    )}
-                    {item.company && (
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {item.company}
+                      <p className="text-accent-1-foreground">
+                        {item.title}{" "}
+                        <span className="text-foreground">
+                          {" "}
+                          - {item.company}
+                        </span>
                       </p>
                     )}
-                    {item.country && (
-                      <p className="text-xs text-muted-foreground mb-3">
-                        {item.country}
-                      </p>
-                    )}
-
                     {/* Social Links */}
                     {(item.linkedIn ||
                       item.twitterHandle ||
