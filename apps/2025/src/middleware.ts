@@ -24,7 +24,7 @@ function getClientIP(request: NextRequest): string {
   }
 
   // Fallback to connection remote address
-  return request.ip || "unknown";
+  return "unknown";
 }
 
 function isRateLimited(ip: string): boolean {

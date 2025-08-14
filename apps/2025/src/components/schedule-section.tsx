@@ -1,62 +1,12 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import {
-  fetchSchedule,
-  DisplayScheduleData,
-  DisplayScheduleEvent,
-} from "../lib/data-fetcher";
+import { getSchedule } from "../lib/bizzabo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/components/tabs";
 import { ColumnLine } from "./column-line";
 import { Separator } from "@ui/components/separator";
 
-export function ScheduleSection() {
-  const [scheduleData, setScheduleData] = useState<DisplayScheduleData | null>(
-    null
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export async function ScheduleSection() {
+  const scheduleData = await getSchedule();
 
-  useEffect(() => {
-    async function loadSchedule() {
-      try {
-        setIsLoading(true);
-        const data = await fetchSchedule();
-        setScheduleData(data);
-      } catch (err) {
-        setError("Failed to load schedule");
-        console.error("Error loading schedule:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadSchedule();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <section className="w-full">
-        <div className="relative mx-auto max-w-site">
-          <div className="border-l border-r px-8 py-16">
-            <ColumnLine />
-            <h2 className="text-3xl font-medium">Schedule</h2>
-          </div>
-        </div>
-        <div className="max-w-site mx-auto px-8 py-12">
-          <div className="space-y-4">
-            {[...Array(6)].map((_, index) => (
-              <div key={index} className="animate-pulse">
-                <div className="h-16 bg-muted rounded"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (error || !scheduleData) {
+  if (!scheduleData || scheduleData.events.length === 0) {
     return (
       <section className="w-full">
         <div className="relative mx-auto max-w-site">
@@ -66,9 +16,7 @@ export function ScheduleSection() {
           </div>
         </div>
         <div className="max-w-site mx-auto px-8 py-12 text-center">
-          <p className="text-muted-foreground">
-            Unable to load schedule at this time.
-          </p>
+          <p className="text-muted-foreground">No events scheduled yet.</p>
         </div>
       </section>
     );
@@ -89,7 +37,6 @@ export function ScheduleSection() {
           <h2 className="text-3xl font-medium">Schedule</h2>
         </div>
       </div>
-
       <Tabs defaultValue="main" className="w-full">
         <div className="max-w-site relative mx-auto">
           <ColumnLine />

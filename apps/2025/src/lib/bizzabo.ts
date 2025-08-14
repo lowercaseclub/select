@@ -12,12 +12,40 @@ export interface BizzaboSpeaker {
   };
 }
 
+export interface BizzaboScheduleEvent {
+  id: string;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  speakers?: string[];
+  stage?: string;
+  sessionType?: string;
+}
+
+export interface DisplayScheduleEvent {
+  id: string;
+  time: string;
+  title: string;
+  speakers: string;
+  stage: string;
+  description?: string;
+  sessionType?: string;
+}
+
+export interface BizzaboStage {
+  id: string;
+  name: string;
+  location: string;
+  active: boolean;
+}
+
 export interface BizzaboApiResponse<T> {
   data: T[];
-  meta: {
-    total: number;
+  pagination?: {
     page: number;
     limit: number;
+    total: number;
   };
 }
 
@@ -68,5 +96,58 @@ export async function getSpeakers(): Promise<BizzaboSpeaker[]> {
 
     // Gracefully return empty array in production
     return [];
+  }
+}
+
+export async function getStages(): Promise<BizzaboStage[]> {
+  try {
+    const response = await bizzaboFetch<BizzaboApiResponse<BizzaboStage>>(
+      "/stages"
+    );
+    return response.data || [];
+  } catch (error) {
+    console.error("Failed to fetch stages from Bizzabo:", error);
+
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        "Bizzabo API failed, returning empty stages array. Check your API credentials."
+      );
+    }
+
+    // Gracefully return empty array in production
+    return [];
+  }
+}
+
+export async function getSchedule(): Promise<{
+  stages: BizzaboStage[];
+  events: DisplayScheduleEvent[];
+}> {
+  try {
+    const res = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+      }/api/bizzabo/schedule`,
+      {
+        next: { revalidate: 300 },
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error(`Schedule API failed: ${res.status} ${res.statusText}`);
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Failed to fetch schedule:", error);
+
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        "Schedule API failed, returning empty schedule. Check your API setup."
+      );
+    }
+
+    // Gracefully return empty schedule
+    return { stages: [], events: [] };
   }
 }
