@@ -69,20 +69,22 @@ export async function SpeakersSection() {
                   />
                 )}
               </div>
-              <div className="space-y-2">
-                <h3 className="text-lg sm:text-xl font-medium leading-tight">
-                  {speaker.prefix && `${speaker.prefix} `}
-                  {speaker.firstname} {speaker.lastname}
-                </h3>
-                {speaker.title && (
-                  <p className="text-sm sm:text-base text-accent-1-foreground leading-snug">
-                    {speaker.title}{" "}
-                    <span className="text-foreground">
-                      {" "}
-                      - {speaker.company}
-                    </span>
-                  </p>
-                )}
+              <div className="flex flex-col gap-2">
+                <div>
+                  <h3 className="text-lg sm:text-xl font-medium leading-tight">
+                    {speaker.prefix && `${speaker.prefix} `}
+                    {speaker.firstname} {speaker.lastname}
+                  </h3>
+                  {speaker.title && (
+                    <p className="text-sm sm:text-base text-foreground leading-snug">
+                      {speaker.title}
+                      {""}
+                      <span className="text-light-foreground">
+                        , {speaker.company}
+                      </span>
+                    </p>
+                  )}
+                </div>
                 {/* Social Links */}
                 {(speaker.linkedIn ||
                   speaker.twitterHandle ||

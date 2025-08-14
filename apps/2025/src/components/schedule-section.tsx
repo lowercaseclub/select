@@ -17,8 +17,8 @@ export function ScheduleSection() {
       <Tabs defaultValue="main" className="w-full">
         <div className="max-w-site relative mx-auto">
           <ColumnLine />
-          <div className="max-w-site mx-auto px-8 border-l border-r">
-            <TabsList className="bg-transparent h-auto p-0 rounded-none">
+          <div className="max-w-site mx-auto px-8 border-l border-r overflow-hidden">
+            <TabsList className="bg-transparent h-auto p-0 rounded-none w-full justify-start">
               <ScheduleTabTrigger
                 value="main"
                 stageName="Main Stage"

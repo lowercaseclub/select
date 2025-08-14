@@ -29,7 +29,7 @@ export function AnnouncingSoonTile() {
         </svg>
         {/* Overlay text */}
         <div className="relative z-10 text-center">
-          <div className="bg-black/50 px-3 py-1 rounded text-white text-xs font-medium tracking-wider">
+          <div className="bg-black/30 px-3 py-1 rounded text-white text-xs font-medium tracking-wider">
             ANNOUNCEMENT SOON
           </div>
         </div>

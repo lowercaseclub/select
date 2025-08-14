@@ -8,8 +8,8 @@
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.027 0 0);
-  --accent-1-foreground: oklch(0.547 0.134 109.2);
-  --accent-2-foreground: oklch(0.786 0.124 166.83);
+  --accent-1-foreground: oklch(0.786 0.124 166.83);
+  --accent-2-foreground: oklch(0.547 0.134 109.2);
   --accent-3-foreground: oklch(0.577 0.114 131.42);
   --accent-4-foreground: oklch(0.482 0.055 137.45);
   --column-lines: oklch(0.922 0 0);
@@ -53,8 +53,8 @@
 .dark {
   --background: oklch(0 0 0);
   --foreground: oklch(1 0 0);
-  --accent-1-foreground: oklch(0.941 0.184 108.42);
-  --accent-2-foreground: oklch(0.786 0.124 166.83);
+  --accent-1-foreground: oklch(0.786 0.124 166.83);
+  --accent-2-foreground: oklch(0.941 0.184 108.42);
   --accent-3-foreground: oklch(0.242 0.074 110.85);
   --accent-4-foreground: oklch(0.921 0.048 81.78);
   --column-lines: oklch(0.2749 0.003 17.34);
@@ -137,15 +137,22 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --max-width-site: var(--site-max-width);
-  
+
   /* Font families */
-  --font-family-sans: var(--font-suisse-intl), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-family-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-family-sans: var(--font-suisse-intl), ui-sans-serif, system-ui,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji";
+  --font-family-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular,
+    "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  html {
+    font-size: 14px; /* Base font size - can adjust for different screen sizes */
   }
   body {
     @apply bg-background text-foreground font-sans;

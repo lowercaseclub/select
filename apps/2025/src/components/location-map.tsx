@@ -2,7 +2,7 @@
 
 export function LocationMap() {
   return (
-    <div className="aspect-square bg-background overflow-hidden">
+    <div className="h-64 sm:h-80 lg:h-full bg-background overflow-hidden">
       <iframe
         src="https://maps.google.com/maps?q=580%2020th%20Street,%20San%20Francisco,%20CA%2094107&t=&z=17&ie=UTF8&iwloc=&output=embed"
         width="100%"

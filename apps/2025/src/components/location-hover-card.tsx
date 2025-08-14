@@ -55,7 +55,7 @@ export function LocationHoverCard({
             )}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-[#ebf22d] hover:underline text-sm"
+            className="inline-flex items-center gap-2 text-accent-1-foreground hover:underline text-sm"
           >
             Get Directions →
           </a>

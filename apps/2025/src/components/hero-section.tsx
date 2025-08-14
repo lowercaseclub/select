@@ -21,14 +21,14 @@ export function HeroSection() {
             </address>
           </div>
 
-          <p className="text-[#ebf22d] text-3xl  mb-12">
+          <p className="text-accent-1-foreground text-3xl  mb-12">
             Livestreamed at 10am PT
           </p>
           <div>
             <ApplicationForm
               trigger={
                 <CrosshairButton
-                  className="bg-[rgba(235,242,45,0.33)] border border-dashed border-[#ebf22d]/50 text-base font-medium hover:bg-[rgba(235,242,45,0.5)] transition-colors rounded-none text-white"
+                  className="bg-[rgba(235,242,45,0.10)] border border-dashed border-[#ebf22d]/50 text-base font-medium hover:bg-[rgba(235,242,45,0.5)] transition-colors rounded-none text-white"
                   crosshairColor="#ebf22d"
                   crosshairSize={4}
                 >
