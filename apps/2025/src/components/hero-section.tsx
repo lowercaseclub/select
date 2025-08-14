@@ -1,12 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@repo/ui/src/components/button";
-import { RequestTicketModal } from "./request-ticket-modal";
+import { ApplicationForm } from "./application-form";
 
 export function HeroSection() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
     <>
       <section className="px-8 py-48">
@@ -28,17 +25,16 @@ export function HeroSection() {
             Livestreamed at 10am PT
           </p>
           <div>
-            <Button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-[rgba(235,242,45,0.33)] border-2 border-dashed border-[#ebf22d] px-8 py-4 text-xl font-medium hover:bg-[rgba(235,242,45,0.5)] transition-colors rounded-none"
-            >
-              Request Tickets
-            </Button>
+            <ApplicationForm
+              trigger={
+                <Button className="bg-[rgba(235,242,45,0.33)] border-2 border-dashed border-[#ebf22d] px-8 py-4 text-xl font-medium hover:bg-[rgba(235,242,45,0.5)] transition-colors rounded-none">
+                  Apply Now
+                </Button>
+              }
+            />
           </div>
         </div>
       </section>
-
-      <RequestTicketModal open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
   );
 }
