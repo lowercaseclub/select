@@ -1,18 +1,18 @@
 "use client";
 
-import { AnimatedGrid } from "./animated-grid";
+import { LocationMap } from "./location-map";
 
 export function AboutSection() {
   return (
     <section className="flex border-b">
       {/* Left content block with its own padding */}
-      <div className="w-[45%] px-8 py-24">
+      <div className="w-[50%] px-8 py-24">
         <h2 className="text-3xl font-medium mb-8">About Supabase Select</h2>
         <div className="space-y-6 text-lg">
           <p>
             Supabase Select is our first user conference, built for everyone
-            building with Supabase—from weekend hackers to production-scale teams.
-            If you're shipping software, this event is for you.
+            building with Supabase—from weekend hackers to production-scale
+            teams. If you're shipping software, this event is for you.
           </p>
           <p>
             Select is about giving builders the tools, knowledge, and confidence
@@ -25,6 +25,21 @@ export function AboutSection() {
             scale, you'll leave with practical insights, better workflows, and a
             stronger connection to the global builder community.
           </p>
+          <p className="text-muted-foreground">
+            The venue is easily accessible by public transit and rideshare.
+            Street parking is limited, so we recommend using public
+            transportation or rideshare services.
+          </p>
+          <div className="mt-4">
+            <a
+              href="https://www.google.com/maps/dir/?api=1&destination=Y%20Combinator%2C%20580%2020th%20St%2C%20San%20Francisco%2C%20CA%2094107"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-[#ebf22d] hover:underline"
+            >
+              Get Directions →
+            </a>
+          </div>
         </div>
       </div>
 
@@ -32,26 +47,8 @@ export function AboutSection() {
       <div className="w-px bg-column-lines"></div>
 
       {/* Right content block with its own padding */}
-      <div className="w-[55%] px-8 py-24">
-        <h3 className="text-2xl font-medium mb-8">Event Layout</h3>
-        <div className="relative aspect-square border border-column-lines bg-background">
-          {/* Container for the isometric grid view */}
-          <div className="absolute inset-4">
-            <AnimatedGrid />
-          </div>
-
-          {/* Legend/Labels */}
-          <div className="absolute bottom-4 left-4 space-y-2 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border border-muted-foreground bg-background"></div>
-              <span>Event Areas</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-1 bg-column-lines"></div>
-              <span>Pathways</span>
-            </div>
-          </div>
-        </div>
+      <div className="w-[50%]">
+        <LocationMap />
       </div>
     </section>
   );

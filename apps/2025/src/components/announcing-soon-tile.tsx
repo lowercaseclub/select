@@ -1,7 +1,7 @@
 export function AnnouncingSoonTile() {
   return (
     <>
-      <div className="aspect-square bg-muted border border-column-lines relative flex items-center justify-center overflow-hidden">
+      <div className="aspect-square bg-muted/30 relative flex items-center justify-center overflow-hidden">
         {/* 1px X pattern */}
         <svg
           className="absolute inset-0 w-full h-full opacity-20"

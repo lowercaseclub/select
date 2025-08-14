@@ -190,9 +190,6 @@ export function AnimatedGrid() {
                   );
 
                   if (!wouldOverlap(testCell, otherCells)) {
-                    console.log(
-                      `Vertical move: ${currentCell.id} from row ${currentCell.row} to ${newRow}, cols unchanged`
-                    );
                     setMovingCellId(currentCell.id);
                     setTimeout(() => setMovingCellId(null), 800); // Clear highlight after animation
                     return prevCells.map((c, i) =>
@@ -217,9 +214,6 @@ export function AnimatedGrid() {
                 const otherCells = prevCells.filter((_, i) => i !== cellIndex);
 
                 if (!wouldOverlap(testCell, otherCells)) {
-                  console.log(
-                    `Horizontal move: ${currentCell.id} from cols ${currentCell.colStart}-${currentCell.colEnd} to ${newColStart}-${newColEnd}, row unchanged`
-                  );
                   setMovingCellId(currentCell.id);
                   setTimeout(() => setMovingCellId(null), 400); // Clear highlight after animation
                   return prevCells.map((c, i) =>
@@ -496,12 +490,6 @@ export function AnimatedGrid() {
             }
           }
           newWidths[largestIndex] += adjustment;
-
-          console.log(
-            `Column ${columnIndex} ${action}: ${currentWidth.toFixed(
-              1
-            )}% → ${targetWidth.toFixed(1)}%`
-          );
 
           return newWidths;
         });
