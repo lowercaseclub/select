@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AboutSection } from "../components/about-section";
 import { AnimatedGrid } from "../components/animated-grid";
 import { ColumnLine } from "../components/column-line";
@@ -6,6 +7,7 @@ import { Header } from "../components/header";
 import { HeroSection } from "../components/hero-section";
 import { ScheduleSection } from "../components/schedule-section";
 import { SpeakersSection } from "../components/speakers-section";
+import { SpeakersLoading } from "../components/speakers-loading";
 
 export default function HomePage() {
   return (
@@ -25,7 +27,9 @@ export default function HomePage() {
           </div>
         </div>
         <AboutSection />
-        <SpeakersSection />
+        <Suspense fallback={<SpeakersLoading />}>
+          <SpeakersSection />
+        </Suspense>
       </div>
       <ScheduleSection />
       <Footer />
