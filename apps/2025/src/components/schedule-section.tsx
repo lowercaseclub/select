@@ -1,16 +1,127 @@
 "use client";
 
-import scheduleData from "../data/schedule.json";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/components/tabs";
 import { ColumnLine } from "./column-line";
 import { Separator } from "@ui/components/separator";
+import { getSessions, getSpeakers } from "../lib/bizzabo-api";
+import {
+  transformSessionToEvent,
+  sortEventsByTime,
+} from "../lib/bizzabo-transformers";
+import {
+  BizzaboSession,
+  BizzaboSpeaker,
+  ScheduleData,
+} from "../types/bizzabo.types";
+import { useEffect, useState } from "react";
 
 export function ScheduleSection() {
+  const [scheduleData, setScheduleData] = useState<ScheduleData>({
+    stages: [],
+    events: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchScheduleData() {
+      try {
+        // Fetch sessions and speakers from Bizzabo
+        let sessions: BizzaboSession[] = [];
+        let speakers: BizzaboSpeaker[] = [];
+
+        try {
+          const [sessionsResponse, speakersResponse] = await Promise.all([
+            getSessions(),
+            getSpeakers(),
+          ]);
+
+          sessions = sessionsResponse || [];
+          speakers = speakersResponse || [];
+          console.log("Sessions data:", JSON.stringify(sessions, null, 2));
+          console.log(
+            "Speakers data for schedule:",
+            JSON.stringify(speakers, null, 2)
+          );
+        } catch (error) {
+          console.error("Failed to fetch data from Bizzabo:", error);
+          sessions = [];
+          speakers = [];
+        }
+
+        // Use hardcoded stages since we don't fetch them from Bizzabo
+        const stages = [
+          {
+            id: 1,
+            name: "Main Stage",
+            location: "Union Iron Works",
+            isActive: true,
+          },
+          { id: 2, name: "Build Stage", location: "520 YC", isActive: true },
+        ];
+
+        // Transform sessions using utility functions
+        const transformedEvents = sortEventsByTime(
+          sessions.map((session) => transformSessionToEvent(session, speakers))
+        );
+
+        // Transform stages to match our component's expected format
+        const transformedStages = stages.map((stage) => ({
+          name: stage.name,
+          location: stage.location,
+          active: stage.isActive,
+        }));
+
+        setScheduleData({
+          stages: transformedStages,
+          events: transformedEvents,
+        });
+      } catch (error) {
+        console.error("Error fetching schedule from Bizzabo:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchScheduleData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <section className="w-full">
+        <div className="relative mx-auto max-w-site">
+          <div className="border-l border-r px-8 py-16">
+            <ColumnLine />
+            <h2 className="text-3xl font-medium">Schedule</h2>
+          </div>
+        </div>
+        <div className="max-w-site mx-auto px-8 py-12 text-center">
+          <p className="text-muted-foreground">Loading schedule...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (!scheduleData || scheduleData.events.length === 0) {
+    return (
+      <section className="w-full">
+        <div className="relative mx-auto max-w-site">
+          <div className="border-l border-r px-8 py-16">
+            <ColumnLine />
+            <h2 className="text-3xl font-medium">Schedule</h2>
+          </div>
+        </div>
+        <div className="max-w-site mx-auto px-8 py-12 text-center">
+          <p className="text-muted-foreground">No events scheduled yet.</p>
+        </div>
+      </section>
+    );
+  }
+
   const mainEvents = scheduleData.events.filter(
-    (event) => event.stage === "main"
+    (event) => event.stage === "main-stage" || event.stage === "main"
   );
   const buildEvents = scheduleData.events.filter(
-    (event) => event.stage === "build"
+    (event) => event.stage === "build-stage" || event.stage === "build"
   );
 
   return (
@@ -21,7 +132,6 @@ export function ScheduleSection() {
           <h2 className="text-3xl font-medium">Schedule</h2>
         </div>
       </div>
-
       <Tabs defaultValue="main" className="w-full">
         <div className="max-w-site relative mx-auto">
           <ColumnLine />
@@ -62,9 +172,9 @@ export function ScheduleSection() {
             </div>
 
             {/* Events */}
-            {mainEvents.map((event, index) => (
+            {mainEvents.map((event) => (
               <div
-                key={index}
+                key={event.id}
                 className="py-6 border-b border-column-lines hover:bg-muted/20 transition-colors"
               >
                 <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
@@ -73,6 +183,11 @@ export function ScheduleSection() {
                   </div>
                   <div className="col-span-5">
                     <h3 className="font-medium text-lg">{event.title}</h3>
+                    {event.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {event.description}
+                      </p>
+                    )}
                   </div>
                   <div className="col-span-4 text-muted-foreground">
                     {event.speakers}
@@ -95,9 +210,9 @@ export function ScheduleSection() {
             </div>
 
             {/* Events */}
-            {buildEvents.map((event, index) => (
+            {buildEvents.map((event) => (
               <div
-                key={index}
+                key={event.id}
                 className="py-6 border-b border-column-lines hover:bg-muted/20 transition-colors"
               >
                 <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
@@ -106,6 +221,11 @@ export function ScheduleSection() {
                   </div>
                   <div className="col-span-5">
                     <h3 className="font-medium text-lg">{event.title}</h3>
+                    {event.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {event.description}
+                      </p>
+                    )}
                   </div>
                   <div className="col-span-4 text-muted-foreground">
                     {event.speakers}

@@ -1,0 +1,415 @@
+"use client";
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  UserIcon,
+  EnvelopeIcon,
+  BuildingOfficeIcon,
+  PaperAirplaneIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
+
+// Social media icons (using solid versions for better visibility)
+import {
+  UserIcon as LinkedInIcon,
+  CodeBracketIcon as GitHubIcon,
+  ChatBubbleLeftRightIcon as TwitterIcon,
+} from "@heroicons/react/24/solid";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@ui/components/dialog";
+import { Button } from "@ui/components/button";
+import { Input } from "@ui/components/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@ui/components/form";
+import { Alert, AlertDescription } from "@ui/components/alert";
+
+const applicationSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Please enter a valid email address"),
+  company: z.string().optional(),
+  linkedin: z.string().optional(),
+  github: z.string().optional(),
+  twitter: z.string().optional(),
+});
+
+type ApplicationFormData = z.infer<typeof applicationSchema>;
+
+interface ApplicationFormProps {
+  trigger: React.ReactNode;
+}
+
+const iconClasses =
+  "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground";
+
+export function ApplicationForm({ trigger }: ApplicationFormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+
+  const form = useForm<ApplicationFormData>({
+    resolver: zodResolver(applicationSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      company: "",
+      linkedin: "",
+      github: "",
+      twitter: "",
+    },
+    mode: "onTouched",
+    reValidateMode: "onChange",
+  });
+
+  // Fetch CSRF token when dialog opens
+  const fetchCSRFToken = async () => {
+    try {
+      console.log("Fetching CSRF token...");
+      const response = await fetch("/api/csrf");
+      console.log("CSRF response status:", response.status);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("CSRF token received:", data.token ? "Yes" : "No");
+        setCsrfToken(data.token);
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to fetch CSRF token:", errorData);
+      }
+    } catch (error) {
+      console.error("Error fetching CSRF token:", error);
+    }
+  };
+
+  const onSubmit = async (data: ApplicationFormData) => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      // Validate URLs if provided
+      const urlFields = ["linkedin", "github", "twitter"] as const;
+      for (const field of urlFields) {
+        if (data[field] && data[field]!.trim() !== "") {
+          try {
+            new URL(data[field]!);
+          } catch {
+            throw new Error(`Invalid ${field} URL`);
+          }
+        }
+      }
+
+      // Check if we have a CSRF token
+      if (!csrfToken) {
+        throw new Error("CSRF token not available. Please try again.");
+      }
+
+      // Submit to API
+      const response = await fetch("/api/apply", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to submit application");
+      }
+
+      // Show success state
+      setIsSubmitted(true);
+      form.reset();
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Error submitting application. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsOpen(false);
+    form.reset();
+    setIsSubmitted(false);
+    setSubmitError(null);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (open) {
+      // Fetch CSRF token when dialog opens
+      fetchCSRFToken();
+      setIsSubmitted(false);
+      setSubmitError(null);
+    } else {
+      // Clear CSRF token when dialog closes
+      setCsrfToken(null);
+      setIsSubmitted(false);
+      setSubmitError(null);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-foreground">
+            Apply to attend Supabase Select
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            Because of space limitations, we must limit the number of attendees.
+            Please fill out as much information as you can, and be sure to use
+            the email address with which you have signed up for Supabase.
+          </DialogDescription>
+        </DialogHeader>
+
+        {isSubmitted ? (
+          <div className="flex flex-col items-center gap-6 py-8">
+            <Alert>
+              <CheckCircleIcon className="h-4 w-4" />
+              <AlertDescription>
+                <div className="flex flex-col gap-2">
+                  <div className="font-medium text-lg">
+                    Application Submitted!
+                  </div>
+                  <p>
+                    Thank you for your submission. We will review all
+                    applications carefully and will inform you soon.
+                  </p>
+                </div>
+              </AlertDescription>
+            </Alert>
+            <Button onClick={handleCancel}>Close</Button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-6">
+            {submitError && (
+              <Alert variant="destructive">
+                <ExclamationTriangleIcon className="h-4 w-4" />
+                <AlertDescription>{submitError}</AlertDescription>
+              </Alert>
+            )}
+
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name *</FormLabel>
+                        <FormControl>
+                          <div className="relative mt-1">
+                            <UserIcon className={iconClasses} />
+                            <Input
+                              placeholder="Enter your first name"
+                              className="pl-10"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name *</FormLabel>
+                        <FormControl>
+                          <div className="relative mt-1">
+                            <Input
+                              placeholder="Enter your last name"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address *</FormLabel>
+                      <FormControl>
+                        <div className="relative mt-1">
+                          <EnvelopeIcon className={iconClasses} />
+                          <Input
+                            type="email"
+                            placeholder="Enter your email address"
+                            className="pl-10"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="company"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Name</FormLabel>
+                      <FormControl>
+                        <div className="relative mt-1">
+                          <BuildingOfficeIcon className={iconClasses} />
+                          <Input
+                            placeholder="Enter your company name"
+                            className="pl-10"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-foreground">
+                    Social Links
+                  </h3>
+
+                  <div className="space-y-3">
+                    <FormField
+                      control={form.control}
+                      name="linkedin"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>LinkedIn</FormLabel>
+                          <FormControl>
+                            <div className="relative mt-1">
+                              <LinkedInIcon className={iconClasses} />
+                              <Input
+                                type="url"
+                                placeholder="https://linkedin.com/in/yourprofile"
+                                className="pl-10"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="github"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>GitHub</FormLabel>
+                          <FormControl>
+                            <div className="relative mt-1">
+                              <GitHubIcon className={iconClasses} />
+                              <Input
+                                type="url"
+                                placeholder="https://github.com/yourusername"
+                                className="pl-10"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="twitter"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Twitter</FormLabel>
+                          <FormControl>
+                            <div className="relative mt-1">
+                              <TwitterIcon className={iconClasses} />
+                              <Input
+                                type="url"
+                                placeholder="https://twitter.com/yourusername"
+                                className="pl-10"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancel}
+                    disabled={isSubmitting}
+                    className="border-border text-foreground hover:bg-muted"
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <PaperAirplaneIcon className="h-4 w-4 mr-2" />
+                        Submit Application
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}

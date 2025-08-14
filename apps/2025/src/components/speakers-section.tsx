@@ -1,9 +1,26 @@
 import Image from "next/image";
 import { UsersIcon } from "@heroicons/react/24/outline";
-import { getSpeakers } from "../lib/bizzabo";
+import { LinkIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
+import { getSpeakers } from "../lib/bizzabo-api";
+import { BizzaboSpeaker } from "../types/bizzabo.types";
+import { AnnouncingSoonTile } from "./announcing-soon-tile";
 
 export async function SpeakersSection() {
-  const speakers = await getSpeakers();
+  let speakers: BizzaboSpeaker[] = [];
+
+  try {
+    speakers = await getSpeakers();
+    console.log("Speakers data:", JSON.stringify(speakers, null, 2));
+  } catch (error) {
+    console.error("Error fetching speakers from Bizzabo:", error);
+    speakers = [];
+  }
+
+  // Add placeholder "Announcing Soon" tiles based on env var
+  const announcingSoonCount = parseInt(
+    process.env.ANNOUNCING_SOON_SPEAKERS || "0",
+    10
+  );
 
   return (
     <section className="px-8 py-24">
@@ -15,7 +32,15 @@ export async function SpeakersSection() {
         </p>
       </div>
 
-      {speakers.length === 0 ? (
+      {(speakers.length === 0 && announcingSoonCount === 0) ||
+      (speakers.length > 0 &&
+        speakers.every(
+          (speaker) =>
+            !speaker.firstname &&
+            !speaker.lastname &&
+            !speaker.bio &&
+            !speaker.title
+        )) ? (
         <div className="text-center py-16">
           <div className="mb-4">
             <div className="w-16 h-16 bg-muted border border-column-lines rounded-lg mx-auto mb-4 flex items-center justify-center">
@@ -33,29 +58,100 @@ export async function SpeakersSection() {
           {speakers.map((speaker) => (
             <div key={speaker.id} className="space-y-4">
               <div className="aspect-square bg-muted border border-column-lines relative">
-                {speaker.profilePicture && (
+                {speaker.photoSet?.large && (
                   <Image
-                    src={speaker.profilePicture}
-                    alt={speaker.name}
+                    src={speaker.photoSet.large}
+                    alt={`${speaker.firstname} ${speaker.lastname}`}
                     fill
                     className="object-cover"
                   />
                 )}
               </div>
               <div>
-                <h3 className="text-xl font-medium">{speaker.name}</h3>
+                <h3 className="text-xl font-medium">
+                  {speaker.prefix && `${speaker.prefix} `}
+                  {speaker.firstname} {speaker.lastname}
+                </h3>
                 {speaker.title && (
-                  <p className="text-accent-1-foreground">{speaker.title}</p>
-                )}
-                {speaker.company && (
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {speaker.company}
+                  <p className="text-accent-1-foreground">
+                    {speaker.title}{" "}
+                    <span className="text-foreground">
+                      {" "}
+                      - {speaker.company}
+                    </span>
                   </p>
                 )}
+                {/* Social Links */}
+                {(speaker.linkedIn ||
+                  speaker.twitterHandle ||
+                  speaker.web ||
+                  speaker.blog) && (
+                  <div className="flex gap-2 mb-3">
+                    {speaker.linkedIn && (
+                      <a
+                        href={speaker.linkedIn}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                        title="LinkedIn"
+                      >
+                        <LinkIcon className="w-4 h-4" />
+                      </a>
+                    )}
+                    {speaker.twitterHandle && (
+                      <a
+                        href={`https://twitter.com/${speaker.twitterHandle.replace(
+                          "@",
+                          ""
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                        title="Twitter"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                        </svg>
+                      </a>
+                    )}
+                    {speaker.web && (
+                      <a
+                        href={speaker.web}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                        title="Website"
+                      >
+                        <GlobeAltIcon className="w-4 h-4" />
+                      </a>
+                    )}
+                    {speaker.blog && (
+                      <a
+                        href={speaker.blog}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                        title="Blog"
+                      >
+                        <LinkIcon className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                )}
+
                 {speaker.bio && (
                   <p className="text-sm leading-relaxed">{speaker.bio}</p>
                 )}
               </div>
+            </div>
+          ))}
+          {Array.from({ length: announcingSoonCount }, (_, index) => (
+            <div key={`announcing-soon-${index}`} className="space-y-4">
+              <AnnouncingSoonTile />
             </div>
           ))}
         </div>

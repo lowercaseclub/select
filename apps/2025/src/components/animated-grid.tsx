@@ -15,8 +15,8 @@ function createColumnWidths(widths: readonly number[]): string {
 
 // Grid configuration
 const ROW_HEIGHT = 38; // px
-const COLUMN_WIDTHS_ARRAY = [30, 15, 8, 22, 5, 5, 10, 5];
-const COLUMN_WIDTHS = createColumnWidths(COLUMN_WIDTHS_ARRAY);
+const COLUMN_WIDTHS_ARRAY: number[] = [30, 15, 8, 22, 5, 5, 10, 5];
+// const COLUMN_WIDTHS = createColumnWidths(COLUMN_WIDTHS_ARRAY);
 const NUM_COLUMNS = COLUMN_WIDTHS_ARRAY.length;
 
 // Animation configuration
@@ -25,7 +25,7 @@ const ENABLE_COLOR_ANIMATIONS = true; // Toggle to easily disable color swipes
 // Calculate cumulative column positions for proper cell positioning
 const getColumnPosition = (
   colIndex: number,
-  columnWidths: readonly number[] = COLUMN_WIDTHS_ARRAY
+  columnWidths: number[] = COLUMN_WIDTHS_ARRAY
 ): number => {
   if (!columnWidths || columnWidths.length === 0) return 0;
   const basePosition = columnWidths
@@ -37,7 +37,7 @@ const getColumnPosition = (
 const getColumnWidth = (
   colStart: number,
   colEnd: number,
-  columnWidths: readonly number[] = COLUMN_WIDTHS_ARRAY
+  columnWidths: number[] = COLUMN_WIDTHS_ARRAY
 ): number => {
   if (!columnWidths || columnWidths.length === 0) return 10;
   const baseWidth = columnWidths
@@ -245,7 +245,7 @@ export function AnimatedGrid() {
     });
 
     // Dynamic cell addition/removal (currently disabled)
-    let cellCounter = animatedCells.length;
+    // const cellCounter = animatedCells.length;
     const addRemoveInterval = setInterval(() => {
       // Both cell addition and removal are disabled
       // Keeping the interval structure for potential future use
@@ -374,7 +374,7 @@ export function AnimatedGrid() {
           );
 
           // Distribute remaining space proportionally among other columns
-          let distributedIndex = 0;
+          // const distributedIndex = 0;
           for (let i = 0; i < newWidths.length; i++) {
             if (i !== columnIndex) {
               const originalProportion = prevWidths[i] / otherColumnsTotal;
@@ -503,7 +503,7 @@ export function AnimatedGrid() {
             )}% → ${targetWidth.toFixed(1)}%`
           );
 
-          return newWidths as typeof COLUMN_WIDTHS_ARRAY;
+          return newWidths;
         });
 
         // Resume cell movement after column change
