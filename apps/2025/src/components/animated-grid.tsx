@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMediaQuery } from "../hooks/use-media-query";
 
@@ -17,7 +17,7 @@ function createColumnWidths(widths: readonly number[]): string {
 // Grid configuration - responsive
 const DESKTOP_rowHeight = 38; // px
 const MOBILE_rowHeight = 28; // px - smaller for mobile
-const XL_rowHeight = 42; // px - slightly larger for extra large screens
+// const _XL_rowHeight = 42; // px - slightly larger for extra large screens (unused)
 const DESKTOP_columnWidthsArray: number[] = [30, 15, 8, 22, 5, 5, 10, 5];
 const MOBILE_columnWidthsArray: number[] = [25, 25, 25, 25]; // Equal columns spanning full width
 const DESKTOP_numColumns = DESKTOP_columnWidthsArray.length;
@@ -61,7 +61,7 @@ interface GridCell {
 export function AnimatedGrid() {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isXL = useMediaQuery("(min-width: 1280px)");
-  const [isInitialRender, setIsInitialRender] = useState(true);
+  const [, setIsInitialRender] = useState(true);
 
   const [movingCells, setMovingCells] = useState<GridCell[]>([]);
   const selectionsRef = useRef<
@@ -111,11 +111,14 @@ export function AnimatedGrid() {
   };
 
   // Helper function to check if a cell position would cause overlap
-  const wouldOverlap = (testCell: GridCell, otherCells: GridCell[]) => {
-    return otherCells.some(
-      (other) => other.id !== testCell.id && cellsOverlap(testCell, other)
-    );
-  };
+  const wouldOverlap = useCallback(
+    (testCell: GridCell, otherCells: GridCell[]) => {
+      return otherCells.some(
+        (other) => other.id !== testCell.id && cellsOverlap(testCell, other)
+      );
+    },
+    []
+  );
 
   // Helper function to check if a cell is within any selection
   const isCellInSelection = (cell: GridCell) => {
@@ -144,41 +147,41 @@ export function AnimatedGrid() {
     // Generate initial cells - different patterns for mobile vs desktop vs XL
     const animatedCells: GridCell[] = isMobile
       ? [
-          // Mobile: cells start much lower (15+) to stay well below text
-          { id: "cell-1", row: 15, colStart: 2, colEnd: 2, delay: 80 },
-          { id: "cell-2", row: 18, colStart: 2, colEnd: 3, delay: 220 },
-          { id: "cell-3", row: 21, colStart: 3, colEnd: 3, delay: 150 },
-          { id: "cell-4", row: 24, colStart: 2, colEnd: 2, delay: 350 },
-          { id: "cell-5", row: 27, colStart: 4, colEnd: 4, delay: 290 },
-          { id: "cell-6", row: 16, colStart: 1, colEnd: 1, delay: 400 },
-          { id: "cell-7", row: 20, colStart: 4, colEnd: 4, delay: 180 },
-          { id: "cell-8", row: 23, colStart: 1, colEnd: 1, delay: 600 },
-          { id: "cell-9", row: 19, colStart: 3, colEnd: 4, delay: 450 },
+          // Mobile: cells scattered across all columns
+          { id: "cell-1", row: 16, colStart: 1, colEnd: 2, delay: 80 },
+          { id: "cell-2", row: 22, colStart: 3, colEnd: 4, delay: 220 },
+          { id: "cell-3", row: 18, colStart: 2, colEnd: 2, delay: 150 },
+          { id: "cell-4", row: 25, colStart: 4, colEnd: 4, delay: 350 },
+          { id: "cell-5", row: 20, colStart: 1, colEnd: 1, delay: 290 },
+          { id: "cell-6", row: 28, colStart: 2, colEnd: 3, delay: 400 },
+          { id: "cell-7", row: 17, colStart: 4, colEnd: 4, delay: 180 },
+          { id: "cell-8", row: 24, colStart: 3, colEnd: 3, delay: 600 },
+          { id: "cell-9", row: 21, colStart: 1, colEnd: 2, delay: 450 },
         ]
       : isXL
       ? [
-          // XL desktop: cells start lower to accommodate bigger hero
-          { id: "cell-1", row: 8, colStart: 4, colEnd: 4, delay: 80 },
-          { id: "cell-2", row: 9, colStart: 4, colEnd: 6, delay: 220 },
-          { id: "cell-3", row: 10, colStart: 4, colEnd: 4, delay: 150 },
-          { id: "cell-4", row: 11, colStart: 4, colEnd: 5, delay: 350 },
-          { id: "cell-5", row: 12, colStart: 4, colEnd: 4, delay: 290 },
-          { id: "cell-6", row: 13, colStart: 4, colEnd: 4, delay: 450 },
-          { id: "cell-7", row: 14, colStart: 4, colEnd: 4, delay: 600 },
-          { id: "cell-8", row: 15, colStart: 4, colEnd: 4, delay: 180 },
-          { id: "cell-9", row: 16, colStart: 4, colEnd: 4, delay: 400 },
+          // XL desktop: cells scattered across more columns
+          { id: "cell-1", row: 9, colStart: 2, colEnd: 3, delay: 80 },
+          { id: "cell-2", row: 12, colStart: 5, colEnd: 6, delay: 220 },
+          { id: "cell-3", row: 8, colStart: 7, colEnd: 7, delay: 150 },
+          { id: "cell-4", row: 14, colStart: 3, colEnd: 4, delay: 350 },
+          { id: "cell-5", row: 10, colStart: 6, colEnd: 8, delay: 290 },
+          { id: "cell-6", row: 16, colStart: 1, colEnd: 2, delay: 450 },
+          { id: "cell-7", row: 11, colStart: 4, colEnd: 5, delay: 600 },
+          { id: "cell-8", row: 13, colStart: 7, colEnd: 8, delay: 180 },
+          { id: "cell-9", row: 15, colStart: 2, colEnd: 3, delay: 400 },
         ]
       : [
-          // Original desktop pattern
-          { id: "cell-1", row: 4, colStart: 4, colEnd: 4, delay: 80 },
-          { id: "cell-2", row: 5, colStart: 4, colEnd: 6, delay: 220 },
-          { id: "cell-3", row: 6, colStart: 4, colEnd: 4, delay: 150 },
-          { id: "cell-4", row: 7, colStart: 4, colEnd: 5, delay: 350 },
-          { id: "cell-5", row: 8, colStart: 4, colEnd: 4, delay: 290 },
-          { id: "cell-6", row: 9, colStart: 4, colEnd: 4, delay: 450 },
-          { id: "cell-7", row: 10, colStart: 4, colEnd: 4, delay: 600 },
-          { id: "cell-8", row: 11, colStart: 4, colEnd: 4, delay: 180 },
-          { id: "cell-9", row: 12, colStart: 4, colEnd: 4, delay: 400 },
+          // Desktop: cells scattered across all columns
+          { id: "cell-1", row: 5, colStart: 2, colEnd: 3, delay: 80 },
+          { id: "cell-2", row: 8, colStart: 5, colEnd: 6, delay: 220 },
+          { id: "cell-3", row: 4, colStart: 7, colEnd: 8, delay: 150 },
+          { id: "cell-4", row: 10, colStart: 1, colEnd: 2, delay: 350 },
+          { id: "cell-5", row: 6, colStart: 3, colEnd: 4, delay: 290 },
+          { id: "cell-6", row: 12, colStart: 6, colEnd: 7, delay: 450 },
+          { id: "cell-7", row: 7, colStart: 8, colEnd: 8, delay: 600 },
+          { id: "cell-8", row: 9, colStart: 2, colEnd: 2, delay: 180 },
+          { id: "cell-9", row: 11, colStart: 4, colEnd: 5, delay: 400 },
         ];
 
     // Validate cell column references
@@ -687,7 +690,7 @@ export function AnimatedGrid() {
       clearInterval(columnMorphInterval);
       clearInterval(selectionInterval);
     };
-  }, [isMobile]);
+  }, [isMobile, isXL, numColumns, isColumnChanging, wouldOverlap]);
 
   // Handle screen resize: move cells to appropriate rows when switching mobile/desktop
   useEffect(() => {
@@ -795,9 +798,20 @@ export function AnimatedGrid() {
                   delay: cell.delay / 1000,
                 },
                 width: {
-                  duration: 0.3,
-                  delay: cell.delay / 1000,
-                  ease: [0.25, 0.46, 0.45, 0.94],
+                  duration: 0.15 + (cell.id.charCodeAt(3) % 4) * 0.05, // Faster: 0.15-0.3s
+                  ease: (() => {
+                    const easingType = cell.id.charCodeAt(4) % 4;
+                    switch (easingType) {
+                      case 0:
+                        return [0.68, -0.55, 0.265, 1.55]; // Elastic bounce
+                      case 1:
+                        return [0.25, 0.46, 0.45, 0.94]; // Smooth
+                      case 2:
+                        return [0.17, 0.67, 0.83, 0.67]; // Ease in-out
+                      default:
+                        return [0.87, 0, 0.13, 1]; // Ease out-in
+                    }
+                  })(),
                 },
                 top: {
                   duration: 0.15 + (cell.id.charCodeAt(3) % 4) * 0.05, // Faster: 0.15-0.3s
@@ -816,22 +830,6 @@ export function AnimatedGrid() {
                   })(),
                 },
                 left: {
-                  duration: 0.15 + (cell.id.charCodeAt(3) % 4) * 0.05, // Faster: 0.15-0.3s
-                  ease: (() => {
-                    const easingType = cell.id.charCodeAt(4) % 4;
-                    switch (easingType) {
-                      case 0:
-                        return [0.68, -0.55, 0.265, 1.55]; // Elastic bounce
-                      case 1:
-                        return [0.25, 0.46, 0.45, 0.94]; // Smooth
-                      case 2:
-                        return [0.17, 0.67, 0.83, 0.67]; // Ease in-out
-                      default:
-                        return [0.87, 0, 0.13, 1]; // Ease out-in
-                    }
-                  })(),
-                },
-                width: {
                   duration: 0.15 + (cell.id.charCodeAt(3) % 4) * 0.05, // Faster: 0.15-0.3s
                   ease: (() => {
                     const easingType = cell.id.charCodeAt(4) % 4;

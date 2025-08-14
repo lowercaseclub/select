@@ -4,31 +4,50 @@ interface CustomerioProfile {
   email: string;
   firstName?: string;
   lastName?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface CustomerioEvent {
   userId: string;
   type: "track";
   event: string;
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
   timestamp: number;
 }
 
 interface CustomerioCustomer {
   id: string;
   email: string;
-  attributes: Record<string, any>;
+  attributes: Record<string, unknown>;
   created_at: number;
   updated_at: number;
 }
 
-interface CustomerioSegment {
+export interface CustomerioSegment {
   id: number;
   name: string;
   description?: string;
   created_at: number;
   updated_at: number;
+}
+
+interface TransactionalEmailRequest {
+  transactional_message_id?: number | string;
+  template_id?: string;
+  to: string;
+  from?: string;
+  subject?: string;
+  body?: string;
+  message_data?: Record<string, unknown>;
+  identifiers?: {
+    email?: string;
+    id?: string;
+  };
+}
+
+interface TransactionalEmailResponse {
+  delivery_id: string;
+  queued_at: number;
 }
 
 export class CustomerioTrackClient {
@@ -42,7 +61,7 @@ export class CustomerioTrackClient {
   private async makeRequest<T>(
     endpoint: string,
     method: "GET" | "POST" | "PUT" | "DELETE",
-    body?: any
+    body?: unknown
   ): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method,
@@ -89,7 +108,8 @@ export class CustomerioTrackClient {
   }
 
   async trackEvent(email: string, event: CustomerioEvent): Promise<void> {
-    const { userId, ...eventPayload } = event;
+            const { userId, ...eventPayload } = event;
+        void userId; // Acknowledge unused variable
 
     const trackEventPayload = {
       name: eventPayload.event,
@@ -123,7 +143,7 @@ export class CustomerioAppClient {
   private async makeRequest<T>(
     endpoint: string,
     method: "GET" | "POST" | "PUT" | "DELETE",
-    body?: any
+    body?: unknown
   ): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method,
@@ -177,7 +197,7 @@ export class CustomerioAppClient {
 
   async getCustomerAttributes(
     email: string
-  ): Promise<Record<string, any> | null> {
+  ): Promise<Record<string, unknown> | null> {
     const customer = await this.getCustomer(email);
     if (!customer) {
       console.error("No customer found for email:", email);
@@ -193,7 +213,7 @@ export class CustomerioAppClient {
 
     // Now get the specific attributes for this customer
     try {
-      const attributes = await this.makeRequest<Record<string, any>>(
+      const attributes = await this.makeRequest<Record<string, unknown>>(
         `/v1/customers/${customer.id}/attributes`,
         "GET"
       );

@@ -5,6 +5,7 @@ export function validateRequestHeaders(request: NextRequest): boolean {
   // Check for required headers that indicate a legitimate browser request
   const userAgent = request.headers.get("user-agent");
   const accept = request.headers.get("accept");
+  void accept; // Acknowledge unused variable
 
   // Basic checks for browser-like requests
   if (!userAgent || userAgent.length < 5) {

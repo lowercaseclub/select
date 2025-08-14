@@ -43,8 +43,12 @@ export function getSpeakerNames(
   return (
     sessionSpeakers
       ?.map((speakerObj) => {
-        const speaker = allSpeakers.find((s) => s.id === speakerObj.speakerId);
-        return speaker ? `${speaker.firstName} ${speaker.lastName}` : "";
+        const speaker = allSpeakers.find(
+          (s) => s.id === Number(speakerObj.speakerId)
+        );
+        return speaker
+          ? `${speaker.firstname || ""} ${speaker.lastname || ""}`.trim()
+          : "";
       })
       .filter(Boolean)
       .join(", ") || ""
@@ -65,7 +69,9 @@ export function transformSessionToEvent(
   console.log("SESSION OBJECT:", session);
 
   const speakerNames = getSpeakerNames(
-    (session.speakers || []).map((s) => ({ speakerId: s.id })),
+    (session.speakers || [])
+      .filter((s) => s.id != null)
+      .map((s) => ({ speakerId: s.id.toString() })),
     speakers
   );
 

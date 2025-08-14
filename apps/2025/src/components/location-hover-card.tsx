@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@ui/components/button";
+// import { Button } from "@ui/components/button"; // Currently unused
 import {
   HoverCard,
   HoverCardContent,
@@ -20,7 +20,7 @@ export function LocationHoverCard({
   locationName,
   address,
   mapUrl,
-  images = [],
+  images = [], // eslint-disable-line @typescript-eslint/no-unused-vars
 }: LocationHoverCardProps) {
   return (
     <HoverCard openDelay={0} closeDelay={0}>

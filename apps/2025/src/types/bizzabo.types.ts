@@ -31,6 +31,8 @@ export interface BizzaboSession {
   description?: string;
   startTime: string;
   endTime: string;
+  startMinute?: number;
+  endMinute?: number;
   stageId: string;
   stageName: string;
   speakers: BizzaboSpeaker[];

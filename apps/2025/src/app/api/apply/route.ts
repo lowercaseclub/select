@@ -1,6 +1,6 @@
 import { extractCSRFTokenFromHeader, validateCSRFToken } from "@/lib/csrf";
-import { CustomerioAppClient } from "@/lib/customerio";
-import { rateCustomer } from "@/lib/rate-customer";
+import { CustomerioAppClient, CustomerioSegment } from "@/lib/customerio";
+import { rateCustomer, CustomerRating } from "@/lib/rate-customer";
 import {
   isSuspiciousRequest,
   sanitizeInput,
@@ -114,8 +114,8 @@ export async function POST(request: NextRequest) {
       customerioAppApiKey || ""
     );
 
-    let customerSegments: any[] = [];
-    let customerRating: any = null;
+    let customerSegments: CustomerioSegment[] = [];
+    let customerRating: CustomerRating | null = null;
 
     if (customerioAppApiKey) {
       try {

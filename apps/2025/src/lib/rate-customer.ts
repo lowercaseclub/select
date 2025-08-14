@@ -1,10 +1,6 @@
-interface CustomerioSegment {
-  id: number;
-  name: string;
-  description: string;
-}
+import { CustomerioSegment } from "./customerio";
 
-interface CustomerRating {
+export interface CustomerRating {
   score: number; // 0-100
   tier: "tier1" | "tier2" | "tier3" | "tier4";
   factors: string[];

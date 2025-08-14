@@ -8,7 +8,7 @@ export function Footer() {
             <h3 className="text-xl font-medium mb-4">Supabase Select</h3>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Where builders come to learn. Jam-packed with sessions from the
-              industry's best builders.
+              industry&apos;s best builders.
             </p>
           </div>
 
