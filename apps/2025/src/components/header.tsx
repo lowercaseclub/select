@@ -1,4 +1,3 @@
-import { ModeToggle } from "./theme-toggle";
 import Logo from "./logo";
 
 export function Header() {
@@ -10,7 +9,6 @@ export function Header() {
             <Logo />
           </div>
         </div>
-        <ModeToggle />
       </div>
     </header>
   );

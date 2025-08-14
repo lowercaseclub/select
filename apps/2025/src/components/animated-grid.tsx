@@ -315,7 +315,7 @@ export function AnimatedGrid() {
 
             // Schedule the next move
             scheduleNextMove();
-          }, 3000 + Math.random() * 4000); // Each cell moves every 3.0-7.0 seconds (slower)
+          }, 5000 + Math.random() * 8000); // Each cell moves every 5.0-13.0 seconds (much slower)
 
           movementIntervals.push(intervalId);
         };
@@ -597,21 +597,23 @@ export function AnimatedGrid() {
         // Pick a random starting cell - different ranges for mobile vs desktop
         const minSelectionRow = isMobile ? 15 : isXL ? 8 : 4; // Mobile: row 15, XL: row 8, Desktop: row 4
         const maxSelectionRow = isMobile ? 28 : isXL ? 15 : 11; // Mobile: row 28, XL: row 15, Desktop: row 11
-        const rowRange = maxSelectionRow - minSelectionRow + 1;
+        // Ensure we can always fit at least 2 rows by limiting startRow range
+        const maxStartRow = maxSelectionRow - 1; // Ensure startRow + 1 <= maxSelectionRow
+        const startRowRange = maxStartRow - minSelectionRow + 1;
         const startRow =
-          Math.floor(Math.random() * Math.max(1, rowRange - 2)) +
-          minSelectionRow; // Leave room for 2+ rows, ensure at least 1
+          Math.floor(Math.random() * Math.max(1, startRowRange)) +
+          minSelectionRow; // This ensures startRow + 1 will never exceed maxSelectionRow
         const biasedRandom = Math.random() * 0.6 + 0.4; // Bias towards right (0.4-1.0)
         const startCol = Math.floor(biasedRandom * (numColumns - 1)) + 1; // Favor columns 4-7
 
         const selectionId = `selection-${Date.now()}-${Math.random()}`;
 
-        // Start with minimum 2-row selection
+        // Start with minimum 2-row selection (startRow to startRow + 1 = 2 rows)
         const newSelection = {
           id: selectionId,
           startRow,
           startCol,
-          endRow: Math.min(maxSelectionRow, startRow + 1), // Ensure at least 2 rows but don't exceed max
+          endRow: startRow + 1, // Always 2 rows minimum (startRow is guaranteed to be <= maxSelectionRow - 1)
           endCol: startCol,
           isFlashing: false,
         };
@@ -620,7 +622,7 @@ export function AnimatedGrid() {
         const updatedSelections = [...prevSelections, newSelection];
 
         // Simulate dragging - expand the selection over time
-        let currentEndRow = Math.min(maxSelectionRow, startRow + 1); // Start with 2 rows minimum, respect max
+        let currentEndRow = startRow + 1; // Start with exactly 2 rows
         let currentEndCol = startCol;
 
         const dragSteps = Math.floor(Math.random() * 8) + 3; // 3-10 steps
@@ -651,11 +653,14 @@ export function AnimatedGrid() {
           // 15% chance to not expand (pause)
 
           setSelections((prevSels) =>
-            prevSels.map((sel) =>
-              sel.id === selectionId
-                ? { ...sel, endRow: currentEndRow, endCol: currentEndCol }
-                : sel
-            )
+            prevSels.map((sel) => {
+              if (sel.id === selectionId) {
+                // Ensure endRow is always at least startRow + 1 (minimum 2 rows)
+                const safeEndRow = Math.max(currentEndRow, sel.startRow + 1);
+                return { ...sel, endRow: safeEndRow, endCol: currentEndCol };
+              }
+              return sel;
+            })
           );
         }, 150 + Math.random() * 100); // 150-250ms between drag steps
 
@@ -683,7 +688,7 @@ export function AnimatedGrid() {
 
         return updatedSelections;
       });
-    }, 4000 + Math.random() * 6000); // New selection every 4-10 seconds
+    }, 2000 + Math.random() * 4000); // New selection every 2-6 seconds (more frequent)
 
     return () => {
       movementIntervals.forEach(clearTimeout);
@@ -731,6 +736,7 @@ export function AnimatedGrid() {
       {/* Vertical columns in main grid */}
       <motion.div
         className="grid h-full"
+        style={{ zIndex: 0 }}
         animate={{
           gridTemplateColumns: createColumnWidths(
             currentColumnWidths ||
@@ -763,12 +769,12 @@ export function AnimatedGrid() {
         </div> */}
 
       {/* Cells in main grid area */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0" style={{ zIndex: 5 }}>
         <AnimatePresence>
           {(movingCells || []).map((cell) => (
             <motion.div
               key={cell.id}
-              className="absolute overflow-hidden"
+              className="absolute overflow-hidden bg-background"
               style={{
                 position: "absolute",
                 height: `${rowHeight}px`,
@@ -944,10 +950,11 @@ export function AnimatedGrid() {
                 currentColumnWidths || columnWidthsArray
               )
             }%`,
-            height: `${
+            height: `${Math.max(
+              2 * rowHeight - 1, // Minimum 2 rows height
               (selection.endRow - selection.startRow + 1) * rowHeight -
-              (selection.endRow - selection.startRow)
-            }px`,
+                (selection.endRow - selection.startRow)
+            )}px`,
             backgroundColor: "rgba(62, 207, 142, 0.08)", // Supabase green background
             zIndex: 20,
           }}
