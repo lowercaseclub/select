@@ -108,8 +108,8 @@ export class CustomerioTrackClient {
   }
 
   async trackEvent(email: string, event: CustomerioEvent): Promise<void> {
-            const { userId, ...eventPayload } = event;
-        void userId; // Acknowledge unused variable
+    const { userId, ...eventPayload } = event;
+    void userId; // Acknowledge unused variable
 
     const trackEventPayload = {
       name: eventPayload.event,

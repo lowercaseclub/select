@@ -4,7 +4,23 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "BIZZABO_CLIENT_ID",
+        "BIZZABO_CLIENT_SECRET",
+        "BIZZABO_ACCOUNT_ID",
+        "BIZZABO_API_KEY",
+        "BIZZABO_EVENT_ID",
+        "CUSTOMERIO_SITE_ID",
+        "CUSTOMERIO_API_KEY",
+        "CUSTOMERIO_APP_API_KEY",
+        "OPENAI_API_KEY",
+        "ANNOUNCING_SOON_SPEAKERS",
+        "CACHE_REVALIDATE_SECONDS"
+      ]
     },
     "dev": {
       "cache": false,

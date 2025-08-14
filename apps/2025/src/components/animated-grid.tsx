@@ -599,7 +599,8 @@ export function AnimatedGrid() {
         const maxSelectionRow = isMobile ? 28 : isXL ? 15 : 11; // Mobile: row 28, XL: row 15, Desktop: row 11
         const rowRange = maxSelectionRow - minSelectionRow + 1;
         const startRow =
-          Math.floor(Math.random() * Math.max(1, rowRange - 2)) + minSelectionRow; // Leave room for 2+ rows, ensure at least 1
+          Math.floor(Math.random() * Math.max(1, rowRange - 2)) +
+          minSelectionRow; // Leave room for 2+ rows, ensure at least 1
         const biasedRandom = Math.random() * 0.6 + 0.4; // Bias towards right (0.4-1.0)
         const startCol = Math.floor(biasedRandom * (numColumns - 1)) + 1; // Favor columns 4-7
 
