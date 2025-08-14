@@ -8,6 +8,7 @@ import {
   ScheduleEvent,
   SessionSpeakerRef,
 } from "../types/bizzabo.types";
+import { debug } from "./debug";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -31,7 +32,7 @@ export function convertMinutesToTimeString(
 
     return `${startTimeStr} - ${endTimeStr}`;
   } catch (error) {
-    console.error("Error converting time:", error);
+    debug.error("Error converting time:", error);
     return "10:00 AM - 11:00 AM";
   }
 }
@@ -66,7 +67,7 @@ export function transformSessionToEvent(
   session: BizzaboSession,
   speakers: BizzaboSpeaker[]
 ): ScheduleEvent {
-  console.log("SESSION OBJECT:", session);
+  debug.log("SESSION OBJECT:", session);
 
   const speakerNames = getSpeakerNames(
     (session.speakers || [])
@@ -78,13 +79,13 @@ export function transformSessionToEvent(
   let timeString = "TBD";
 
   if (session.startMinute !== undefined && session.endMinute !== undefined) {
-    console.log("FOUND MINUTES:", session.startMinute, session.endMinute);
+    debug.log("FOUND MINUTES:", session.startMinute, session.endMinute);
     timeString = convertMinutesToTimeString(
       session.startMinute,
       session.endMinute
     );
   } else {
-    console.log("NO MINUTES FOUND IN SESSION");
+    debug.log("NO MINUTES FOUND IN SESSION");
   }
 
   const stageName = session.stageName || "main-stage";

@@ -315,7 +315,7 @@ export function AnimatedGrid() {
 
             // Schedule the next move
             scheduleNextMove();
-          }, 2000 + Math.random() * 3000); // Each cell moves every 2.0-5.0 seconds (slower)
+          }, 3000 + Math.random() * 4000); // Each cell moves every 3.0-7.0 seconds (slower)
 
           movementIntervals.push(intervalId);
         };
@@ -586,7 +586,7 @@ export function AnimatedGrid() {
           setIsColumnChanging(false);
         }, 600); // After column animation (0.4s) + slight delay
       }, 4000); // Wait 4 seconds before making the change
-    }, 2000 + Math.random() * 3000); // Every 2-5 seconds
+    }, 4000 + Math.random() * 6000); // Every 4-10 seconds
 
     // Spreadsheet-style selection simulation (multiple selections)
     const selectionInterval = setInterval(() => {
@@ -599,7 +599,7 @@ export function AnimatedGrid() {
         const maxSelectionRow = isMobile ? 28 : isXL ? 15 : 11; // Mobile: row 28, XL: row 15, Desktop: row 11
         const rowRange = maxSelectionRow - minSelectionRow + 1;
         const startRow =
-          Math.floor(Math.random() * (rowRange - 2)) + minSelectionRow; // Leave room for 2+ rows
+          Math.floor(Math.random() * Math.max(1, rowRange - 2)) + minSelectionRow; // Leave room for 2+ rows, ensure at least 1
         const biasedRandom = Math.random() * 0.6 + 0.4; // Bias towards right (0.4-1.0)
         const startCol = Math.floor(biasedRandom * (numColumns - 1)) + 1; // Favor columns 4-7
 
@@ -610,7 +610,7 @@ export function AnimatedGrid() {
           id: selectionId,
           startRow,
           startCol,
-          endRow: startRow + 1, // Ensure at least 2 rows
+          endRow: Math.min(maxSelectionRow, startRow + 1), // Ensure at least 2 rows but don't exceed max
           endCol: startCol,
           isFlashing: false,
         };
@@ -619,7 +619,7 @@ export function AnimatedGrid() {
         const updatedSelections = [...prevSelections, newSelection];
 
         // Simulate dragging - expand the selection over time
-        let currentEndRow = startRow + 1; // Start with 2 rows minimum
+        let currentEndRow = Math.min(maxSelectionRow, startRow + 1); // Start with 2 rows minimum, respect max
         let currentEndCol = startCol;
 
         const dragSteps = Math.floor(Math.random() * 8) + 3; // 3-10 steps
@@ -682,7 +682,7 @@ export function AnimatedGrid() {
 
         return updatedSelections;
       });
-    }, 2000 + Math.random() * 4000); // New selection every 2-6 seconds (more frequent)
+    }, 4000 + Math.random() * 6000); // New selection every 4-10 seconds
 
     return () => {
       movementIntervals.forEach(clearTimeout);

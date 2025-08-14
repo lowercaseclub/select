@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { AboutSection } from "../components/about-section";
 import { AnimatedGrid } from "../components/animated-grid";
 import { ColumnLine } from "../components/column-line";
@@ -8,7 +7,6 @@ import { HeroSection } from "../components/hero-section";
 
 import { ScheduleSection } from "../components/schedule-section";
 import { SpeakersSection } from "../components/speakers-section";
-import { SpeakersLoading } from "../components/speakers-loading";
 
 export const revalidate = 300; // 5 minutes
 
@@ -30,9 +28,7 @@ export default function HomePage() {
           </div>
         </div>
         <AboutSection />
-        <Suspense fallback={<SpeakersLoading />}>
-          <SpeakersSection />
-        </Suspense>
+        <SpeakersSection />
       </div>
       <ScheduleSection />
       <Footer />

@@ -7,6 +7,7 @@ import {
   BizzaboStage,
   BizzaboApiResponse,
 } from "@/types/bizzabo.types";
+// import scheduleData from "@/data/schedule.json"; // Available for future use
 
 const baseUrl = "https://api.bizzabo.com/v1";
 const authUrl = "https://auth.bizzabo.com";
@@ -98,7 +99,17 @@ export async function getEvent(): Promise<BizzaboEvent> {
 export async function getSpeakers(): Promise<BizzaboSpeaker[]> {
   const eventId = process.env.BIZZABO_EVENT_ID;
   if (!eventId) {
-    throw new Error("BIZZABO_EVENT_ID is required to fetch speakers.");
+    // Return fallback/mock data when BIZZABO_EVENT_ID is not configured
+    return [
+      {
+        id: 1,
+        email: "speaker@example.com",
+        firstname: "Speaker",
+        lastname: "Name",
+        title: "Role",
+        company: "Company",
+      }
+    ];
   }
   const response = await makeRequest<{ content: BizzaboSpeaker[] }>(
     `/events/${eventId}/speakers`
@@ -109,7 +120,23 @@ export async function getSpeakers(): Promise<BizzaboSpeaker[]> {
 export async function getSessions(): Promise<BizzaboSession[]> {
   const eventId = process.env.BIZZABO_EVENT_ID;
   if (!eventId) {
-    throw new Error("BIZZABO_EVENT_ID is required to fetch sessions.");
+    // Return fallback/mock data when BIZZABO_EVENT_ID is not configured
+    return [
+      {
+        id: "1",
+        title: "Sample Session",
+        description: "A sample session for fallback",
+        startTime: "2025-01-01T10:00:00Z",
+        endTime: "2025-01-01T11:00:00Z",
+        startMinute: 600,
+        endMinute: 660,
+        stageId: "1",
+        stageName: "main-stage",
+        speakers: [],
+        sessionType: "keynote",
+        isPublic: true,
+      }
+    ];
   }
   const response = await makeRequest<{ content: BizzaboSession[] }>(
     `/events/${eventId}/agenda/sessions`
@@ -120,7 +147,15 @@ export async function getSessions(): Promise<BizzaboSession[]> {
 export async function getStages(): Promise<BizzaboStage[]> {
   const eventId = process.env.BIZZABO_EVENT_ID;
   if (!eventId) {
-    throw new Error("BIZZABO_EVENT_ID is required to fetch stages.");
+    // Return fallback/mock data when BIZZABO_EVENT_ID is not configured
+    return [
+      {
+        id: "1",
+        name: "Main Stage",
+        location: "Main Venue",
+        isActive: true,
+      }
+    ];
   }
   const response = await makeRequest<BizzaboApiResponse<BizzaboStage[]>>(
     `/events/${eventId}/stages`
