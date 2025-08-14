@@ -10,7 +10,7 @@ export function AboutSection() {
         <h2 className="text-2xl sm:text-3xl font-medium mb-6 lg:mb-8">
           About Supabase Select
         </h2>
-        <div className="space-y-4 sm:space-y-6 text-base sm:text-lg">
+        <div className="space-y-4 sm:space-y-6 text-base sm:text-lg max-w-2xl">
           <p>
             Supabase Select is our first user conference, built for everyone
             building with Supabase—from weekend hackers to production-scale

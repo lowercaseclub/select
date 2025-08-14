@@ -6,7 +6,7 @@ import { ApplicationForm } from "./application-form";
 export function HeroSection() {
   return (
     <>
-      <section className="px-8 pt-24 pb-[366px] md:py-48">
+      <section className="px-8 pt-24 pb-[366px] md:py-56 xl:py-72">
         <div className="flex flex-col gap-2">
           <p className="text-gray-400 text-3xl">Hosted with Y Combinator</p>
 
@@ -28,8 +28,8 @@ export function HeroSection() {
             <ApplicationForm
               trigger={
                 <CrosshairButton
-                  className="bg-[rgba(235,242,45,0.10)] border border-dashed border-[#ebf22d]/50 text-base font-medium hover:bg-[rgba(235,242,45,0.5)] transition-colors rounded-none text-white"
-                  crosshairColor="#ebf22d"
+                  className="bg-accent-1-foreground/20 border border-dashed border-accent-1-foreground/30 text-base font-medium hover:bg-accent-1-foreground/50 transition-colors rounded-none text-white"
+                  crosshairColor="var(--accent-1-foreground)"
                   crosshairSize={4}
                 >
                   Apply Now

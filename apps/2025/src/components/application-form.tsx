@@ -1,24 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import {
-  UserIcon,
-  EnvelopeIcon,
   BuildingOfficeIcon,
+  EnvelopeIcon,
   PaperAirplaneIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
 } from "@heroicons/react/24/outline";
-
-// Social media icons (using solid versions for better visibility)
 import {
-  UserIcon as LinkedInIcon,
   CodeBracketIcon as GitHubIcon,
+  UserIcon as LinkedInIcon,
   ChatBubbleLeftRightIcon as TwitterIcon,
 } from "@heroicons/react/24/solid";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Alert, AlertDescription, AlertTitle } from "@ui/components/alert";
+import { Button } from "@ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -35,8 +29,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@ui/components/drawer";
-import { Button } from "@ui/components/button";
-import { Input } from "@ui/components/input";
 import {
   Form,
   FormControl,
@@ -45,8 +37,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@ui/components/form";
-import { Alert, AlertDescription } from "@ui/components/alert";
-import { useMediaQuery } from "../hooks/use-media-query";
+import { Input } from "@ui/components/input";
+import { Separator } from "@ui/components/separator";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 const applicationSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -73,7 +69,19 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    setIsMobile(mediaQuery.matches);
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches);
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
@@ -86,8 +94,8 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
       github: "",
       twitter: "",
     },
-    mode: "onTouched",
-    reValidateMode: "onChange",
+    mode: "onBlur",
+    reValidateMode: "onBlur",
   });
 
   // Fetch CSRF token when dialog opens
@@ -197,17 +205,13 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
       {isSubmitted ? (
         <div className="flex flex-col items-center gap-6 py-8">
           <Alert>
-            <CheckCircleIcon className="h-4 w-4" />
+            <CheckCircle2 />
+            <AlertTitle>Success! Application Submitted!</AlertTitle>
             <AlertDescription>
-              <div className="flex flex-col gap-2">
-                <div className="font-medium text-lg">
-                  Application Submitted!
-                </div>
-                <p>
-                  Thank you for your submission. We will review all applications
-                  carefully and will inform you soon.
-                </p>
-              </div>
+              <p>
+                Thank you for your submission. We will review all applications
+                carefully and will inform you soon.
+              </p>
             </AlertDescription>
           </Alert>
           <Button onClick={handleCancel}>Close</Button>
@@ -216,30 +220,29 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
         <div className="flex flex-col gap-6">
           {submitError && (
             <Alert variant="destructive">
-              <ExclamationTriangleIcon className="h-4 w-4" />
+              <AlertCircle />
+              <AlertTitle>Error</AlertTitle>
               <AlertDescription>{submitError}</AlertDescription>
             </Alert>
           )}
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex gap-4 items-start">
                 <FormField
                   control={form.control}
                   name="firstName"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex-1">
                       <FormLabel>First Name *</FormLabel>
                       <FormControl>
-                        <div className="relative mt-1">
-                          <UserIcon className={iconClasses} />
-                          <Input
-                            placeholder="Enter your first name"
-                            className="pl-10"
-                            {...field}
-                          />
-                        </div>
+                        <Input
+                          key="firstName-input"
+                          placeholder="Enter your first name"
+                          {...field}
+                        />
                       </FormControl>
+
                       <FormMessage />
                     </FormItem>
                   )}
@@ -249,16 +252,17 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                   control={form.control}
                   name="lastName"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex-1">
                       <FormLabel>Last Name *</FormLabel>
                       <FormControl>
-                        <div className="relative mt-1">
+                        <div className="relative ">
                           <Input
                             placeholder="Enter your last name"
                             {...field}
                           />
                         </div>
                       </FormControl>
+
                       <FormMessage />
                     </FormItem>
                   )}
@@ -272,7 +276,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                   <FormItem>
                     <FormLabel>Email Address *</FormLabel>
                     <FormControl>
-                      <div className="relative mt-1">
+                      <div className="relative">
                         <EnvelopeIcon className={iconClasses} />
                         <Input
                           type="email"
@@ -308,10 +312,10 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                 )}
               />
 
+              <Separator />
+
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-foreground">
-                  Social Links
-                </h3>
+                <h3 className="font-medium text-foreground">Social Links</h3>
 
                 <div className="space-y-3">
                   <FormField
@@ -421,13 +425,12 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent className="px-4 pb-4">
           <DrawerHeader>
-            <DrawerTitle className="text-2xl font-bold text-foreground">
-              {headerContent.title}
-            </DrawerTitle>
-            <DrawerDescription className="text-muted-foreground">
+            <DrawerTitle>{headerContent.title}</DrawerTitle>
+            <DrawerDescription className="text-light-foreground">
               {headerContent.description}
             </DrawerDescription>
           </DrawerHeader>
+          <Separator className="my-4" />
           <div className="px-4">
             <FormContent />
           </div>
@@ -441,13 +444,12 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">
-            {headerContent.title}
-          </DialogTitle>
-          <DialogDescription className="text-muted-foreground">
+          <DialogTitle className="">{headerContent.title}</DialogTitle>
+          <DialogDescription className="text-light-foreground">
             {headerContent.description}
           </DialogDescription>
         </DialogHeader>
+        <Separator className="my-4" />
         <FormContent />
       </DialogContent>
     </Dialog>

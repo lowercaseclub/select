@@ -17,6 +17,7 @@ function createColumnWidths(widths: readonly number[]): string {
 // Grid configuration - responsive
 const DESKTOP_rowHeight = 38; // px
 const MOBILE_rowHeight = 28; // px - smaller for mobile
+const XL_rowHeight = 42; // px - slightly larger for extra large screens
 const DESKTOP_columnWidthsArray: number[] = [30, 15, 8, 22, 5, 5, 10, 5];
 const MOBILE_columnWidthsArray: number[] = [25, 25, 25, 25]; // Equal columns spanning full width
 const DESKTOP_numColumns = DESKTOP_columnWidthsArray.length;
@@ -59,6 +60,8 @@ interface GridCell {
 
 export function AnimatedGrid() {
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const isXL = useMediaQuery("(min-width: 1280px)");
+  const [isInitialRender, setIsInitialRender] = useState(true);
 
   const [movingCells, setMovingCells] = useState<GridCell[]>([]);
   const selectionsRef = useRef<
@@ -138,7 +141,7 @@ export function AnimatedGrid() {
   };
 
   useEffect(() => {
-    // Generate initial cells - different patterns for mobile vs desktop
+    // Generate initial cells - different patterns for mobile vs desktop vs XL
     const animatedCells: GridCell[] = isMobile
       ? [
           // Mobile: cells start much lower (15+) to stay well below text
@@ -151,6 +154,19 @@ export function AnimatedGrid() {
           { id: "cell-7", row: 20, colStart: 4, colEnd: 4, delay: 180 },
           { id: "cell-8", row: 23, colStart: 1, colEnd: 1, delay: 600 },
           { id: "cell-9", row: 19, colStart: 3, colEnd: 4, delay: 450 },
+        ]
+      : isXL
+      ? [
+          // XL desktop: cells start lower to accommodate bigger hero
+          { id: "cell-1", row: 8, colStart: 4, colEnd: 4, delay: 80 },
+          { id: "cell-2", row: 9, colStart: 4, colEnd: 6, delay: 220 },
+          { id: "cell-3", row: 10, colStart: 4, colEnd: 4, delay: 150 },
+          { id: "cell-4", row: 11, colStart: 4, colEnd: 5, delay: 350 },
+          { id: "cell-5", row: 12, colStart: 4, colEnd: 4, delay: 290 },
+          { id: "cell-6", row: 13, colStart: 4, colEnd: 4, delay: 450 },
+          { id: "cell-7", row: 14, colStart: 4, colEnd: 4, delay: 600 },
+          { id: "cell-8", row: 15, colStart: 4, colEnd: 4, delay: 180 },
+          { id: "cell-9", row: 16, colStart: 4, colEnd: 4, delay: 400 },
         ]
       : [
           // Original desktop pattern
@@ -185,6 +201,11 @@ export function AnimatedGrid() {
     });
 
     setMovingCells(animatedCells);
+
+    // Disable initial render flag after cells have animated in
+    setTimeout(() => {
+      setIsInitialRender(false);
+    }, 1000); // Wait for initial animations to complete
 
     // Multiple movement timers for simultaneous action, but with proper collision detection
     const movementIntervals: NodeJS.Timeout[] = [];
@@ -571,8 +592,8 @@ export function AnimatedGrid() {
         if (prevSelections.length >= 2) return prevSelections;
 
         // Pick a random starting cell - different ranges for mobile vs desktop
-        const minSelectionRow = isMobile ? 15 : 4; // Mobile: start at row 15, Desktop: row 4
-        const maxSelectionRow = isMobile ? 28 : 11; // Mobile: up to row 28, Desktop: up to row 11
+        const minSelectionRow = isMobile ? 15 : isXL ? 8 : 4; // Mobile: row 15, XL: row 8, Desktop: row 4
+        const maxSelectionRow = isMobile ? 28 : isXL ? 15 : 11; // Mobile: row 28, XL: row 15, Desktop: row 11
         const rowRange = maxSelectionRow - minSelectionRow + 1;
         const startRow =
           Math.floor(Math.random() * (rowRange - 2)) + minSelectionRow; // Leave room for 2+ rows
@@ -750,7 +771,11 @@ export function AnimatedGrid() {
                 border: "1px solid var(--muted-foreground)",
                 zIndex: movingCellId === cell.id ? 10 : 1,
               }}
-              initial={{ opacity: 0 }}
+              initial={{
+                opacity: 0,
+                backgroundColor: "transparent",
+                width: "0px", // Start at 0 width
+              }}
               animate={{
                 opacity: 1,
                 top: `${(cell.row - 1) * rowHeight - (cell.row - 1)}px`, // Animate vertical position (subtract 1px per row for border overlap)
@@ -768,6 +793,11 @@ export function AnimatedGrid() {
                 opacity: {
                   duration: 0.1,
                   delay: cell.delay / 1000,
+                },
+                width: {
+                  duration: 0.3,
+                  delay: cell.delay / 1000,
+                  ease: [0.25, 0.46, 0.45, 0.94],
                 },
                 top: {
                   duration: 0.15 + (cell.id.charCodeAt(3) % 4) * 0.05, // Faster: 0.15-0.3s
@@ -822,24 +852,20 @@ export function AnimatedGrid() {
               {/* Inner content that swipes in */}
               <motion.div
                 className="w-full h-full"
+                style={{
+                  backgroundColor: "transparent", // No color during animation
+                }}
                 initial={{
                   clipPath: "inset(0 100% 0 0)", // Start fully clipped from right
-                  backgroundColor: "var(--accent-2-foreground)", // Start with accent color
                 }}
                 animate={{
                   clipPath: "inset(0 0% 0 0)", // Reveal to full width
-                  backgroundColor: "var(--background)", // Fade to background color
                 }}
                 transition={{
                   clipPath: {
                     duration: 0.15,
                     delay: cell.delay / 1000 + 0.05,
                     ease: [0.25, 0.46, 0.45, 0.94], // Tight easing curve (easeOutQuart)
-                  },
-                  backgroundColor: {
-                    duration: 0.4,
-                    delay: cell.delay / 1000 + 0.05,
-                    ease: [0, 0, 1, 1], // Stepped effect like old school clay animation
                   },
                 }}
               >
@@ -861,6 +887,9 @@ export function AnimatedGrid() {
                           cell.id.charCodeAt(5) % gradients.length
                         ];
                       })(),
+                    }}
+                    initial={{
+                      clipPath: "inset(0 100% 0 0)", // Start completely hidden
                     }}
                     animate={{
                       clipPath: !isCellInSelection(cell)
