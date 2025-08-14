@@ -4,17 +4,10 @@ interface ColumnLineProps {
   className?: string;
 }
 
-export function ColumnLine({
-  position = "left",
-  offset = "8",
-  className = "",
-}: ColumnLineProps) {
-  const positionClass =
-    position === "left" ? `left-${offset}` : `right-${offset}`;
-
+export function ColumnLine({ className = "" }: ColumnLineProps) {
   return (
     <div
-      className={`h-full w-px border-l border-column-lines border-dashed absolute top-0 ${positionClass} ${className}`}
+      className={`h-full w-32 border-l border-column-lines border-dashed absolute left-8 top-0 ${className}`}
     />
   );
 }
