@@ -5,15 +5,20 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-  User,
-  Mail,
-  Building,
-  Linkedin,
-  Github,
-  Twitter,
-  Send,
-} from "lucide-react";
+  UserIcon,
+  EnvelopeIcon,
+  BuildingOfficeIcon,
+  PaperAirplaneIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
 
+// Social media icons (using solid versions for better visibility)
+import {
+  UserIcon as LinkedInIcon,
+  CodeBracketIcon as GitHubIcon,
+  ChatBubbleLeftRightIcon as TwitterIcon,
+} from "@heroicons/react/24/solid";
 import {
   Dialog,
   DialogContent,
@@ -25,8 +30,15 @@ import {
 } from "@ui/components/dialog";
 import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
-import { Label } from "@ui/components/label";
-import { useToast } from "@ui/hooks/use-toast";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@ui/components/form";
+import { Alert, AlertDescription } from "@ui/components/alert";
 
 const applicationSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -41,22 +53,32 @@ const applicationSchema = z.object({
 type ApplicationFormData = z.infer<typeof applicationSchema>;
 
 interface ApplicationFormProps {
-  trigger?: React.ReactNode;
+  trigger: React.ReactNode;
 }
+
+const iconClasses =
+  "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground";
 
 export function ApplicationForm({ trigger }: ApplicationFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
-  const { toast } = useToast();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<ApplicationFormData>({
+  const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      company: "",
+      linkedin: "",
+      github: "",
+      twitter: "",
+    },
+    mode: "onTouched",
+    reValidateMode: "onChange",
   });
 
   // Fetch CSRF token when dialog opens
@@ -80,6 +102,8 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
 
   const onSubmit = async (data: ApplicationFormData) => {
     setIsSubmitting(true);
+    setSubmitError(null);
+
     try {
       // Validate URLs if provided
       const urlFields = ["linkedin", "github", "twitter"] as const;
@@ -114,29 +138,16 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
         throw new Error(result.error || "Failed to submit application");
       }
 
-      // Close dialog and reset form
-      setIsOpen(false);
-      reset();
-
-      // Show success toast
-      toast({
-        title: "Application Submitted",
-        description:
-          "Thank you for your submission. We will review all applications carefully and will inform you soon.",
-        duration: 5000,
-      });
+      // Show success state
+      setIsSubmitted(true);
+      form.reset();
     } catch (error) {
       console.error("Error submitting application:", error);
-      // Show error toast
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Error submitting application. Please try again.",
-        variant: "destructive",
-        duration: 5000,
-      });
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Error submitting application. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -144,7 +155,9 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
 
   const handleCancel = () => {
     setIsOpen(false);
-    reset();
+    form.reset();
+    setIsSubmitted(false);
+    setSubmitError(null);
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -152,21 +165,19 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
     if (open) {
       // Fetch CSRF token when dialog opens
       fetchCSRFToken();
+      setIsSubmitted(false);
+      setSubmitError(null);
     } else {
       // Clear CSRF token when dialog closes
       setCsrfToken(null);
+      setIsSubmitted(false);
+      setSubmitError(null);
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button className="bg-[#2FAE75] border-2 border-[#3ECF8E] px-8 py-4 text-xl font-medium text-white hover:bg-[#3ECF8E] transition-colors rounded-none">
-            Apply to Attend
-          </Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-foreground">
@@ -179,204 +190,225 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label
-                htmlFor="firstName"
-                className="text-sm font-medium text-foreground"
-              >
-                First Name *
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="firstName"
-                  {...register("firstName")}
-                  className="pl-10"
-                  placeholder="Enter your first name"
-                />
-              </div>
-              {errors.firstName && (
-                <p className="text-sm text-destructive">
-                  {errors.firstName.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="lastName"
-                className="text-sm font-medium text-foreground"
-              >
-                Last Name *
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="lastName"
-                  {...register("lastName")}
-                  className="pl-10"
-                  placeholder="Enter your last name"
-                />
-              </div>
-              {errors.lastName && (
-                <p className="text-sm text-destructive">
-                  {errors.lastName.message}
-                </p>
-              )}
-            </div>
+        {isSubmitted ? (
+          <div className="flex flex-col items-center gap-6 py-8">
+            <Alert>
+              <CheckCircleIcon className="h-4 w-4" />
+              <AlertDescription>
+                <div className="flex flex-col gap-2">
+                  <div className="font-medium text-lg">
+                    Application Submitted!
+                  </div>
+                  <p>
+                    Thank you for your submission. We will review all
+                    applications carefully and will inform you soon.
+                  </p>
+                </div>
+              </AlertDescription>
+            </Alert>
+            <Button onClick={handleCancel}>Close</Button>
           </div>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="email"
-              className="text-sm font-medium text-foreground"
-            >
-              Email Address *
-            </Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="email"
-                type="email"
-                {...register("email")}
-                className="pl-10"
-                placeholder="Enter your email address"
-              />
-            </div>
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
+        ) : (
+          <div className="flex flex-col gap-6">
+            {submitError && (
+              <Alert variant="destructive">
+                <ExclamationTriangleIcon className="h-4 w-4" />
+                <AlertDescription>{submitError}</AlertDescription>
+              </Alert>
             )}
-          </div>
 
-          <div className="space-y-2">
-            <Label
-              htmlFor="company"
-              className="text-sm font-medium text-foreground"
-            >
-              Company Name
-            </Label>
-            <div className="relative">
-              <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="company"
-                {...register("company")}
-                className="pl-10"
-                placeholder="Enter your company name"
-              />
-            </div>
-          </div>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name *</FormLabel>
+                        <FormControl>
+                          <div className="relative mt-1">
+                            <UserIcon className={iconClasses} />
+                            <Input
+                              placeholder="Enter your first name"
+                              className="pl-10"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-          <div className="space-y-4">
-            <Label className="text-sm font-medium text-foreground">
-              Social Links
-            </Label>
-
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="linkedin"
-                  className="text-sm text-muted-foreground"
-                >
-                  LinkedIn
-                </Label>
-                <div className="relative">
-                  <Linkedin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="linkedin"
-                    type="url"
-                    {...register("linkedin")}
-                    className="pl-10"
-                    placeholder="https://linkedin.com/in/yourprofile"
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name *</FormLabel>
+                        <FormControl>
+                          <div className="relative mt-1">
+                            <Input
+                              placeholder="Enter your last name"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
-                {errors.linkedin && (
-                  <p className="text-sm text-destructive">
-                    {errors.linkedin.message}
-                  </p>
-                )}
-              </div>
 
-              <div className="space-y-2">
-                <Label
-                  htmlFor="github"
-                  className="text-sm text-muted-foreground"
-                >
-                  GitHub
-                </Label>
-                <div className="relative">
-                  <Github className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="github"
-                    type="url"
-                    {...register("github")}
-                    className="pl-10"
-                    placeholder="https://github.com/yourusername"
-                  />
-                </div>
-                {errors.github && (
-                  <p className="text-sm text-destructive">
-                    {errors.github.message}
-                  </p>
-                )}
-              </div>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address *</FormLabel>
+                      <FormControl>
+                        <div className="relative mt-1">
+                          <EnvelopeIcon className={iconClasses} />
+                          <Input
+                            type="email"
+                            placeholder="Enter your email address"
+                            className="pl-10"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <div className="space-y-2">
-                <Label
-                  htmlFor="twitter"
-                  className="text-sm text-muted-foreground"
-                >
-                  Twitter
-                </Label>
-                <div className="relative">
-                  <Twitter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="twitter"
-                    type="url"
-                    {...register("twitter")}
-                    className="pl-10"
-                    placeholder="https://twitter.com/yourusername"
-                  />
+                <FormField
+                  control={form.control}
+                  name="company"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Name</FormLabel>
+                      <FormControl>
+                        <div className="relative mt-1">
+                          <BuildingOfficeIcon className={iconClasses} />
+                          <Input
+                            placeholder="Enter your company name"
+                            className="pl-10"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-foreground">
+                    Social Links
+                  </h3>
+
+                  <div className="space-y-3">
+                    <FormField
+                      control={form.control}
+                      name="linkedin"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>LinkedIn</FormLabel>
+                          <FormControl>
+                            <div className="relative mt-1">
+                              <LinkedInIcon className={iconClasses} />
+                              <Input
+                                type="url"
+                                placeholder="https://linkedin.com/in/yourprofile"
+                                className="pl-10"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="github"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>GitHub</FormLabel>
+                          <FormControl>
+                            <div className="relative mt-1">
+                              <GitHubIcon className={iconClasses} />
+                              <Input
+                                type="url"
+                                placeholder="https://github.com/yourusername"
+                                className="pl-10"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="twitter"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Twitter</FormLabel>
+                          <FormControl>
+                            <div className="relative mt-1">
+                              <TwitterIcon className={iconClasses} />
+                              <Input
+                                type="url"
+                                placeholder="https://twitter.com/yourusername"
+                                className="pl-10"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
-                {errors.twitter && (
-                  <p className="text-sm text-destructive">
-                    {errors.twitter.message}
-                  </p>
-                )}
-              </div>
-            </div>
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancel}
+                    disabled={isSubmitting}
+                    className="border-border text-foreground hover:bg-muted"
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <PaperAirplaneIcon className="h-4 w-4 mr-2" />
+                        Submit Application
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
           </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isSubmitting}
-              className="border-border text-foreground hover:bg-muted"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-[#2FAE75] border-2 border-[#3ECF8E] text-white hover:bg-[#3ECF8E] transition-colors"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  Submit Application
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+        )}
       </DialogContent>
     </Dialog>
   );
