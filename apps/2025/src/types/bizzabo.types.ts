@@ -2,18 +2,27 @@
 
 // Raw Bizzabo API types
 export interface BizzaboSpeaker {
-  id: string;
-  firstName: string;
-  lastName: string;
+  id: number;
+  email: string; // required
+  firstname?: string;
+  lastname?: string;
   title?: string;
   company?: string;
   bio?: string;
-  imageUrl?: string;
-  socialLinks?: {
-    linkedin?: string;
-    twitter?: string;
-    website?: string;
+  country?: string;
+  prefix?: string;
+  blog?: string;
+  linkedIn?: string;
+  twitterHandle?: string;
+  web?: string;
+  photoSet?: {
+    small: string;
+    medium: string;
+    large: string;
+    blur: string;
   };
+  created?: string;
+  modified?: string;
 }
 
 export interface BizzaboSession {

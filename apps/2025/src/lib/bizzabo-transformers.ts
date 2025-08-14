@@ -57,7 +57,7 @@ export function transformSessionToEvent(
   speakers: BizzaboSpeaker[]
 ): ScheduleEvent {
   const speakerNames = getSpeakerNames(
-    session.speakers.map((s) => ({ speakerId: s.id })),
+    (session.speakers || []).map((s) => ({ speakerId: s.id })),
     speakers
   );
 

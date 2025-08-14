@@ -17,7 +17,7 @@ export async function ScheduleSection() {
   let scheduleData: ScheduleData = { stages: [], events: [] };
 
   try {
-    // Try to fetch sessions and speakers from Bizzabo
+    // Fetch sessions and speakers from Bizzabo
     let sessions: BizzaboSession[] = [];
     let speakers: BizzaboSpeaker[] = [];
 
@@ -29,14 +29,13 @@ export async function ScheduleSection() {
 
       sessions = sessionsResponse || [];
       speakers = speakersResponse || [];
+      console.log("Sessions data:", JSON.stringify(sessions, null, 2));
       console.log(
-        `Successfully fetched ${sessions.length} sessions and ${speakers.length} speakers from Bizzabo`
+        "Speakers data for schedule:",
+        JSON.stringify(speakers, null, 2)
       );
     } catch (error) {
-      console.error(
-        "Failed to fetch data from Bizzabo, using fallback data:",
-        error
-      );
+      console.error("Failed to fetch data from Bizzabo:", error);
       sessions = [];
       speakers = [];
     }

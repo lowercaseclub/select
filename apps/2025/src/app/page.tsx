@@ -9,6 +9,11 @@ import { ScheduleSection } from "../components/schedule-section";
 import { SpeakersSection } from "../components/speakers-section";
 import { SpeakersLoading } from "../components/speakers-loading";
 
+export const revalidate = parseInt(
+  process.env.CACHE_REVALIDATE_SECONDS || "300",
+  10
+); // Default 5 minutes
+
 export default function HomePage() {
   return (
     <>
