@@ -1,10 +1,76 @@
-import { getSchedule } from "../lib/bizzabo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/components/tabs";
 import { ColumnLine } from "./column-line";
 import { Separator } from "@ui/components/separator";
+import { getSessions, getSpeakers } from "../lib/bizzabo-api";
+import {
+  transformSessionToEvent,
+  sortEventsByTime,
+} from "../lib/bizzabo-transformers";
+import {
+  BizzaboSession,
+  BizzaboSpeaker,
+  ScheduleData,
+} from "../types/bizzabo.types";
 
 export async function ScheduleSection() {
-  const scheduleData = await getSchedule();
+  // Move ALL API route logic here
+  let scheduleData: ScheduleData = { stages: [], events: [] };
+
+  try {
+    // Try to fetch sessions and speakers from Bizzabo
+    let sessions: BizzaboSession[] = [];
+    let speakers: BizzaboSpeaker[] = [];
+
+    try {
+      const [sessionsResponse, speakersResponse] = await Promise.all([
+        getSessions(),
+        getSpeakers(),
+      ]);
+
+      sessions = sessionsResponse || [];
+      speakers = speakersResponse || [];
+      console.log(
+        `Successfully fetched ${sessions.length} sessions and ${speakers.length} speakers from Bizzabo`
+      );
+    } catch (error) {
+      console.error(
+        "Failed to fetch data from Bizzabo, using fallback data:",
+        error
+      );
+      sessions = [];
+      speakers = [];
+    }
+
+    // Use hardcoded stages since we don't fetch them from Bizzabo
+    const stages = [
+      {
+        id: 1,
+        name: "Main Stage",
+        location: "Union Iron Works",
+        isActive: true,
+      },
+      { id: 2, name: "Build Stage", location: "520 YC", isActive: true },
+    ];
+
+    // Transform sessions using utility functions
+    const transformedEvents = sortEventsByTime(
+      sessions.map((session) => transformSessionToEvent(session, speakers))
+    );
+
+    // Transform stages to match our component's expected format
+    const transformedStages = stages.map((stage) => ({
+      name: stage.name,
+      location: stage.location,
+      active: stage.isActive,
+    }));
+
+    scheduleData = {
+      stages: transformedStages,
+      events: transformedEvents,
+    };
+  } catch (error) {
+    console.error("Error fetching schedule from Bizzabo:", error);
+  }
 
   if (!scheduleData || scheduleData.events.length === 0) {
     return (

@@ -1,6 +1,6 @@
-// Server-side Bizzabo API types (raw API data structure)
-// These types represent the exact structure returned by the Bizzabo API
-// They are used internally by the server for API communication and data transformation
+// Bizzabo API types and transformations
+
+// Raw Bizzabo API types
 export interface BizzaboSpeaker {
   id: string;
   firstName: string;
@@ -59,9 +59,35 @@ export interface BizzaboApiResponse<T> {
   message?: string;
 }
 
-// API Configuration
 export interface BizzaboConfig {
   apiKey: string;
   eventId: string;
   baseUrl: string;
+}
+
+// Transformed types for UI
+export interface ScheduleEvent {
+  id: string;
+  time: string;
+  title: string;
+  speakers: string;
+  stage: string;
+  description: string;
+  sessionType: string;
+}
+
+export interface ScheduleStage {
+  name: string;
+  location: string;
+  active: boolean;
+}
+
+export interface ScheduleData {
+  stages: ScheduleStage[];
+  events: ScheduleEvent[];
+}
+
+// Helper types
+export interface SessionSpeakerRef {
+  speakerId: string;
 }

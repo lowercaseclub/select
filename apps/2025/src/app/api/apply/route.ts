@@ -1,15 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { CustomerioTrackClient, CustomerioAppClient } from "@/lib/customerio";
-import { getBizzaboClient } from "@/lib/bizzabo-api";
+import { extractCSRFTokenFromHeader, validateCSRFToken } from "@/lib/csrf";
+import { CustomerioAppClient } from "@/lib/customerio";
 import { rateCustomer } from "@/lib/rate-customer";
-import { validateCSRFToken, extractCSRFTokenFromHeader } from "@/lib/csrf";
 import {
-  validateRequestHeaders,
+  isSuspiciousRequest,
   sanitizeInput,
   validateEmail,
+  validateRequestHeaders,
   validateURL,
-  isSuspiciousRequest,
 } from "@/lib/security";
+import { NextRequest, NextResponse } from "next/server";
 
 interface ApplicationData {
   firstName: string;

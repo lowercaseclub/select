@@ -1,9 +1,18 @@
 import Image from "next/image";
 import { UsersIcon } from "@heroicons/react/24/outline";
-import { getSpeakers } from "../lib/bizzabo";
+import { getSpeakers as fetchSpeakers } from "../lib/bizzabo-api";
+import { BizzaboSpeaker } from "../types/bizzabo.types";
 
 export async function SpeakersSection() {
-  const speakers = await getSpeakers();
+  // Move ALL API route logic here
+  let speakers: BizzaboSpeaker[] = [];
+
+  try {
+    speakers = await fetchSpeakers();
+  } catch (error) {
+    console.error("Error fetching speakers from Bizzabo:", error);
+    speakers = [];
+  }
 
   return (
     <section className="px-8 py-24">
@@ -33,17 +42,19 @@ export async function SpeakersSection() {
           {speakers.map((speaker) => (
             <div key={speaker.id} className="space-y-4">
               <div className="aspect-square bg-muted border border-column-lines relative">
-                {speaker.profilePicture && (
+                {speaker.imageUrl && (
                   <Image
-                    src={speaker.profilePicture}
-                    alt={speaker.name}
+                    src={speaker.imageUrl}
+                    alt={`${speaker.firstName} ${speaker.lastName}`}
                     fill
                     className="object-cover"
                   />
                 )}
               </div>
               <div>
-                <h3 className="text-xl font-medium">{speaker.name}</h3>
+                <h3 className="text-xl font-medium">
+                  {speaker.firstName} {speaker.lastName}
+                </h3>
                 {speaker.title && (
                   <p className="text-accent-1-foreground">{speaker.title}</p>
                 )}
