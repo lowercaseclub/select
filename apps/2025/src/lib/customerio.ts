@@ -221,4 +221,20 @@ export class CustomerioAppClient {
       return [];
     }
   }
+
+  async sendTransactionalEmail(
+    request: TransactionalEmailRequest
+  ): Promise<TransactionalEmailResponse> {
+    try {
+      const response = await this.makeRequest<TransactionalEmailResponse>(
+        "/v1/send/email",
+        "POST",
+        request
+      );
+      return response;
+    } catch (error) {
+      console.error("Failed to send transactional email:", error);
+      throw error;
+    }
+  }
 }
