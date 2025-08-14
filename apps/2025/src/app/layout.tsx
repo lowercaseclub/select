@@ -1,16 +1,40 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "../components/providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const suisseIntl = localFont({
+  src: [
+    {
+      path: "../../public/fonts/SuisseIntl-Book.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/SuisseIntl-Book.woff",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/SuisseIntl-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/SuisseIntl-Medium.woff",
+      weight: "500",
+      style: "normal",
+    },
+  ],
+  variable: "--font-suisse-intl",
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -27,7 +51,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background  text-foreground`}
+        className={`${suisseIntl.variable} ${geistMono.variable} antialiased min-h-screen bg-background  text-foreground`}
       >
         <Providers>
           <main className="">{children}</main>
