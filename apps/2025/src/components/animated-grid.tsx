@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Plus, X } from "lucide-react";
 import { useMediaQuery } from "../hooks/use-media-query";
 import { useAnimationControls } from "../hooks/use-animation-controls";
 import { AnimationControlsPanel } from "./animation-controls";
@@ -769,35 +770,41 @@ export function AnimatedGrid() {
     setSelections([]);
   }, [isMobile]);
 
+  const showAnimationControls =
+    process.env.NEXT_PUBLIC_SHOW_ANIMATION_CONTROL === "true";
+
+  const [isControlsOpen, setIsControlsOpen] = useState(false);
+
   return (
     <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden pointer-events-none">
       {/* Animation Controls Panel with Popover */}
-      <div className="absolute top-4 right-4 z-50 pointer-events-auto">
-        <AnimationControlsPanel
-          controls={controls}
-          onUpdateControl={updateControl}
-          onResetControls={resetControls}
-        >
-          <button
-            className="w-8 h-8 rounded-full bg-background/80 hover:bg-background/90 backdrop-blur-sm border border-muted-foreground/20 transition-all duration-200 flex items-center justify-center group hover:shadow-md"
-            aria-label="Open animation controls"
+      {showAnimationControls && (
+        <div className="absolute top-4 right-4 z-50 pointer-events-auto">
+          <AnimationControlsPanel
+            controls={controls}
+            onUpdateControl={updateControl}
+            onResetControls={resetControls}
+            onOpenChange={setIsControlsOpen}
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-muted-foreground group-hover:text-foreground transition-colors"
+            <button
+              className="w-8 h-8 rounded-full bg-background/80 hover:bg-background/90 backdrop-blur-sm border border-muted-foreground/20 hover:border-muted-foreground/40 data-[open=true]:border-foreground/60 data-[open=true]:bg-background transition-shadow duration-200 flex items-center justify-center group hover:shadow-md"
+              data-open={isControlsOpen}
+              aria-label={
+                isControlsOpen
+                  ? "Close animation controls"
+                  : "Open animation controls"
+              }
             >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </button>
-        </AnimationControlsPanel>
-      </div>
+              <div
+                className="text-muted-foreground group-hover:text-foreground transition-transform duration-200 data-[open=true]:rotate-90"
+                data-open={isControlsOpen}
+              >
+                {isControlsOpen ? <X size={14} /> : <Plus size={14} />}
+              </div>
+            </button>
+          </AnimationControlsPanel>
+        </div>
+      )}
       {/* 2 left vertical lines - like spreadsheet margins */}
 
       {/* Vertical columns in main grid */}

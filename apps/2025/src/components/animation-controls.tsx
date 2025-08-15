@@ -17,6 +17,7 @@ interface AnimationControlsProps {
     value: AnimationControls[K]
   ) => void;
   onResetControls: () => void;
+  onOpenChange?: (open: boolean) => void;
   children: React.ReactNode;
 }
 
@@ -24,10 +25,11 @@ export function AnimationControlsPanel({
   controls,
   onUpdateControl,
   onResetControls,
+  onOpenChange,
   children,
 }: AnimationControlsProps) {
   return (
-    <Popover>
+    <Popover onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent
         className="w-80 max-h-[80vh] overflow-y-auto"
