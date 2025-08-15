@@ -35,7 +35,7 @@ export async function SpeakersSection() {
         </p>
 
         {/* Twitter Announcement Callout */}
-        <div className="mt-8 max-w-2xl">
+        <div className="mt-8 max-w-2xl relative z-10">
           <div className="bg-muted/50 border border-column-lines border-l-foreground px-6 py-6 sm:px-8 sm:py-8">
             <div className="space-y-3">
               <div className="flex items-center gap-3">

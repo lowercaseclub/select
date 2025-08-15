@@ -1,0 +1,14 @@
+{
+  "main-stage": {
+    "locationName": "Union Iron Works",
+    "locationDisplayName": "Union Iron Works",
+    "address": "5 Pier 70 Blvd, San Francisco, CA 94107",
+    "mapUrl": "https://maps.google.com/maps?q=Union%20Iron%20Works,%205%20Pier%2070%20Blvd,%20San%20Francisco,%20CA%2094107&t=&z=17&ie=UTF8&iwloc=&output=embed"
+  },
+  "build-stage": {
+    "locationName": "Y Combinator",
+    "locationDisplayName": "520 YC",
+    "address": "580 20th St, San Francisco, CA 94107",
+    "mapUrl": "https://maps.google.com/maps?q=580%2020th%20Street,%20San%20Francisco,%20CA%2094107&t=&z=17&ie=UTF8&iwloc=&output=embed"
+  }
+}

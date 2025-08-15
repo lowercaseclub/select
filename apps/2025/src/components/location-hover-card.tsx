@@ -27,7 +27,7 @@ export function LocationHoverCard({
       <HoverCardTrigger asChild>
         <span className="cursor-pointer hover:underline">{children}</span>
       </HoverCardTrigger>
-      <HoverCardContent className="w-80 p-0" side="top">
+      <HoverCardContent className="w-80 p-0" side="right" align="start">
         {/* Map section - no padding, bleeds to edges */}
         <div className="h-50 overflow-hidden">
           <iframe
