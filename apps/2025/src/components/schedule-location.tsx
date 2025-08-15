@@ -14,9 +14,9 @@ export function ScheduleLocation({
   mapUrl,
 }: ScheduleLocationProps) {
   return (
-    <div className="py-4 border-b border-column-lines">
+    <div className="py-8 border-b border-column-lines">
       <div className="max-w-site mx-auto px-8">
-        <div className="text-base text-foreground">
+        <div className="text-lg text-foreground">
           <span className="text-muted-foreground">Location:</span>{" "}
           <LocationHoverCard
             locationName={locationName}
