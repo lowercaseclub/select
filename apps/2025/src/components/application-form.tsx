@@ -243,7 +243,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                         <Input
                           key="firstName-input"
                           placeholder="Enter your first name"
-                          autoFocus
+                          autoFocus={!isMobile}
                           autoComplete="given-name"
                           {...field}
                         />

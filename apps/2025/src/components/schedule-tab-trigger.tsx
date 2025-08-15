@@ -26,7 +26,7 @@ export function ScheduleTabTrigger({
       className={`bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent rounded-none px-0 pb-3 ${className}`}
     >
       <span className="text-lg font-medium">{stageName}</span>
-      <span className="text-muted-foreground data-[state=active]:text-foreground ml-2">
+      <span className="text-muted-foreground data-[state=active]:text-foreground ml-2 hidden md:inline">
         @{" "}
         <LocationHoverCard
           locationName={locationName}
