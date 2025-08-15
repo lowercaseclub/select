@@ -14,8 +14,10 @@ export async function GET(request: NextRequest) {
     // Get the host from environment or default
     const allowedHost =
       process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
+      process.env.NEXT_PUBLIC_VERCEL_URL ||
       process.env.VERCEL_URL ||
-      "localhost:3000";
+      "select-2025.vercel.app";
 
     // Handle different URL formats
     let allowedOrigins: string[] = [];
@@ -49,6 +51,21 @@ export async function GET(request: NextRequest) {
     console.log("Request origin:", origin);
     console.log("Request referer:", referer);
 
+    // Debug logging for development
+    if (process.env.NODE_ENV === "development") {
+      console.log("Origin check debug:", {
+        origin,
+        referer,
+        allowedHost,
+        allowedOrigins,
+        NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+        VERCEL_URL: process.env.VERCEL_URL,
+        NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
+        NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL:
+          process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
+      });
+    }
+
     let isValidOrigin = false;
 
     if (origin && allowedOrigins.includes(origin)) {
@@ -66,6 +83,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (!isValidOrigin) {
+      console.log("CSRF Origin validation failed:", {
+        origin,
+        referer,
+        allowedOrigins,
+      });
       return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
     }
 
