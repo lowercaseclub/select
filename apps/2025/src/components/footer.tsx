@@ -89,7 +89,7 @@ export function Footer() {
                 dateTime="2025-10-03"
                 className="text-sm text-muted-foreground"
               >
-                Monday, October 3, 2025
+                Friday, October 3, 2025
               </time>
             </div>
           </div>
