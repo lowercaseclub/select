@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "../hooks/use-media-query";
+import { useAnimationControls } from "../hooks/use-animation-controls";
+import { AnimationControlsPanel } from "./animation-controls";
 
 function createColumnWidths(widths: readonly number[]): string {
   const sum = widths.reduce((acc, width) => acc + width, 0);
@@ -23,8 +25,7 @@ const MOBILE_columnWidthsArray: number[] = [25, 25, 25, 25]; // Equal columns sp
 const DESKTOP_numColumns = DESKTOP_columnWidthsArray.length;
 const MOBILE_numColumns = MOBILE_columnWidthsArray.length;
 
-// Animation configuration
-const ENABLE_COLOR_ANIMATIONS = true; // Toggle to easily disable color swipes
+// Animation configuration - now controlled by the control panel
 
 // Calculate cumulative column positions for proper cell positioning
 const getColumnPosition = (
@@ -63,6 +64,9 @@ export function AnimatedGrid() {
   const isXL = useMediaQuery("(min-width: 1280px)");
   const [, setIsInitialRender] = useState(true);
 
+  // Animation controls
+  const { controls, updateControl, resetControls } = useAnimationControls();
+
   const [movingCells, setMovingCells] = useState<GridCell[]>([]);
   const selectionsRef = useRef<
     Array<{
@@ -78,6 +82,12 @@ export function AnimatedGrid() {
     isMobile ? MOBILE_columnWidthsArray : DESKTOP_columnWidthsArray
   );
   const [isColumnChanging, setIsColumnChanging] = useState(false);
+  const isColumnChangingRef = useRef(isColumnChanging);
+
+  // Update ref when state changes
+  useEffect(() => {
+    isColumnChangingRef.current = isColumnChanging;
+  }, [isColumnChanging]);
   const [movingCellId, setMovingCellId] = useState<string | null>(null);
   const [selections, setSelections] = useState<
     Array<{
@@ -142,6 +152,16 @@ export function AnimatedGrid() {
       return cellInRowRange && cellInColRange;
     });
   };
+
+  // Separate effect for speed controls that don't need to restart intervals
+  useEffect(() => {
+    // Speed controls only affect animation durations, not intervals
+    // No need to restart anything here
+  }, [
+    controls.cellMovementSpeed,
+    controls.columnMorphSpeed,
+    controls.selectionFrequency,
+  ]);
 
   useEffect(() => {
     // Generate initial cells - different patterns for mobile vs desktop vs XL
@@ -218,7 +238,8 @@ export function AnimatedGrid() {
 
       setTimeout(() => {
         const scheduleNextMove = () => {
-          if (isColumnChanging) return; // Don't schedule if columns are changing
+          if (isColumnChangingRef.current || !controls.enableCellMovement)
+            return; // Don't schedule if columns are changing or movement disabled
 
           const intervalId = setTimeout(() => {
             setMovingCells((prevCells) => {
@@ -315,7 +336,7 @@ export function AnimatedGrid() {
 
             // Schedule the next move
             scheduleNextMove();
-          }, 5000 + Math.random() * 8000); // Each cell moves every 5.0-13.0 seconds (much slower)
+          }, (5000 + Math.random() * 8000) / controls.cellMovementInterval); // Each cell moves every 5.0-13.0 seconds (controlled by interval)
 
           movementIntervals.push(intervalId);
         };
@@ -334,6 +355,8 @@ export function AnimatedGrid() {
 
     // Column width morphing - focus on one column at a time
     const columnMorphInterval = setInterval(() => {
+      if (!controls.enableColumnMorphing) return; // Skip if disabled
+
       // First, stop all traffic for 4 seconds
       setIsColumnChanging(true);
 
@@ -586,13 +609,16 @@ export function AnimatedGrid() {
           setIsColumnChanging(false);
         }, 600); // After column animation (0.4s) + slight delay
       }, 4000); // Wait 4 seconds before making the change
-    }, 4000 + Math.random() * 6000); // Every 4-10 seconds
+    }, (4000 + Math.random() * 6000) / controls.columnMorphInterval); // Every 4-10 seconds (controlled by interval)
 
     // Spreadsheet-style selection simulation (multiple selections)
     const selectionInterval = setInterval(() => {
-      // Only create new selection if we have less than 2
+      if (!controls.enableSelections) return; // Skip if disabled
+
+      // Only create new selection if we have less than maxSelections
       setSelections((prevSelections) => {
-        if (prevSelections.length >= 2) return prevSelections;
+        if (prevSelections.length >= controls.maxSelections)
+          return prevSelections;
 
         // Pick a random starting cell - different ranges for mobile vs desktop
         const minSelectionRow = isMobile ? 15 : isXL ? 8 : 4; // Mobile: row 15, XL: row 8, Desktop: row 4
@@ -688,7 +714,7 @@ export function AnimatedGrid() {
 
         return updatedSelections;
       });
-    }, 2000 + Math.random() * 4000); // New selection every 2-6 seconds (more frequent)
+    }, (2000 + Math.random() * 4000) / controls.selectionInterval); // New selection every 2-6 seconds (controlled by interval)
 
     return () => {
       movementIntervals.forEach(clearTimeout);
@@ -696,7 +722,21 @@ export function AnimatedGrid() {
       clearInterval(columnMorphInterval);
       clearInterval(selectionInterval);
     };
-  }, [isMobile, isXL, numColumns, isColumnChanging, wouldOverlap]);
+  }, [
+    isMobile,
+    isXL,
+    numColumns,
+    wouldOverlap,
+    // Only include enable/disable and interval controls that need to restart intervals
+    controls.enableCellMovement,
+    controls.enableColumnMorphing,
+    controls.enableSelections,
+    controls.cellMovementInterval,
+    controls.columnMorphInterval,
+    controls.selectionInterval,
+    controls.maxSelections,
+    // Speed controls are handled separately and don't restart intervals
+  ]);
 
   // Handle screen resize: move cells to appropriate rows when switching mobile/desktop
   useEffect(() => {
@@ -730,7 +770,34 @@ export function AnimatedGrid() {
   }, [isMobile]);
 
   return (
-    <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden">
+    <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden pointer-events-none">
+      {/* Animation Controls Panel with Popover */}
+      <div className="absolute top-4 right-4 z-50 pointer-events-auto">
+        <AnimationControlsPanel
+          controls={controls}
+          onUpdateControl={updateControl}
+          onResetControls={resetControls}
+        >
+          <button
+            className="w-8 h-8 rounded-full bg-background/80 hover:bg-background/90 backdrop-blur-sm border border-muted-foreground/20 transition-all duration-200 flex items-center justify-center group hover:shadow-md"
+            aria-label="Open animation controls"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-muted-foreground group-hover:text-foreground transition-colors"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </AnimationControlsPanel>
+      </div>
       {/* 2 left vertical lines - like spreadsheet margins */}
 
       {/* Vertical columns in main grid */}
@@ -744,7 +811,7 @@ export function AnimatedGrid() {
           ),
         }}
         transition={{
-          duration: 0.4,
+          duration: 0.4 / controls.columnMorphSpeed,
           ease: [0.68, -0.55, 0.265, 1.55], // Elastic bounce
         }}
       >
@@ -801,11 +868,13 @@ export function AnimatedGrid() {
               }}
               transition={{
                 opacity: {
-                  duration: 0.1,
+                  duration: 0.1 / controls.cellMovementSpeed,
                   delay: cell.delay / 1000,
                 },
                 width: {
-                  duration: 0.15 + (cell.id.charCodeAt(3) % 4) * 0.05, // Faster: 0.15-0.3s
+                  duration:
+                    (0.15 + (cell.id.charCodeAt(3) % 4) * 0.05) /
+                    controls.cellMovementSpeed, // Faster: 0.15-0.3s (controlled by speed)
                   ease: (() => {
                     const easingType = cell.id.charCodeAt(4) % 4;
                     switch (easingType) {
@@ -821,7 +890,9 @@ export function AnimatedGrid() {
                   })(),
                 },
                 top: {
-                  duration: 0.15 + (cell.id.charCodeAt(3) % 4) * 0.05, // Faster: 0.15-0.3s
+                  duration:
+                    (0.15 + (cell.id.charCodeAt(3) % 4) * 0.05) /
+                    controls.cellMovementSpeed, // Faster: 0.15-0.3s (controlled by speed)
                   ease: (() => {
                     const easingType = cell.id.charCodeAt(4) % 4;
                     switch (easingType) {
@@ -837,7 +908,9 @@ export function AnimatedGrid() {
                   })(),
                 },
                 left: {
-                  duration: 0.15 + (cell.id.charCodeAt(3) % 4) * 0.05, // Faster: 0.15-0.3s
+                  duration:
+                    (0.15 + (cell.id.charCodeAt(3) % 4) * 0.05) /
+                    controls.cellMovementSpeed, // Faster: 0.15-0.3s (controlled by speed)
                   ease: (() => {
                     const easingType = cell.id.charCodeAt(4) % 4;
                     switch (easingType) {
@@ -868,14 +941,14 @@ export function AnimatedGrid() {
                 }}
                 transition={{
                   clipPath: {
-                    duration: 0.15,
+                    duration: 0.15 / controls.cellMovementSpeed,
                     delay: cell.delay / 1000 + 0.05,
                     ease: [0.25, 0.46, 0.45, 0.94], // Tight easing curve (easeOutQuart)
                   },
                 }}
               >
                 {/* Random color spark animations - only for selected cells */}
-                {ENABLE_COLOR_ANIMATIONS && (
+                {controls.enableColorAnimations && (
                   <motion.div
                     className="w-full h-full"
                     style={{
@@ -907,12 +980,12 @@ export function AnimatedGrid() {
                         : 1,
                     }}
                     transition={{
-                      duration: 0.3, // Quick swipe in/out
+                      duration: 0.3 / controls.cellMovementSpeed, // Quick swipe in/out (controlled by speed)
                       delay: 0,
                       ease: [0.25, 0.46, 0.45, 0.94],
                       opacity: isCellInFlashingSelection(cell)
                         ? {
-                            duration: 0.3,
+                            duration: 0.3 / controls.selectionFrequency,
                             delay: (cell.id.charCodeAt(2) % 6) * 0.03, // Staggered delay: 0-0.15s
                             ease: [0.68, -0.55, 0.265, 1.55], // Elastic bounce
                             times: [0, 0.6, 1], // 60% down, 40% back up
@@ -965,7 +1038,9 @@ export function AnimatedGrid() {
           }}
           exit={{ opacity: 0, scale: 0.9 }}
           transition={{
-            duration: selection.isFlashing ? 0.4 : 0.1,
+            duration: selection.isFlashing
+              ? 0.4 / controls.selectionFrequency
+              : 0.1 / controls.selectionFrequency,
             ease: selection.isFlashing ? "linear" : "easeOut",
             times: selection.isFlashing
               ? [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 1]
@@ -1030,7 +1105,7 @@ export function AnimatedGrid() {
               opacity: [0.8, 0.3, 0.8],
             }}
             transition={{
-              duration: 0.8,
+              duration: 0.8 / controls.selectionFrequency,
               repeat: Infinity,
               ease: "linear",
             }}

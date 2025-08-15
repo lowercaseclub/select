@@ -239,6 +239,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                         <Input
                           key="firstName-input"
                           placeholder="Enter your first name"
+                          autoFocus
                           {...field}
                         />
                       </FormControl>
@@ -426,7 +427,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
         <DrawerContent className="px-4 pb-4">
           <DrawerHeader>
             <DrawerTitle>{headerContent.title}</DrawerTitle>
-            <DrawerDescription className="text-light-foreground">
+            <DrawerDescription className="text-muted-foreground">
               {headerContent.description}
             </DrawerDescription>
           </DrawerHeader>
@@ -445,7 +446,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="">{headerContent.title}</DialogTitle>
-          <DialogDescription className="text-light-foreground">
+          <DialogDescription className="text-muted-foreground">
             {headerContent.description}
           </DialogDescription>
         </DialogHeader>
