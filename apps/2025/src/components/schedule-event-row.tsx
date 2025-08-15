@@ -1,19 +1,49 @@
+import { BizzaboSpeaker, ScheduleEvent } from "../types/bizzabo.types";
+import { SpeakerDisplay } from "./speaker-display";
+
 interface ScheduleEventRowProps {
-  event: {
-    title: string;
-    time: string;
-    description?: string;
-    speakers?: string;
-  };
+  event: ScheduleEvent;
+  speakers: BizzaboSpeaker[];
   index: number;
 }
 
-export function ScheduleEventRow({ event, index }: ScheduleEventRowProps) {
+export function ScheduleEventRow({
+  event,
+  speakers,
+  index,
+}: ScheduleEventRowProps) {
   const isSpecialEvent =
     event.title.toLowerCase().includes("doors open") ||
     event.title.toLowerCase().includes("lunch") ||
     event.title.toLowerCase().includes("party");
   const displayTitle = event.title;
+
+  // Match event speakers with full speaker data
+  const eventSpeakers =
+    event.speakers
+      ?.map((speakerRef) => {
+        // Handle both speakerId and id fields
+        const speakerId = speakerRef.speakerId || speakerRef.id;
+
+        if (!speakerId) {
+          console.warn("Speaker reference missing ID:", speakerRef);
+          return null;
+        }
+
+        const matchedSpeaker = speakers.find(
+          (speaker) => speaker.id === speakerId
+        );
+
+        if (!matchedSpeaker) {
+          console.warn(
+            `Speaker with ID ${speakerId} not found in speakers list`
+          );
+          return null;
+        }
+
+        return matchedSpeaker;
+      })
+      .filter((speaker): speaker is BizzaboSpeaker => speaker !== null) || [];
 
   return (
     <>
@@ -33,13 +63,28 @@ export function ScheduleEventRow({ event, index }: ScheduleEventRowProps) {
             <h3 className="font-medium text-base leading-tight">
               {displayTitle}
             </h3>
-            {event.speakers && (
-              <div className="text-sm text-muted-foreground">
-                {event.speakers}
+            {eventSpeakers && eventSpeakers.length > 0 && (
+              <div className="space-y-1">
+                {eventSpeakers.map((speaker, idx) => {
+                  const fullName = `${speaker.firstname || ""} ${
+                    speaker.lastname || ""
+                  }`.trim();
+                  const displayName =
+                    fullName || speaker.email || `Speaker ${speaker.id}`;
+
+                  return (
+                    <SpeakerDisplay
+                      key={speaker.id || idx}
+                      name={displayName}
+                      company={speaker.company}
+                      title={speaker.title}
+                    />
+                  );
+                })}
               </div>
             )}
             {event.description && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-lg">
                 {event.description}
               </p>
             )}
@@ -61,13 +106,32 @@ export function ScheduleEventRow({ event, index }: ScheduleEventRowProps) {
           <div className="col-span-5">
             <h3 className="font-medium text-lg">{displayTitle}</h3>
             {event.description && (
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-1 max-w-lg">
                 {event.description}
               </p>
             )}
           </div>
-          <div className="col-span-4 text-muted-foreground">
-            {event.speakers}
+          <div className="col-span-4">
+            {eventSpeakers && eventSpeakers.length > 0 && (
+              <div className="space-y-1">
+                {eventSpeakers.map((speaker, idx) => {
+                  const fullName = `${speaker.firstname || ""} ${
+                    speaker.lastname || ""
+                  }`.trim();
+                  const displayName =
+                    fullName || speaker.email || `Speaker ${speaker.id}`;
+
+                  return (
+                    <SpeakerDisplay
+                      key={speaker.id || idx}
+                      name={displayName}
+                      company={speaker.company}
+                      title={speaker.title}
+                    />
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>

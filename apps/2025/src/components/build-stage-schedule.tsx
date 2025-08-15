@@ -31,6 +31,7 @@ export async function BuildStageSchedule() {
           <ScheduleEventRow
             key={`${event.title}-${event.time}-${index}`}
             event={event}
+            speakers={speakers}
             index={index}
           />
         ))}
