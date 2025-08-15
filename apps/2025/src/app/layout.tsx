@@ -47,6 +47,20 @@ export const metadata: Metadata = {
     maximumScale: 1,
     userScalable: false,
   },
+  openGraph: {
+    title: "Supabase Select",
+    description:
+      "Where builders come to learn. Jam-packed with sessions from the industry's best builders.",
+    images: ["/og.png"],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Supabase Select",
+    description:
+      "Where builders come to learn. Jam-packed with sessions from the industry's best builders.",
+    images: ["/og.png"],
+  },
 };
 
 export default function RootLayout({
