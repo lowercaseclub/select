@@ -95,7 +95,7 @@ export interface ScheduleEvent {
   id: string;
   time: string;
   title: string;
-  speakers: string;
+  speakers: Array<{ speakerId?: number; id?: number; role?: string }>;
   stage: string;
   description: string;
   sessionType: string;
