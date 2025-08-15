@@ -48,7 +48,13 @@ export const metadata: Metadata = {
   title: "Supabase Select",
   description:
     "Where builders come to learn. Jam-packed with sessions from the industry's best builders.",
-  metadataBase: new URL("https://select.supabase.com"),
+  metadataBase: new URL(
+    `https://${
+      process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
+      process.env.NEXT_PUBLIC_VERCEL_URL ||
+      "select-2025.vercel.app"
+    }`
+  ),
   openGraph: {
     title: "Supabase Select",
     description:
