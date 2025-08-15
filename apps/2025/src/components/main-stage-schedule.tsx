@@ -14,6 +14,11 @@ export async function MainStageSchedule() {
     // Debug: Main Stage sessions loaded
 
     const events = getEventsByStage(sessions, speakers, ["main-stage", "main"]);
+    console.log("MAIN STAGE - Total events found:", events.length);
+    console.log(
+      "MAIN STAGE - Events:",
+      events.map((e) => ({ title: e.title, stage: e.stage }))
+    );
 
     // console.log("Main Stage - Filtered events:", events);
 
@@ -28,13 +33,15 @@ export async function MainStageSchedule() {
           <ScheduleEventRow
             key={`${event.title}-${event.time}-${index}`}
             event={event}
+            speakers={speakers}
             index={index}
           />
         ))}
       </div>
     );
-  } catch {
+  } catch (error) {
     // Error handled gracefully - fallback schedule will be shown
+    console.error("MAIN STAGE ERROR:", error);
     return <ScheduleError stageName="Main Stage" />;
   }
 }

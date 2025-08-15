@@ -64,20 +64,11 @@ export function mapLocationToStage(locationId: string): string {
 }
 
 export function transformSessionToEvent(
-  session: BizzaboSession,
-  speakers: BizzaboSpeaker[]
+  session: BizzaboSession
 ): ScheduleEvent {
   debug.log("SESSION OBJECT:", session);
   debug.log("SESSION SPEAKERS:", session.speakers);
   debug.log("SESSION ASSOCIATED CONTACTS:", session.associatedContacts);
-
-  // Extract speaker names from the speakers array
-  const speakerNames = getSpeakerNames(
-    (session.speakers || []).map((s) => ({
-      speakerId: s.id.toString(),
-    })),
-    speakers
-  );
 
   let timeString = "TBD";
 
@@ -97,7 +88,7 @@ export function transformSessionToEvent(
     id: session.id.toString(),
     time: timeString,
     title: session.title?.toUpperCase() || "",
-    speakers: speakerNames,
+    speakers: session.speakers || [],
     stage: stageName,
     description: session.description || "",
     sessionType: session.sessionType,
