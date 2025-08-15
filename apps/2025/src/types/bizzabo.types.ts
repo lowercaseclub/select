@@ -44,7 +44,7 @@ export interface BizzaboSession {
     | "networking";
   isPublic: boolean;
   // Additional fields from actual JSON
-  filters?: Array<{ id: number; tags: any[] }>;
+  filters?: Array<{ id: number; tags: unknown[] }>;
   enableVirtualSession?: boolean;
   private?: boolean;
   registration?: boolean;
@@ -52,9 +52,9 @@ export interface BizzaboSession {
   externalId?: string;
   onsiteVisibility?: { type: string };
   registrationFull?: boolean;
-  recordingSession?: any;
+  recordingSession?: unknown;
   sessionCardSize?: string;
-  associatedContacts?: Record<string, any>;
+  associatedContacts?: Record<string, unknown>;
   registrationVisibility?: boolean;
   registrationCapacityEnable?: boolean;
   hidden?: boolean;
