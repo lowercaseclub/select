@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { allowedOrigins } from "@/lib/allowed-origins";
+import { isValidOrigin } from "@/lib/origin-validation";
 
 // In-memory store for rate limiting (in production, use Redis or similar)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -54,41 +54,8 @@ function validateOrigin(request: NextRequest): boolean {
   const origin = request.headers.get("origin");
   const referer = request.headers.get("referer");
 
-  // Allow requests from the same origin (same-site requests)
-  if (!origin && !referer) {
-    return true;
-  }
-
-  // Use shared allowed origins configuration
-
-  if (origin && allowedOrigins.includes(origin)) {
-    return true;
-  }
-
-  if (referer) {
-    try {
-      const refererUrl = new URL(referer);
-      const refererOrigin = `${refererUrl.protocol}//${refererUrl.host}`;
-
-      // Check explicit allowed origins first
-      if (allowedOrigins.includes(refererOrigin)) {
-        return true;
-      }
-
-      // Check for Vercel deployment pattern: select-*-supabase.vercel.app
-      if (refererOrigin.includes(".vercel.app")) {
-        const isVercelPattern =
-          /^https?:\/\/select-.*-supabase\.vercel\.app$/.test(refererOrigin);
-        return isVercelPattern;
-      }
-
-      return false;
-    } catch {
-      return false;
-    }
-  }
-
-  return false;
+  // Use shared validation logic without logging (middleware should be quiet)
+  return isValidOrigin(origin, referer, false);
 }
 
 export function middleware(request: NextRequest) {
