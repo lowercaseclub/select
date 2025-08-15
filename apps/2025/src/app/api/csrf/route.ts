@@ -17,12 +17,37 @@ export async function GET(request: NextRequest) {
       process.env.VERCEL_URL ||
       "localhost:3000";
 
-    const allowedOrigins = [
-      `https://${allowedHost}`,
-      `http://${allowedHost}`,
-      `https://www.${allowedHost}`,
-      `http://www.${allowedHost}`,
-    ];
+    // Handle different URL formats
+    let allowedOrigins: string[] = [];
+
+    if (allowedHost) {
+      // If it's already a full URL, use it as-is
+      if (allowedHost.startsWith("http")) {
+        allowedOrigins = [
+          allowedHost,
+          allowedHost.replace("https://", "http://"),
+          allowedHost.replace("http://", "https://"),
+        ];
+      } else {
+        // If it's just a hostname, add protocols
+        allowedOrigins = [
+          `https://${allowedHost}`,
+          `http://${allowedHost}`,
+          `https://www.${allowedHost}`,
+          `http://www.${allowedHost}`,
+        ];
+      }
+    }
+
+    // Add select.supabase.com specifically for production
+    allowedOrigins.push(
+      "https://select.supabase.com",
+      "http://select.supabase.com"
+    );
+
+    console.log("Allowed origins:", allowedOrigins);
+    console.log("Request origin:", origin);
+    console.log("Request referer:", referer);
 
     let isValidOrigin = false;
 

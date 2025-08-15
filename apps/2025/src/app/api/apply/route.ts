@@ -1,4 +1,3 @@
-
 import { extractCSRFTokenFromHeader, validateCSRFToken } from "@/lib/csrf";
 import { CustomerioAppClient, CustomerioSegment } from "@/lib/customerio";
 import { CustomerRating, rateCustomer } from "@/lib/rate-customer";
@@ -41,13 +40,18 @@ export async function POST(request: NextRequest) {
 
     // CSRF validation
     const csrfToken = extractCSRFTokenFromHeader(request);
+    console.log("CSRF Token present:", !!csrfToken);
+    console.log(
+      "CSRF Token value:",
+      csrfToken ? csrfToken.substring(0, 20) + "..." : "None"
+    );
+    console.log(
+      "CSRF Token valid:",
+      csrfToken ? validateCSRFToken(csrfToken) : false
+    );
+
     if (!csrfToken || !validateCSRFToken(csrfToken)) {
       console.log("Request blocked: CSRF token validation failed");
-      console.log("CSRF Token present:", !!csrfToken);
-      console.log(
-        "CSRF Token valid:",
-        csrfToken ? validateCSRFToken(csrfToken) : false
-      );
       return NextResponse.json(
         { error: "Invalid or missing CSRF token" },
         { status: 403 }
