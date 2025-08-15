@@ -238,14 +238,27 @@ export function AnimatedGrid() {
     animatedCells.forEach((cell, index) => {
       const moveDelay = 100 + index * 50; // Stagger initial start times
       let currentIntervalId: NodeJS.Timeout | null = null;
+      let isActive = true; // Flag to prevent scheduling after cleanup
 
       const initialTimeout = setTimeout(() => {
         const scheduleNextMove = () => {
+          // Prevent scheduling if this cell's movement has been cleaned up
+          if (!isActive) return;
+
           currentIntervalId = setTimeout(() => {
             // Check if movement should be skipped, but still reschedule
-            if (isColumnChangingRef.current || !controls.enableCellMovement) {
-              scheduleNextMove(); // Reschedule for later
+            if (
+              !isActive ||
+              isColumnChangingRef.current ||
+              !controls.enableCellMovement
+            ) {
+              if (isActive) scheduleNextMove(); // Only reschedule if still active
               return;
+            }
+
+            // Debug logging (only in development)
+            if (process.env.NODE_ENV === "development") {
+              console.debug(`Cell ${cell.id} attempting to move...`);
             }
 
             setMovingCells((prevCells) => {
@@ -279,7 +292,7 @@ export function AnimatedGrid() {
 
               const moveType = Math.random();
 
-              if (moveType < 0.2) {
+              if (moveType < 0.3) {
                 // 30% chance: Move vertically (up or down 1 row only)
                 const direction = Math.random() < 0.5 ? -1 : 1;
                 const minRow = isMobile ? 12 : 1; // Mobile: prevent going above row 12
@@ -340,8 +353,10 @@ export function AnimatedGrid() {
               return prevCells;
             });
 
-            // Schedule the next move
-            scheduleNextMove();
+            // Schedule the next move only if still active
+            if (isActive) {
+              scheduleNextMove();
+            }
           }, (2000 + Math.random() * 3000) / controls.cellMovementInterval); // Each cell moves every 2.0-5.0 seconds (controlled by interval)
         };
 
@@ -352,9 +367,12 @@ export function AnimatedGrid() {
       // Track initial timeout and cleanup function
       movementIntervals.push(initialTimeout);
       cleanupFunctions.push(() => {
+        isActive = false; // Mark as inactive to prevent further scheduling
         if (currentIntervalId) {
           clearTimeout(currentIntervalId);
+          currentIntervalId = null;
         }
+        clearTimeout(initialTimeout); // Also clear the initial timeout
       });
     });
 
@@ -739,7 +757,7 @@ export function AnimatedGrid() {
     isMobile,
     isXL,
     numColumns,
-    wouldOverlap,
+    // Remove wouldOverlap from dependencies - it's stable and doesn't need to restart intervals
     // Only include enable/disable and interval controls that need to restart intervals
     controls.enableCellMovement,
     controls.enableColumnMorphing,
@@ -892,57 +910,21 @@ export function AnimatedGrid() {
                 },
                 width: {
                   duration:
-                    (0.15 + (cell.id.charCodeAt(3) % 4) * 0.05) /
-                    controls.cellMovementSpeed, // Faster: 0.15-0.3s (controlled by speed)
-                  ease: (() => {
-                    const easingType = cell.id.charCodeAt(4) % 4;
-                    switch (easingType) {
-                      case 0:
-                        return [0.68, -0.55, 0.265, 1.55]; // Elastic bounce
-                      case 1:
-                        return [0.25, 0.46, 0.45, 0.94]; // Smooth
-                      case 2:
-                        return [0.17, 0.67, 0.83, 0.67]; // Ease in-out
-                      default:
-                        return [0.87, 0, 0.13, 1]; // Ease out-in
-                    }
-                  })(),
+                    (0.4 + (cell.id.charCodeAt(3) % 4) * 0.1) /
+                    controls.cellMovementSpeed, // 0.4-0.7s for more visible spring
+                  ease: [0.25, 1.15, 0.65, 1], // Subtle but visible spring
                 },
                 top: {
                   duration:
-                    (0.15 + (cell.id.charCodeAt(3) % 4) * 0.05) /
-                    controls.cellMovementSpeed, // Faster: 0.15-0.3s (controlled by speed)
-                  ease: (() => {
-                    const easingType = cell.id.charCodeAt(4) % 4;
-                    switch (easingType) {
-                      case 0:
-                        return [0.68, -0.55, 0.265, 1.55]; // Elastic bounce
-                      case 1:
-                        return [0.25, 0.46, 0.45, 0.94]; // Smooth
-                      case 2:
-                        return [0.17, 0.67, 0.83, 0.67]; // Ease in-out
-                      default:
-                        return [0.87, 0, 0.13, 1]; // Ease out-in
-                    }
-                  })(),
+                    (0.4 + (cell.id.charCodeAt(3) % 4) * 0.1) /
+                    controls.cellMovementSpeed, // 0.4-0.7s for more visible spring
+                  ease: [0.25, 1.15, 0.65, 1], // Subtle but visible spring
                 },
                 left: {
                   duration:
-                    (0.15 + (cell.id.charCodeAt(3) % 4) * 0.05) /
-                    controls.cellMovementSpeed, // Faster: 0.15-0.3s (controlled by speed)
-                  ease: (() => {
-                    const easingType = cell.id.charCodeAt(4) % 4;
-                    switch (easingType) {
-                      case 0:
-                        return [0.68, -0.55, 0.265, 1.55]; // Elastic bounce
-                      case 1:
-                        return [0.25, 0.46, 0.45, 0.94]; // Smooth
-                      case 2:
-                        return [0.17, 0.67, 0.83, 0.67]; // Ease in-out
-                      default:
-                        return [0.87, 0, 0.13, 1]; // Ease out-in
-                    }
-                  })(),
+                    (0.4 + (cell.id.charCodeAt(3) % 4) * 0.1) /
+                    controls.cellMovementSpeed, // 0.4-0.7s for more visible spring
+                  ease: [0.25, 1.15, 0.65, 1], // Subtle but visible spring
                 },
               }}
             >
