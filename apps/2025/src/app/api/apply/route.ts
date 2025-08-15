@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     //   factors: ["Enterprise plan subscriber", "Current launch week signup", "2 Supabase services activated"]
     // }
 
-    // 2. Save to Supabase
+    // 2. Save to temporary table and send verification email
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -166,22 +166,25 @@ export async function POST(request: NextRequest) {
 
       const supabase = createServiceClient(supabaseUrl, supabaseServiceKey);
 
-      // First, try to find existing application with this email
-      const { data: existingData, error: selectError } = await supabase
-        .from("applications_select25")
+      // Check if temporary application already exists
+      const { data: existingTempData, error: selectError } = await supabase
+        .from("applications_select25_tmp")
         .select("*")
         .eq("email", sanitizedData.email)
         .single();
 
       if (selectError && selectError.code !== "PGRST116") {
-        console.error("Error checking for existing application:", selectError);
+        console.error(
+          "Error checking for existing temp application:",
+          selectError
+        );
         return NextResponse.json(
           { error: "Failed to check for existing application" },
           { status: 500 }
         );
       }
 
-      const applicationData = {
+      const tempApplicationData = {
         first_name: sanitizedData.firstName,
         last_name: sanitizedData.lastName,
         email: sanitizedData.email,
@@ -189,52 +192,97 @@ export async function POST(request: NextRequest) {
         linkedin: sanitizedData.linkedin,
         github: sanitizedData.github,
         twitter: sanitizedData.twitter,
-        initial_rating: customerRating
-          ? {
-              score: customerRating.score,
-              tier: customerRating.tier,
-              factors: customerRating.factors,
-            }
-          : null,
       };
 
-      let data, error;
+      let tempData, tempError;
 
-      if (existingData) {
-        // Update existing application
+      if (existingTempData) {
+        // Update existing temporary application
         console.log(
-          "Updating existing application for email:",
+          "Updating existing temporary application for email:",
           sanitizedData.email
         );
         const { data: updateData, error: updateError } = await supabase
-          .from("applications_select25")
-          .update(applicationData)
+          .from("applications_select25_tmp")
+          .update({
+            ...tempApplicationData,
+            verification_token: crypto.randomUUID(),
+            expires_at: new Date(
+              Date.now() + 24 * 60 * 60 * 1000
+            ).toISOString(), // 24 hours
+            verified_at: null,
+          })
           .eq("email", sanitizedData.email)
           .select()
           .single();
-        data = updateData;
-        error = updateError;
+        tempData = updateData;
+        tempError = updateError;
       } else {
-        // Insert new application
-        console.log("Creating new application for email:", sanitizedData.email);
+        // Insert new temporary application
+        console.log(
+          "Creating new temporary application for email:",
+          sanitizedData.email
+        );
         const { data: insertData, error: insertError } = await supabase
-          .from("applications_select25")
-          .insert(applicationData)
+          .from("applications_select25_tmp")
+          .insert(tempApplicationData)
           .select()
           .single();
-        data = insertData;
-        error = insertError;
+        tempData = insertData;
+        tempError = insertError;
       }
 
-      if (error) {
-        console.error("Supabase insert error:", error);
+      if (tempError) {
+        console.error("Supabase temp insert error:", tempError);
         return NextResponse.json(
           { error: "Failed to save application to database" },
           { status: 500 }
         );
       }
 
-      console.log("Application saved to Supabase:", data);
+      console.log("Temporary application saved to Supabase:", tempData);
+
+      // Send verification email
+      if (customerioAppApiKey) {
+        try {
+          const verificationUrl = `${
+            process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+          }/api/verify?token=${tempData.verification_token}`;
+
+          const emailRequest = {
+            transactional_message_id: 3, // Verification email template
+            to: sanitizedData.email,
+            identifiers: {
+              email: sanitizedData.email,
+            },
+            message_data: {
+              firstName: sanitizedData.firstName,
+              lastName: sanitizedData.lastName,
+              fullName: `${sanitizedData.firstName} ${sanitizedData.lastName}`,
+              company: sanitizedData.company || "Not specified",
+              linkedin: sanitizedData.linkedin || "Not provided",
+              github: sanitizedData.github || "Not provided",
+              twitter: sanitizedData.twitter || "Not provided",
+              verificationUrl: verificationUrl,
+              expiresAt: new Date(tempData.expires_at).toLocaleString(),
+            },
+          };
+
+          const emailResponse =
+            await customerioAppClient.sendTransactionalEmail(emailRequest);
+          console.log("Verification email sent successfully:", emailResponse);
+        } catch (error) {
+          console.error("Failed to send verification email:", error);
+          return NextResponse.json(
+            { error: "Failed to send verification email" },
+            { status: 500 }
+          );
+        }
+      } else {
+        console.warn(
+          "Customer.io App API key not available, skipping verification email"
+        );
+      }
     } catch (error) {
       console.error("Supabase integration failed:", error);
       return NextResponse.json(
@@ -243,137 +291,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Save to Customer.io
-    // Get environment variables
-    const customerioSiteId = process.env.CUSTOMERIO_SITE_ID;
-    const customerioApiKey = process.env.CUSTOMERIO_API_KEY;
-
-    if (!customerioSiteId || !customerioApiKey) {
-      console.warn(
-        "Customer.io credentials not found, skipping Customer.io integration"
-      );
-    } else {
-      try {
-        const customerioClient = new CustomerioTrackClient(
-          customerioSiteId,
-          customerioApiKey
-        );
-
-        // Get Bizzabo event information for consistency with the sync tool
-        let eventInfo = null;
-        try {
-          eventInfo = await getEvent();
-        } catch (error) {
-          console.warn("Failed to fetch Bizzabo event info:", error);
-        }
-
-        // Create or update profile in Customer.io
-        await customerioClient.createOrUpdateProfile(sanitizedData.email, {
-          firstName: sanitizedData.firstName,
-          lastName: sanitizedData.lastName,
-          company: sanitizedData.company,
-          linkedin: sanitizedData.linkedin,
-          github: sanitizedData.github,
-          twitter: sanitizedData.twitter,
-        });
-
-        // Track the event_applied event with Bizzabo event data
-        const customerioEvent = {
-          userId: sanitizedData.email,
-          type: "track" as const,
-          event: "Event Applied",
-          properties: {
-            event_id: eventInfo?.id || "supabase_select_2025",
-            event_name: eventInfo?.name || "Supabase Select 2025",
-            event_type: "event_applied",
-            bizzabo_customer_id: null, // Not available from application form
-            source: "Select 2025 Application Form",
-            application_id: applicationId,
-            company: sanitizedData.company,
-            linkedin: sanitizedData.linkedin,
-            github: sanitizedData.github,
-            twitter: sanitizedData.twitter,
-            submitted_at: new Date().toISOString(),
-          },
-          timestamp: customerioClient.isoToUnixTimestamp(
-            new Date().toISOString()
-          ),
-        };
-
-        await customerioClient.trackEvent(sanitizedData.email, customerioEvent);
-      } catch (error) {
-        console.error("Customer.io integration failed:", error);
-        // Don't fail the entire request if Customer.io fails
-      }
-    }
-
-    // 4. Save to Bizzabo
-    try {
-      const bizzaboContact = {
-        email: sanitizedData.email,
-        firstName: sanitizedData.firstName,
-        lastName: sanitizedData.lastName,
-        company: sanitizedData.company,
-        linkedin: sanitizedData.linkedin,
-        github: sanitizedData.github,
-        twitter: sanitizedData.twitter,
-      };
-
-      const bizzaboResponse = await createContact(bizzaboContact);
-      console.log("Contact created in Bizzabo:", bizzaboResponse);
-    } catch (error) {
-      console.error("Bizzabo contact creation failed:", error);
-      // Don't fail the entire request if Bizzabo fails
-    }
-
-    // 5. Send transactional email to the applicant
-    if (customerioAppApiKey) {
-      try {
-        const emailRequest = {
-          transactional_message_id: 2,
-          to: sanitizedData.email,
-          identifiers: {
-            email: sanitizedData.email,
-          },
-          message_data: {
-            firstName: sanitizedData.firstName,
-            lastName: sanitizedData.lastName,
-            fullName: `${sanitizedData.firstName} ${sanitizedData.lastName}`,
-            company: sanitizedData.company || "Not specified",
-            linkedin: sanitizedData.linkedin || "Not provided",
-            github: sanitizedData.github || "Not provided",
-            twitter: sanitizedData.twitter || "Not provided",
-            applicationId: applicationId,
-            submittedAt: new Date().toISOString(),
-            customerRating: customerRating
-              ? {
-                  score: customerRating.score,
-                  tier: customerRating.tier,
-                  factors: customerRating.factors,
-                }
-              : null,
-          },
-        };
-
-        const emailResponse = await customerioAppClient.sendTransactionalEmail(
-          emailRequest
-        );
-        console.log("Transactional email sent successfully:", emailResponse);
-      } catch (error) {
-        console.error("Failed to send transactional email:", error);
-        // Don't fail the entire request if email sending fails
-      }
-    } else {
-      console.warn(
-        "Customer.io App API key not available, skipping transactional email"
-      );
-    }
+    // Note: Full integration (Customer.io Track API, Bizzabo, confirmation email)
+    // will be completed after email verification in /api/verify
 
     return NextResponse.json(
       {
         success: true,
-        message: "Application submitted successfully",
+        message:
+          "Application submitted successfully! Please check your email to verify your application.",
         applicationId: applicationId,
+        requiresVerification: true,
       },
       { status: 200 }
     );
