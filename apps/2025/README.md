@@ -24,27 +24,37 @@ src/
 ├── app/
 │   ├── api/                  # API routes
 │   │   ├── apply/            # Application submission endpoint
-│   │   ├── bizzabo/          # Bizzabo API integration routes
-│   │   │   ├── speakers/     # Speaker data endpoint
-│   │   │   └── schedule/     # Schedule data endpoint
-│   │   └── csrf/             # CSRF token endpoint
+│   │   ├── csrf/             # CSRF token endpoint
+│   │   ├── schedule/         # Schedule data endpoint
+│   │   └── speakers/         # Speaker data endpoint
+│   ├── layout.tsx            # Root layout component
 │   └── page.tsx              # Main landing page
 ├── components/               # React components
 │   ├── application-form.tsx  # Application form component
 │   ├── speakers-section.tsx  # Speaker display component
 │   ├── schedule-section.tsx  # Schedule display component
-│   └── ...
+│   ├── hero-section.tsx      # Hero landing section
+│   ├── about-section.tsx     # About section
+│   ├── animated-grid.tsx     # Background animation
+│   └── ...                   # Other UI components
+├── data/
+│   └── schedule.json         # Static schedule data
+├── hooks/                    # Custom React hooks
+│   ├── use-animation-controls.ts
+│   └── use-media-query.ts
 ├── lib/
+│   ├── actions.ts            # Server actions
 │   ├── bizzabo-api.ts        # Bizzabo API client
+│   ├── bizzabo-transformers.ts # Data transformation utilities
 │   ├── customerio.ts         # Customer.io API clients
 │   ├── rate-customer.ts      # Customer rating system
 │   ├── csrf.ts              # CSRF protection utilities
 │   ├── security.ts          # Security validation functions
-│   └── data-fetcher.ts      # Client-side data fetching
+│   └── debug.ts              # Debug utilities
+├── middleware.ts             # Next.js middleware
 └── types/                    # TypeScript type definitions
-    ├── bizzabo.ts            # Raw API types
-    ├── bizzabo-locations.ts  # Location mapping
-    └── fallback-data.ts      # Fallback data types
+    ├── bizzabo.types.ts      # Raw API types
+    └── bizzabo-locations.ts  # Location mapping
 ```
 
 ## 🚀 Getting Started
@@ -89,6 +99,10 @@ CUSTOMERIO_APP_API_KEY=your-app-api-key
 
 # OpenAI Key
 OPENAI_API_KEY=your-openai-key
+
+# MISC
+ANNOUNCING_SOON_SPEAKERS=3
+NEXT_PUBLIC_SHOW_ANIMATION_CONTROL=true
 ```
 
 3. **Start the development server:**
@@ -101,6 +115,12 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ## ⚙️ Configuration
 
+### 🔄 Caching & Performance
+
+- **Static Regeneration**: Pages are statically generated and revalidated every 5 minutes (`export const revalidate = 300`)
+- **Cache Environment Variable**: Optional `CACHE_REVALIDATE_SECONDS` to override default cache duration
+- **API Data Freshness**: Speaker and schedule data from Bizzabo API is cached for optimal performance
+
 ### 🔧 Required Configuration Changes
 
 #### 1. Set the Correct Event ID
@@ -108,7 +128,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 Update `BIZZABO_EVENT_ID` in your `.env.local` file to match your specific Bizzabo event:
 
 ```env
-BIZZABO_EVENT_ID=756187  # Replace with your actual event ID
+BIZZABO_EVENT_ID=123456  # Replace with your actual event ID
 ```
 
 #### 2. Configure Location Mappings
@@ -168,41 +188,6 @@ export const BIZZABO_LOCATIONS: BizzaboLocation[] = [
 - **Customer.io Track API**: Basic authentication with Site ID and API Key
 - **Customer.io App API**: Bearer token authentication with App API Key
 
-## 🎯 Customer Rating System
-
-The application includes an intelligent customer rating system that analyzes applicants based on their Customer.io segments.
-
-### Rating Tiers
-
-- **Tier 1** (60+ points): High-value customers (Enterprise, Team plans, active engagement)
-- **Tier 2** (40-59 points): Engaged customers (Pro plans, event participation)
-- **Tier 3** (20-39 points): Moderate engagement (Free plans, basic activity)
-- **Tier 4** (0-19 points): New or low-engagement customers
-
-### Scoring Factors
-
-#### Plan-Based Scoring (Highest Value)
-
-- **Enterprise Plan**: 40 points
-- **Team Plan**: 25 points
-- **Pro Plan**: 15 points
-- **Free Plan**: 5 points
-
-#### Engagement Indicators
-
-- **Event Participation**: 10 points each (applied/registered for Supabase events)
-- **Launch Week Signups**: 8 points each (previous/current)
-- **Service Activation**: 3 points per activated Supabase service
-- **Organization Status**: 15-20 points (owners, active status)
-
-### Application Process
-
-1. **Customer Intelligence**: Fetches customer segments from Customer.io App API
-2. **Rating Analysis**: Calculates customer score and tier based on segments
-3. **Profile Update**: Updates customer profile in Customer.io Track API
-4. **Event Tracking**: Records application event with rating data
-5. **Data Storage**: Stores application and rating data (Supabase integration planned)
-
 ## 🛠️ Development
 
 ### Available Scripts
@@ -212,16 +197,12 @@ pnpm dev          # Start development server
 pnpm build        # Build for production
 pnpm start        # Start production server
 pnpm lint         # Run ESLint
+pnpm typecheck    # ts linting
 ```
 
 ### Testing API Endpoints
 
 ```bash
-# Test schedule endpoint
-curl http://localhost:3000/api/bizzabo/schedule
-
-# Test speakers endpoint
-curl http://localhost:3000/api/bizzabo/speakers
 
 # Test CSRF token endpoint
 curl http://localhost:3000/api/csrf
@@ -262,28 +243,3 @@ curl -X POST http://localhost:3000/api/apply \
 5. **CSRF token validation failures**
    - Check that the CSRF token is being sent in the `X-CSRF-Token` header
    - Verify the token hasn't expired (tokens are valid for 1 hour)
-
-### Debug Endpoints
-
-_No debug endpoints are currently available. The application uses fallback data when the Bizzabo API is unavailable._
-
-## 📚 Tech Stack
-
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS + Shadcn UI
-- **API Integration**: Bizzabo Partner API
-- **Authentication**: OAuth 2.0 + API Key
-- **Package Manager**: pnpm
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-This project is proprietary and confidential.
