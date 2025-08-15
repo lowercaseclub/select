@@ -251,7 +251,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                     <FormControl>
                       <Input
                         key="firstName-input"
-                        placeholder="Enter your first name"
+                        placeholder="Your first name"
                         autoFocus={!isMobile}
                         autoComplete="given-name"
                         {...field}
@@ -272,7 +272,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                     <FormControl>
                       <div className="relative ">
                         <Input
-                          placeholder="Enter your last name"
+                          placeholder="Your last name"
                           autoComplete="family-name"
                           {...field}
                         />
@@ -296,7 +296,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                       <EnvelopeIcon className={iconClasses} />
                       <Input
                         type="email"
-                        placeholder="Enter your email address"
+                        placeholder="Email used to sign up for Supabase"
                         className="pl-10"
                         autoComplete="email"
                         {...field}
@@ -318,7 +318,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                     <div className="relative mt-1">
                       <BuildingOfficeIcon className={iconClasses} />
                       <Input
-                        placeholder="Enter your company name"
+                        placeholder="Your company name"
                         className="pl-10"
                         autoComplete="organization"
                         {...field}
