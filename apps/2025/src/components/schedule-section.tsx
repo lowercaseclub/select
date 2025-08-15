@@ -34,7 +34,7 @@ function ScheduleTabContent({
 
 export function ScheduleSection() {
   return (
-    <section className="w-full">
+    <section id="schedule" className="w-full">
       <div className="relative mx-auto max-w-site">
         <div className="border-l border-r px-8 py-16">
           <ColumnLine />
