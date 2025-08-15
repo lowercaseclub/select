@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateCSRFToken } from "@/lib/csrf";
+import { allowedOrigins } from "@/lib/allowed-origins";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,13 +12,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid request" }, { status: 403 });
     }
 
-    // Hardcoded allowed origins for simplicity
-    const allowedOrigins = [
-      "https://select.supabase.com",
-      "http://select.supabase.com",
-      "https://select-2025.vercel.app",
-      "http://select-2025.vercel.app",
-    ];
+    // Use shared allowed origins configuration
 
     console.log("Allowed origins:", allowedOrigins);
     console.log("Request origin:", origin);

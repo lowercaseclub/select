@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { allowedOrigins } from "@/lib/allowed-origins";
 
 // In-memory store for rate limiting (in production, use Redis or similar)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -58,21 +59,7 @@ function validateOrigin(request: NextRequest): boolean {
     return true;
   }
 
-  // Define allowed origins for production
-  const allowedOrigins = [
-    "https://select.supabase.com",
-    "http://select.supabase.com",
-    "https://www.select.supabase.com",
-    "http://www.select.supabase.com",
-  ];
-
-  // Add localhost for development
-  if (process.env.NODE_ENV === "development") {
-    allowedOrigins.push(
-      "http://localhost:3000",
-      "https://localhost:3000"
-    );
-  }
+  // Use shared allowed origins configuration
 
   if (origin && allowedOrigins.includes(origin)) {
     return true;
