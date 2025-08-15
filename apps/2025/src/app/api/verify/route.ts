@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { createContact } from "@/lib/bizzabo-api";
-import {
-  CustomerioAppClient,
-  CustomerioTrackClient,
-} from "@/lib/customerio";
+import { CustomerioAppClient, CustomerioTrackClient } from "@/lib/customerio";
 import { rateCustomer, CustomerRating } from "@/lib/rate-customer";
 import { getEvent } from "@/lib/bizzabo-api";
+import { getBaseUrl } from "@/lib/url-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -297,9 +295,9 @@ export async function GET(request: NextRequest) {
 
     // Redirect to success page
     return NextResponse.redirect(
-      `${
-        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-      }/application-verified?email=${encodeURIComponent(tempApplication.email)}`
+      `${getBaseUrl(request)}/application-verified?email=${encodeURIComponent(
+        tempApplication.email
+      )}`
     );
   } catch (error) {
     console.error("Error processing verification:", error);
