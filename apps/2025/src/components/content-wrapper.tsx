@@ -1,6 +1,5 @@
 import { ReactNode } from "react";
 import { ColumnLine } from "./column-line";
-import { TopLines } from "./top-lines";
 
 interface ContentWrapperProps {
   children: ReactNode;
