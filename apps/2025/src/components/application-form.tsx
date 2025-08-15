@@ -139,10 +139,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
       form.setValue("github", normalizedData.github || "");
       form.setValue("twitter", normalizedData.twitter || "");
 
-      // Step 3: Wait 2 seconds to show the user the corrections
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Step 4: Validate normalized URLs
+      // Step 3: Validate normalized URLs
       const urlFields = ["linkedin", "github", "twitter"] as const;
       for (const field of urlFields) {
         if (normalizedData[field] && normalizedData[field]!.trim() !== "") {
