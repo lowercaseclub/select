@@ -185,7 +185,11 @@ export function normalizeSocialUrl(
 export function normalizeAllSocialUrls<T extends Record<string, unknown>>(
   data: T
 ): T {
-  const normalized = { ...data };
+  const normalized = { ...data } as T & {
+    linkedin?: string;
+    github?: string;
+    twitter?: string;
+  };
 
   // Normalize each social media field if it exists
   if ("linkedin" in normalized && typeof normalized.linkedin === "string") {
@@ -200,7 +204,7 @@ export function normalizeAllSocialUrls<T extends Record<string, unknown>>(
     normalized.twitter = normalizeSocialUrl("twitter", normalized.twitter);
   }
 
-  return normalized;
+  return normalized as T;
 }
 
 /**
