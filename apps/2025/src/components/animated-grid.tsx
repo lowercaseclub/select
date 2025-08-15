@@ -852,7 +852,7 @@ export function AnimatedGrid() {
               style={{
                 position: "absolute",
                 height: `${rowHeight}px`,
-                border: "1px solid var(--muted-foreground)",
+                border: "1px solid var(--column-lines)",
                 zIndex: movingCellId === cell.id ? 10 : 1,
               }}
               initial={{
