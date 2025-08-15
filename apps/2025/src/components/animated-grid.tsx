@@ -233,16 +233,21 @@ export function AnimatedGrid() {
 
     // Multiple movement timers for simultaneous action, but with proper collision detection
     const movementIntervals: NodeJS.Timeout[] = [];
+    const cleanupFunctions: (() => void)[] = [];
 
     animatedCells.forEach((cell, index) => {
       const moveDelay = 100 + index * 50; // Stagger initial start times
+      let currentIntervalId: NodeJS.Timeout | null = null;
 
-      setTimeout(() => {
+      const initialTimeout = setTimeout(() => {
         const scheduleNextMove = () => {
-          if (isColumnChangingRef.current || !controls.enableCellMovement)
-            return; // Don't schedule if columns are changing or movement disabled
+          currentIntervalId = setTimeout(() => {
+            // Check if movement should be skipped, but still reschedule
+            if (isColumnChangingRef.current || !controls.enableCellMovement) {
+              scheduleNextMove(); // Reschedule for later
+              return;
+            }
 
-          const intervalId = setTimeout(() => {
             setMovingCells((prevCells) => {
               // Safety check for undefined state
               if (!prevCells || !Array.isArray(prevCells)) {
@@ -269,7 +274,7 @@ export function AnimatedGrid() {
               );
 
               if (isCurrentlySelected) {
-                return prevCells;
+                return prevCells; // Don't move, but will reschedule below
               }
 
               const moveType = Math.random();
@@ -338,13 +343,19 @@ export function AnimatedGrid() {
             // Schedule the next move
             scheduleNextMove();
           }, (2000 + Math.random() * 3000) / controls.cellMovementInterval); // Each cell moves every 2.0-5.0 seconds (controlled by interval)
-
-          movementIntervals.push(intervalId);
         };
 
         // Start the movement cycle
         scheduleNextMove();
       }, moveDelay);
+
+      // Track initial timeout and cleanup function
+      movementIntervals.push(initialTimeout);
+      cleanupFunctions.push(() => {
+        if (currentIntervalId) {
+          clearTimeout(currentIntervalId);
+        }
+      });
     });
 
     // Dynamic cell addition/removal (currently disabled)
@@ -719,6 +730,7 @@ export function AnimatedGrid() {
 
     return () => {
       movementIntervals.forEach(clearTimeout);
+      cleanupFunctions.forEach((cleanup) => cleanup());
       clearInterval(addRemoveInterval);
       clearInterval(columnMorphInterval);
       clearInterval(selectionInterval);

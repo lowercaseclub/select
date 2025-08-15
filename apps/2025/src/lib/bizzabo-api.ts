@@ -1,5 +1,6 @@
 // server side interface to bizzabo api
 
+import { debug } from "./debug";
 import {
   BizzaboEvent,
   BizzaboSpeaker,
@@ -24,7 +25,7 @@ async function authenticate(): Promise<void> {
   const accountId = process.env.BIZZABO_ACCOUNT_ID;
   const apiKey = process.env.BIZZABO_API_KEY;
 
-  console.log("Bizzabo Authentication Debug:", {
+  debug.log("Bizzabo Authentication Debug:", {
     hasClientId: !!clientId,
     hasClientSecret: !!clientSecret,
     hasAccountId: !!accountId,
@@ -34,7 +35,7 @@ async function authenticate(): Promise<void> {
 
   // Try OAuth 2.0 client credentials first
   if (clientId && clientSecret && accountId) {
-    console.log("Attempting OAuth 2.0 authentication...");
+    debug.log("Attempting OAuth 2.0 authentication...");
     const response = await fetch(`${authUrl}/oauth/token`, {
       method: "POST",
       headers: {
@@ -53,10 +54,10 @@ async function authenticate(): Promise<void> {
     if (response.ok) {
       const data = await response.json();
       accessToken = data.access_token;
-      console.log("OAuth 2.0 authentication successful");
+      debug.log("OAuth 2.0 authentication successful");
       return;
     } else {
-      console.error(
+      debug.error(
         "OAuth 2.0 authentication failed:",
         response.status,
         await response.text()
@@ -67,7 +68,7 @@ async function authenticate(): Promise<void> {
   // Fall back to API key
   if (apiKey) {
     accessToken = apiKey;
-    console.log("Using API key authentication");
+    debug.log("Using API key authentication");
     return;
   }
 
@@ -131,7 +132,7 @@ async function makePostRequest<T>(
     headers.Authorization = `Bearer ${accessToken}`;
   }
 
-  console.log("Bizzabo API Request:", {
+  debug.log("Bizzabo API Request:", {
     endpoint: `${baseUrl}${endpoint}`,
     method: "POST",
     headers: { ...headers, Authorization: "[REDACTED]" },
@@ -147,7 +148,7 @@ async function makePostRequest<T>(
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error("Bizzabo API Error Details:", {
+    debug.error("Bizzabo API Error Details:", {
       status: response.status,
       statusText: response.statusText,
       headers: Object.fromEntries(response.headers.entries()),
@@ -278,7 +279,7 @@ export async function createContact(
     throw new Error(`Invalid BIZZABO_EVENT_ID: ${eventId}. Must be a number.`);
   }
 
-  console.log("Using Event ID:", eventId, "as number:", eventIdNum);
+  debug.log("Using Event ID:", eventId, "as number:", eventIdNum);
 
   // Validate required fields
   if (!contact.email || !contact.firstName || !contact.lastName) {
@@ -319,15 +320,15 @@ export async function createContact(
     }
   }
 
-  console.log("Creating Bizzabo contact with data:", contactData);
-  console.log("Event ID:", eventId);
+  debug.log("Creating Bizzabo contact with data:", contactData);
+  debug.log("Event ID:", eventId);
 
   // Try wrapping the data in case Bizzabo expects a specific structure
   const requestBody = {
     properties: contactData,
   };
 
-  console.log("Final request body:", requestBody);
+  debug.log("Final request body:", requestBody);
 
   return await makePostRequest<BizzaboContactResponse>(
     `/events/${eventIdNum}/contacts`,

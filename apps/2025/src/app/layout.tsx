@@ -53,7 +53,6 @@ export const metadata: Metadata = {
     title: "Supabase Select",
     description:
       "Where builders come to learn. Jam-packed with sessions from the industry's best builders.",
-    images: ["/og.png"],
     type: "website",
   },
   twitter: {
@@ -61,7 +60,6 @@ export const metadata: Metadata = {
     title: "Supabase Select",
     description:
       "Where builders come to learn. Jam-packed with sessions from the industry's best builders.",
-    images: ["/og.png"],
   },
 };
 
