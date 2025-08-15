@@ -8,7 +8,7 @@ export function HeroSection() {
     <>
       <section className="px-8 pt-24 pb-[366px] md:py-56 xl:py-72">
         <div className="flex flex-col gap-2">
-          <p className="text-gray-400 text-3xl">Hosted with Y Combinator</p>
+          <p className="text-gray-400 text-3xl">Hosted at Y Combinator</p>
 
           <div className="">
             <h1 className="text-3xl ">
