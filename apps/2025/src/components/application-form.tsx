@@ -200,7 +200,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
   };
 
   // Shared form content component
-  const FormContent = () => (
+  const FormContent = ({ isMobileDrawer = false }) => (
     <>
       {isSubmitted ? (
         <div className="flex flex-col items-center gap-6 py-8">
@@ -232,12 +232,12 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
               className="space-y-6"
               name="application-form"
             >
-              <div className="flex flex-col sm:flex-row gap-4 items-start">
+              <div className="flex flex-col md:flex-row gap-4 items-start">
                 <FormField
                   control={form.control}
                   name="firstName"
                   render={({ field }) => (
-                    <FormItem className="flex-1">
+                    <FormItem className="w-full md:flex-1">
                       <FormLabel>First Name *</FormLabel>
                       <FormControl>
                         <Input
@@ -258,7 +258,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                   control={form.control}
                   name="lastName"
                   render={({ field }) => (
-                    <FormItem className="flex-1">
+                    <FormItem className="w-full md:flex-1">
                       <FormLabel>Last Name *</FormLabel>
                       <FormControl>
                         <div className="relative ">
@@ -395,18 +395,22 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                 </div>
               </div>
 
-              {!isSubmitted && (
-                <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+              {!isSubmitted && !isMobileDrawer && (
+                <div className="flex flex-row gap-3">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleCancel}
                     disabled={isSubmitting}
-                    className="border-border text-foreground hover:bg-muted"
+                    className="border-border text-foreground hover:bg-muted flex-1"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isSubmitting}>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1"
+                  >
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -432,17 +436,50 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
     return (
       <Drawer open={isOpen} onOpenChange={handleOpenChange}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-        <DrawerContent className="px-4 pb-4 flex flex-col">
-          <DrawerHeader className="flex-shrink-0">
-            <DrawerTitle>{headerContent.title}</DrawerTitle>
-            <DrawerDescription className="text-muted-foreground">
-              {headerContent.description}
-            </DrawerDescription>
-          </DrawerHeader>
-          <Separator className="my-4 flex-shrink-0" />
-          <div className="px-4 overflow-y-auto flex-1 min-h-0">
-            <FormContent />
+        <DrawerContent className="flex flex-col max-h-[80vh]">
+          <div className="overflow-y-auto flex-1 px-6">
+            <DrawerHeader className="px-0">
+              <DrawerTitle>{headerContent.title}</DrawerTitle>
+              <DrawerDescription className="text-muted-foreground">
+                {headerContent.description}
+              </DrawerDescription>
+            </DrawerHeader>
+            <Separator className="my-4" />
+            <div className="px-0 pb-20">
+              <FormContent isMobileDrawer={true} />
+            </div>
           </div>
+          {!isSubmitted && (
+            <div className="sticky bottom-0 bg-background border-t px-6 py-4 flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isSubmitting}
+                className="border-border text-foreground hover:bg-muted flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1"
+                onClick={form.handleSubmit(onSubmit)}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <PaperAirplaneIcon className="h-4 w-4 mr-2" />
+                    Submit Application
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </DrawerContent>
       </Drawer>
     );
@@ -459,7 +496,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
           </DialogDescription>
         </DialogHeader>
         <Separator className="my-4" />
-        <FormContent />
+        <FormContent isMobileDrawer={false} />
       </DialogContent>
     </Dialog>
   );
