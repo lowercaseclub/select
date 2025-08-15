@@ -2,10 +2,9 @@ import * as React from "react";
 import { Button, ButtonProps } from "@ui/components/button";
 import { cn } from "@ui/lib/utils";
 
-type OddNumber = 1 | 3 | 5 | 7 | 9 | 11 | 13 | 15 | 17 | 19 | 21 | 23 | 25;
-
 interface CrosshairButtonProps extends ButtonProps {
-  crosshairSize?: OddNumber;
+  // use an odd number
+  crosshairSize?: number;
   crosshairColor?: string;
 }
 

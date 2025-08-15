@@ -1,9 +1,8 @@
-import { createContact, getEvent } from "@/lib/bizzabo-api";
+import { createContact } from "@/lib/bizzabo-api";
 import { extractCSRFTokenFromHeader, validateCSRFToken } from "@/lib/csrf";
 import {
   CustomerioAppClient,
   CustomerioSegment,
-  CustomerioTrackClient,
 } from "@/lib/customerio";
 import { CustomerRating, rateCustomer } from "@/lib/rate-customer";
 import {

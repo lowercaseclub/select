@@ -1,10 +1,8 @@
 import { Suspense } from "react";
 
-interface ApplicationVerifiedPageProps {
-  searchParams: { email?: string };
-}
 
-function ApplicationVerifiedContent({ email }: { email?: string }) {
+
+function ApplicationVerifiedContent() {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-16">
@@ -19,12 +17,10 @@ function ApplicationVerifiedContent({ email }: { email?: string }) {
   );
 }
 
-export default async function ApplicationVerifiedPage({
-  searchParams,
-}: ApplicationVerifiedPageProps) {
+export default async function ApplicationVerifiedPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <ApplicationVerifiedContent email={searchParams.email} />
+      <ApplicationVerifiedContent />
     </Suspense>
   );
 }

@@ -3,7 +3,6 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { createContact } from "@/lib/bizzabo-api";
 import {
   CustomerioAppClient,
-  CustomerioSegment,
   CustomerioTrackClient,
 } from "@/lib/customerio";
 import { rateCustomer, CustomerRating } from "@/lib/rate-customer";
