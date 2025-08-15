@@ -10,6 +10,7 @@ interface ScheduleEventRowProps {
 
 export function ScheduleEventRow({ event, index }: ScheduleEventRowProps) {
   const isSpecialEvent =
+    event.title.toLowerCase().includes("doors open") ||
     event.title.toLowerCase().includes("lunch") ||
     event.title.toLowerCase().includes("party");
   const displayTitle = event.title;
