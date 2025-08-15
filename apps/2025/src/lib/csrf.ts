@@ -3,6 +3,9 @@ import { randomBytes, createHmac } from "crypto";
 // CSRF token configuration
 const CSRF_SECRET =
   process.env.CSRF_SECRET || "your-csrf-secret-key-change-in-production";
+
+// Log CSRF secret status (without exposing the actual secret)
+console.log("CSRF_SECRET configured:", !!process.env.CSRF_SECRET);
 const CSRF_TOKEN_EXPIRY = 60 * 60 * 1000; // 1 hour
 
 export interface CSRFToken {
