@@ -12,6 +12,11 @@ import {
 } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Alert, AlertDescription, AlertTitle } from "@ui/components/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+} from "@ui/components/alert-dialog";
 import { Button } from "@ui/components/button";
 import {
   Dialog,
@@ -67,6 +72,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -157,6 +163,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
 
       // Show success state
       setIsSubmitted(true);
+      setShowConfirmation(true);
       form.reset();
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -174,6 +181,15 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
     setIsOpen(false);
     form.reset();
     setIsSubmitted(false);
+    setShowConfirmation(false);
+    setSubmitError(null);
+  };
+
+  const handleConfirmationClose = () => {
+    setShowConfirmation(false);
+    setIsOpen(false);
+    form.reset();
+    setIsSubmitted(false);
     setSubmitError(null);
   };
 
@@ -182,12 +198,11 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
     if (open) {
       // Fetch CSRF token when dialog opens
       fetchCSRFToken();
-      setIsSubmitted(false);
-      setSubmitError(null);
     } else {
       // Clear CSRF token when dialog closes
       setCsrfToken(null);
       setIsSubmitted(false);
+      setShowConfirmation(false);
       setSubmitError(null);
     }
   };
@@ -202,302 +217,348 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
   // Shared form content component
   const FormContent = ({ isMobileDrawer = false }) => (
     <>
-      {isSubmitted ? (
-        <div className="flex flex-col items-center gap-6 py-8">
-          <Alert>
-            <CheckCircle2 />
-            <AlertTitle>Application Submitted! Check your email.</AlertTitle>
-            <AlertDescription>
-              <p>
-                Thank you for your submission. Please check your email for a
-                confirmation link to complete your application.
-              </p>
-            </AlertDescription>
+      <div className="flex flex-col gap-6">
+        {submitError && (
+          <Alert variant="destructive">
+            <AlertCircle />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{submitError}</AlertDescription>
           </Alert>
-          <Button onClick={handleCancel}>Close</Button>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-6">
-          {submitError && (
-            <Alert variant="destructive">
-              <AlertCircle />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{submitError}</AlertDescription>
-            </Alert>
-          )}
+        )}
 
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6"
-              name="application-form"
-            >
-              <div className="flex flex-col md:flex-row gap-4 items-start">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem className="w-full md:flex-1">
-                      <FormLabel>First Name *</FormLabel>
-                      <FormControl>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6"
+            name="application-form"
+          >
+            <div className="flex flex-col md:flex-row gap-4 items-start">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem className="w-full md:flex-1">
+                    <FormLabel>First Name *</FormLabel>
+                    <FormControl>
+                      <Input
+                        key="firstName-input"
+                        placeholder="Enter your first name"
+                        autoFocus={!isMobile}
+                        autoComplete="given-name"
+                        {...field}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem className="w-full md:flex-1">
+                    <FormLabel>Last Name *</FormLabel>
+                    <FormControl>
+                      <div className="relative ">
                         <Input
-                          key="firstName-input"
-                          placeholder="Enter your first name"
-                          autoFocus={!isMobile}
-                          autoComplete="given-name"
+                          placeholder="Enter your last name"
+                          autoComplete="family-name"
                           {...field}
                         />
-                      </FormControl>
+                      </div>
+                    </FormControl>
 
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email Address *</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <EnvelopeIcon className={iconClasses} />
+                      <Input
+                        type="email"
+                        placeholder="Enter your email address"
+                        className="pl-10"
+                        autoComplete="email"
+                        {...field}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="company"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Company Name</FormLabel>
+                  <FormControl>
+                    <div className="relative mt-1">
+                      <BuildingOfficeIcon className={iconClasses} />
+                      <Input
+                        placeholder="Enter your company name"
+                        className="pl-10"
+                        autoComplete="organization"
+                        {...field}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Separator />
+
+            <div className="space-y-4">
+              <h3 className="font-medium text-foreground">Social Links</h3>
+
+              <div className="space-y-3">
                 <FormField
                   control={form.control}
-                  name="lastName"
+                  name="linkedin"
                   render={({ field }) => (
-                    <FormItem className="w-full md:flex-1">
-                      <FormLabel>Last Name *</FormLabel>
+                    <FormItem>
+                      <FormLabel>LinkedIn</FormLabel>
                       <FormControl>
-                        <div className="relative ">
+                        <div className="relative mt-1">
+                          <LinkedInIcon className={iconClasses} />
                           <Input
-                            placeholder="Enter your last name"
-                            autoComplete="family-name"
+                            type="url"
+                            placeholder="https://linkedin.com/in/yourprofile"
+                            className="pl-10"
                             {...field}
                           />
                         </div>
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                <FormField
+                  control={form.control}
+                  name="github"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>GitHub</FormLabel>
+                      <FormControl>
+                        <div className="relative mt-1">
+                          <GitHubIcon className={iconClasses} />
+                          <Input
+                            type="url"
+                            placeholder="https://github.com/yourusername"
+                            className="pl-10"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="twitter"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Twitter</FormLabel>
+                      <FormControl>
+                        <div className="relative mt-1">
+                          <TwitterIcon className={iconClasses} />
+                          <Input
+                            type="url"
+                            placeholder="https://twitter.com/yourusername"
+                            className="pl-10"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+            </div>
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address *</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <EnvelopeIcon className={iconClasses} />
-                        <Input
-                          type="email"
-                          placeholder="Enter your email address"
-                          className="pl-10"
-                          autoComplete="email"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="company"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company Name</FormLabel>
-                    <FormControl>
-                      <div className="relative mt-1">
-                        <BuildingOfficeIcon className={iconClasses} />
-                        <Input
-                          placeholder="Enter your company name"
-                          className="pl-10"
-                          autoComplete="organization"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="font-medium text-foreground">Social Links</h3>
-
-                <div className="space-y-3">
-                  <FormField
-                    control={form.control}
-                    name="linkedin"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>LinkedIn</FormLabel>
-                        <FormControl>
-                          <div className="relative mt-1">
-                            <LinkedInIcon className={iconClasses} />
-                            <Input
-                              type="url"
-                              placeholder="https://linkedin.com/in/yourprofile"
-                              className="pl-10"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="github"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>GitHub</FormLabel>
-                        <FormControl>
-                          <div className="relative mt-1">
-                            <GitHubIcon className={iconClasses} />
-                            <Input
-                              type="url"
-                              placeholder="https://github.com/yourusername"
-                              className="pl-10"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="twitter"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Twitter</FormLabel>
-                        <FormControl>
-                          <div className="relative mt-1">
-                            <TwitterIcon className={iconClasses} />
-                            <Input
-                              type="url"
-                              placeholder="https://twitter.com/yourusername"
-                              className="pl-10"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+            {!isSubmitted && !isMobileDrawer && (
+              <div className="flex flex-row gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={isSubmitting}
+                  className="border-border text-foreground hover:bg-muted flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <PaperAirplaneIcon className="h-4 w-4 mr-2" />
+                      Submit Application
+                    </>
+                  )}
+                </Button>
               </div>
-
-              {!isSubmitted && !isMobileDrawer && (
-                <div className="flex flex-row gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCancel}
-                    disabled={isSubmitting}
-                    className="border-border text-foreground hover:bg-muted flex-1"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <PaperAirplaneIcon className="h-4 w-4 mr-2" />
-                        Submit Application
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </form>
-          </Form>
-        </div>
-      )}
+            )}
+          </form>
+        </Form>
+      </div>
     </>
   );
 
   if (isMobile) {
     return (
-      <Drawer open={isOpen} onOpenChange={handleOpenChange}>
-        <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-        <DrawerContent className="flex flex-col max-h-[80vh]">
-          <div className="overflow-y-auto flex-1 px-6">
-            <DrawerHeader className="px-0">
-              <DrawerTitle>{headerContent.title}</DrawerTitle>
-              <DrawerDescription className="text-muted-foreground">
-                {headerContent.description}
-              </DrawerDescription>
-            </DrawerHeader>
-            <Separator className="my-4" />
-            <div className="px-0 pb-20">
-              <FormContent isMobileDrawer={true} />
+      <>
+        <Drawer open={isOpen} onOpenChange={handleOpenChange}>
+          <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+          <DrawerContent
+            className={`flex flex-col max-h-[80vh] transition-transform duration-300 ${
+              showConfirmation ? "scale-95 opacity-50" : ""
+            }`}
+          >
+            <div className="overflow-y-auto flex-1 px-6">
+              <DrawerHeader className="px-0">
+                <DrawerTitle>{headerContent.title}</DrawerTitle>
+                <DrawerDescription className="text-muted-foreground">
+                  {headerContent.description}
+                </DrawerDescription>
+              </DrawerHeader>
+              <Separator className="my-4" />
+              <div className="px-0 pb-20">
+                <FormContent isMobileDrawer={true} />
+              </div>
             </div>
-          </div>
-          {!isSubmitted && (
-            <div className="sticky bottom-0 bg-background border-t px-6 py-4 flex gap-3">
+            {!isSubmitted && (
+              <div className="sticky bottom-0 bg-background border-t px-6 py-4 flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={isSubmitting}
+                  className="border-border text-foreground hover:bg-muted flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1"
+                  onClick={form.handleSubmit(onSubmit)}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <PaperAirplaneIcon className="h-4 w-4 mr-2" />
+                      Submit Application
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </DrawerContent>
+        </Drawer>
+
+        {/* Mobile Confirmation Drawer Overlay */}
+        <Drawer open={showConfirmation} onOpenChange={() => {}}>
+          <DrawerContent className="z-[60]">
+            <div className="flex flex-col items-center gap-6 py-8 px-6">
+              <div className="flex items-center justify-center w-20 h-20 bg-green-100 rounded-full">
+                <CheckCircle2 className="w-10 h-10 text-green-600" />
+              </div>
+              <div className="text-center space-y-3">
+                <h3 className="text-xl font-semibold">
+                  Application Submitted!
+                </h3>
+                <p className="text-muted-foreground">
+                  Thank you for your submission. Please check your email for a
+                  confirmation link to complete your application.
+                </p>
+              </div>
               <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isSubmitting}
-                className="border-border text-foreground hover:bg-muted flex-1"
+                onClick={handleConfirmationClose}
+                className="w-full max-w-xs mt-4"
               >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1"
-                onClick={form.handleSubmit(onSubmit)}
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <PaperAirplaneIcon className="h-4 w-4 mr-2" />
-                    Submit Application
-                  </>
-                )}
+                Got it, thanks!
               </Button>
             </div>
-          )}
-        </DrawerContent>
-      </Drawer>
+          </DrawerContent>
+        </Drawer>
+      </>
     );
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle className="">{headerContent.title}</DialogTitle>
-          <DialogDescription className="text-muted-foreground">
-            {headerContent.description}
-          </DialogDescription>
-        </DialogHeader>
-        <Separator className="my-4" />
-        <FormContent isMobileDrawer={false} />
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+        <DialogContent
+          className={`transition-all duration-300 ${
+            showConfirmation ? "scale-95 opacity-50" : ""
+          }`}
+        >
+          <DialogHeader>
+            <DialogTitle className="">{headerContent.title}</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {headerContent.description}
+            </DialogDescription>
+          </DialogHeader>
+          <Separator className="my-4" />
+          <FormContent isMobileDrawer={false} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation AlertDialog Overlay */}
+      <AlertDialog open={showConfirmation} onOpenChange={() => {}}>
+        <AlertDialogContent className="z-[60]">
+          <div className="flex flex-col items-center gap-6 py-4">
+            <div className="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full">
+              <CheckCircle2 className="w-8 h-8 text-green-600" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-xl font-semibold">Application Submitted!</h3>
+              <p className="text-muted-foreground">
+                Thank you for your submission. Please check your email for a
+                confirmation link to complete your application.
+              </p>
+            </div>
+            <AlertDialogAction
+              onClick={handleConfirmationClose}
+              className="w-full max-w-xs"
+            >
+              Got it, thanks!
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
