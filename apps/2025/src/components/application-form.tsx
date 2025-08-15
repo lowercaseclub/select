@@ -16,6 +16,8 @@ import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
 } from "@ui/components/alert-dialog";
 import { Button } from "@ui/components/button";
 import {
@@ -48,6 +50,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { normalizeAllSocialUrls, isValidUrl } from "../lib/url-normalizer";
 
 const applicationSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -128,14 +131,23 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
     setSubmitError(null);
 
     try {
-      // Validate URLs if provided
+      // Step 1: Normalize social media URLs
+      const normalizedData = normalizeAllSocialUrls(data);
+
+      // Step 2: Update form with normalized values (this will show the corrected URLs)
+      form.setValue("linkedin", normalizedData.linkedin || "");
+      form.setValue("github", normalizedData.github || "");
+      form.setValue("twitter", normalizedData.twitter || "");
+
+      // Step 3: Wait 2 seconds to show the user the corrections
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Step 4: Validate normalized URLs
       const urlFields = ["linkedin", "github", "twitter"] as const;
       for (const field of urlFields) {
-        if (data[field] && data[field]!.trim() !== "") {
-          try {
-            new URL(data[field]!);
-          } catch {
-            throw new Error(`Invalid ${field} URL`);
+        if (normalizedData[field] && normalizedData[field]!.trim() !== "") {
+          if (!isValidUrl(normalizedData[field]!)) {
+            throw new Error(`Invalid ${field} URL: ${normalizedData[field]}`);
           }
         }
       }
@@ -152,7 +164,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
           "Content-Type": "application/json",
           "X-CSRF-Token": csrfToken,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(normalizedData),
       });
 
       const result = await response.json();
@@ -337,8 +349,8 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                         <div className="relative mt-1">
                           <LinkedInIcon className={iconClasses} />
                           <Input
-                            type="url"
-                            placeholder="https://linkedin.com/in/yourprofile"
+                            type="text"
+                            placeholder="yourprofilename"
                             className="pl-10"
                             {...field}
                           />
@@ -359,8 +371,8 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                         <div className="relative mt-1">
                           <GitHubIcon className={iconClasses} />
                           <Input
-                            type="url"
-                            placeholder="https://github.com/yourusername"
+                            type="text"
+                            placeholder="@yourusername"
                             className="pl-10"
                             {...field}
                           />
@@ -381,8 +393,8 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                         <div className="relative mt-1">
                           <TwitterIcon className={iconClasses} />
                           <Input
-                            type="url"
-                            placeholder="https://twitter.com/yourusername"
+                            type="text"
+                            placeholder="@yourhandle"
                             className="pl-10"
                             {...field}
                           />
@@ -539,6 +551,13 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
       {/* Confirmation AlertDialog Overlay */}
       <AlertDialog open={showConfirmation} onOpenChange={() => {}}>
         <AlertDialogContent className="z-[60]">
+          <AlertDialogTitle className="sr-only">
+            Application Submitted
+          </AlertDialogTitle>
+          <AlertDialogDescription className="sr-only">
+            Your application has been successfully submitted. Please check your
+            email for confirmation.
+          </AlertDialogDescription>
           <div className="flex flex-col items-center gap-6 py-4">
             <div className="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full">
               <CheckCircle2 className="w-8 h-8 text-green-600" />
