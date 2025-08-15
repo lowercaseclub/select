@@ -22,7 +22,7 @@ export function HeroSection() {
           </div>
 
           <p className="text-accent-1-foreground text-3xl  mb-12">
-            Livestreamed at 10am PT
+            Doors open at 9am PT
           </p>
           <div>
             <ApplicationForm
