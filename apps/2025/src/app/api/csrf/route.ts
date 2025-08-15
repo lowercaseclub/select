@@ -45,6 +45,16 @@ export async function GET(request: NextRequest) {
             referer.startsWith(origin)
           );
         }
+
+        // Check for Vercel deployment pattern: select-*-supabase.vercel.app
+        if (!isValidOrigin && refererOrigin.includes(".vercel.app")) {
+          const isVercelPattern =
+            /^https?:\/\/select-.*-supabase\.vercel\.app$/.test(refererOrigin);
+          if (isVercelPattern) {
+            console.log("Allowing Vercel deployment pattern:", refererOrigin);
+            isValidOrigin = true;
+          }
+        }
       } catch {
         // Invalid referer URL
       }

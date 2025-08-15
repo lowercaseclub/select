@@ -69,7 +69,20 @@ function validateOrigin(request: NextRequest): boolean {
     try {
       const refererUrl = new URL(referer);
       const refererOrigin = `${refererUrl.protocol}//${refererUrl.host}`;
-      return allowedOrigins.includes(refererOrigin);
+
+      // Check explicit allowed origins first
+      if (allowedOrigins.includes(refererOrigin)) {
+        return true;
+      }
+
+      // Check for Vercel deployment pattern: select-*-supabase.vercel.app
+      if (refererOrigin.includes(".vercel.app")) {
+        const isVercelPattern =
+          /^https?:\/\/select-.*-supabase\.vercel\.app$/.test(refererOrigin);
+        return isVercelPattern;
+      }
+
+      return false;
     } catch {
       return false;
     }
