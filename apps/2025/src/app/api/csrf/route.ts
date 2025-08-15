@@ -14,8 +14,11 @@ export async function GET(request: NextRequest) {
     // Get the host from environment or default
     const allowedHost =
       process.env.NEXT_PUBLIC_SITE_URL ||
+      "https://" + process.env.NEXT_PUBLIC_SITE_URL ||
       process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
+      "https://" + process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
       process.env.NEXT_PUBLIC_VERCEL_URL ||
+      "https://" + process.env.NEXT_PUBLIC_VERCEL_URL ||
       process.env.VERCEL_URL ||
       "select-2025.vercel.app";
 
