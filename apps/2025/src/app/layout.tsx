@@ -41,6 +41,12 @@ export const metadata: Metadata = {
   title: "Supabase Select",
   description:
     "Where builders come to learn. Jam-packed with sessions from the industry's best builders.",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
 export default function RootLayout({
