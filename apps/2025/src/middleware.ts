@@ -58,18 +58,21 @@ function validateOrigin(request: NextRequest): boolean {
     return true;
   }
 
-  // Get the host from environment or default
-  const allowedHost =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.VERCEL_URL ||
-    "localhost:3000";
-
+  // Define allowed origins for production
   const allowedOrigins = [
-    `https://${allowedHost}`,
-    `http://${allowedHost}`,
-    `https://www.${allowedHost}`,
-    `http://www.${allowedHost}`,
+    "https://select.supabase.com",
+    "http://select.supabase.com",
+    "https://www.select.supabase.com",
+    "http://www.select.supabase.com",
   ];
+
+  // Add localhost for development
+  if (process.env.NODE_ENV === "development") {
+    allowedOrigins.push(
+      "http://localhost:3000",
+      "https://localhost:3000"
+    );
+  }
 
   if (origin && allowedOrigins.includes(origin)) {
     return true;
