@@ -227,7 +227,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
           )}
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" name="application-form">
               <div className="flex gap-4 items-start">
                 <FormField
                   control={form.control}
@@ -240,6 +240,8 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                           key="firstName-input"
                           placeholder="Enter your first name"
                           autoFocus
+                          autoComplete="given-name"
+                          name="firstName"
                           {...field}
                         />
                       </FormControl>
@@ -259,6 +261,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                         <div className="relative ">
                           <Input
                             placeholder="Enter your last name"
+                            autoComplete="family-name"
                             {...field}
                           />
                         </div>
@@ -283,6 +286,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                           type="email"
                           placeholder="Enter your email address"
                           className="pl-10"
+                          autoComplete="email"
                           {...field}
                         />
                       </div>
@@ -304,6 +308,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                         <Input
                           placeholder="Enter your company name"
                           className="pl-10"
+                          autoComplete="organization"
                           {...field}
                         />
                       </div>
