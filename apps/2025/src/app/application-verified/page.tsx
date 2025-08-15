@@ -17,13 +17,6 @@ export default function ApplicationVerifiedPage() {
               We will be in touch shortly.
             </p>
           </div>
-
-          <div className="mt-8">
-            <p className="text-accent-1-foreground text-lg">
-              Thank you for your interest in Supabase Select. We&apos;re
-              reviewing all applications and will notify you about next steps.
-            </p>
-          </div>
         </div>
       </section>
     </ContentWrapper>
