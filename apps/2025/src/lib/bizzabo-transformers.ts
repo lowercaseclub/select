@@ -74,7 +74,7 @@ export function transformSessionToEvent(
   // Extract speaker names from the speakers array
   const speakerNames = getSpeakerNames(
     (session.speakers || []).map((s) => ({
-      speakerId: s.speakerId.toString(),
+      speakerId: s.id.toString(),
     })),
     speakers
   );
