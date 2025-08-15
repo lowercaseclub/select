@@ -28,13 +28,7 @@ export async function GET(request: NextRequest) {
       console.log("Origin check debug:", {
         origin,
         referer,
-        allowedHost,
         allowedOrigins,
-        NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-        VERCEL_URL: process.env.VERCEL_URL,
-        NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
-        NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL:
-          process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
       });
     }
 
