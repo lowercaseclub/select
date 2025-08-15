@@ -107,7 +107,10 @@ async function makeRequest<T>(endpoint: string): Promise<T> {
   return response.json();
 }
 
-async function makePostRequest<T>(endpoint: string, body: Record<string, unknown>): Promise<T> {
+async function makePostRequest<T>(
+  endpoint: string,
+  body: Record<string, unknown>
+): Promise<T> {
   await authenticate();
 
   const headers: Record<string, string> = {
@@ -186,15 +189,14 @@ export async function getSessions(): Promise<BizzaboSession[]> {
     // Return fallback/mock data when BIZZABO_EVENT_ID is not configured
     return [
       {
-        id: "1",
+        id: 1,
         title: "Sample Session",
         description: "A sample session for fallback",
-        startTime: "2025-01-01T10:00:00Z",
-        endTime: "2025-01-01T11:00:00Z",
+        startDate: "2025-01-01T10:00:00Z",
+        endDate: "2025-01-01T11:00:00Z",
         startMinute: 600,
         endMinute: 660,
-        stageId: "1",
-        stageName: "main-stage",
+        locationId: 131723, // Main Stage location ID
         speakers: [],
         sessionType: "keynote",
         isPublic: true,
@@ -204,6 +206,13 @@ export async function getSessions(): Promise<BizzaboSession[]> {
   const response = await makeRequest<{ content: BizzaboSession[] }>(
     `/events/${eventId}/agenda/sessions`
   );
+
+  // Debug: Log the raw response to see actual JSON structure
+  console.log(
+    "Raw Bizzabo sessions response:",
+    JSON.stringify(response, null, 2)
+  );
+
   return response.content || [];
 }
 

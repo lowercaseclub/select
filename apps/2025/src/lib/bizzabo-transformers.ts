@@ -88,10 +88,10 @@ export function transformSessionToEvent(
     debug.log("NO MINUTES FOUND IN SESSION");
   }
 
-  const stageName = session.stageName || "main-stage";
+  const stageName = mapLocationToStage(session.locationId.toString());
 
   return {
-    id: session.id,
+    id: session.id.toString(),
     time: timeString,
     title: session.title?.toUpperCase() || "",
     speakers: speakerNames,

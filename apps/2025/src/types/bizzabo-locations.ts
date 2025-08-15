@@ -12,15 +12,21 @@ export interface BizzaboLocation {
 
 export const BIZZABO_LOCATIONS: BizzaboLocation[] = [
   {
-    id: 131741,
+    id: 131723,
     name: "Main Stage",
     nameId: "main-stage",
     description: "HQ Building 1",
   },
   {
-    id: 131743,
+    id: 131724,
     name: "Build Stage",
     nameId: "build-stage",
     description: "520 YC",
   },
+  // {
+  //   id: 131725,
+  //   name: "Common Area",
+  //   nameId: "common-area",
+  //   description: "Common Area",
+  // },
 ];
