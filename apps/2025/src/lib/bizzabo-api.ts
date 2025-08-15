@@ -107,7 +107,7 @@ async function makeRequest<T>(endpoint: string): Promise<T> {
   return response.json();
 }
 
-async function makePostRequest<T>(endpoint: string, body: any): Promise<T> {
+async function makePostRequest<T>(endpoint: string, body: Record<string, unknown>): Promise<T> {
   await authenticate();
 
   const headers: Record<string, string> = {
@@ -280,7 +280,7 @@ export async function createContact(
 
   // Prepare the contact data according to Bizzabo API requirements
   // Start with the required fields and add company
-  const contactData: any = {
+  const contactData: Record<string, unknown> = {
     email: contact.email.trim(),
     firstName: contact.firstName.trim(),
     lastName: contact.lastName.trim(),

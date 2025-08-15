@@ -1,10 +1,11 @@
+import { createContact, getEvent } from "@/lib/bizzabo-api";
 import { extractCSRFTokenFromHeader, validateCSRFToken } from "@/lib/csrf";
 import {
   CustomerioAppClient,
   CustomerioSegment,
   CustomerioTrackClient,
 } from "@/lib/customerio";
-import { rateCustomer, CustomerRating } from "@/lib/rate-customer";
+import { CustomerRating, rateCustomer } from "@/lib/rate-customer";
 import {
   isSuspiciousRequest,
   sanitizeInput,
@@ -12,11 +13,8 @@ import {
   validateRequestHeaders,
   validateURL,
 } from "@/lib/security";
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
-import { createContact, getEvent } from "@/lib/bizzabo-api";
+import { NextRequest, NextResponse } from "next/server";
 
 interface ApplicationData {
   firstName: string;

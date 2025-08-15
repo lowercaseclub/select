@@ -112,7 +112,7 @@ export interface BizzaboContact {
   linkedin?: string;
   github?: string;
   twitter?: string;
-  [key: string]: any; // Allow additional properties
+  [key: string]: unknown; // Allow additional properties
 }
 
 export interface BizzaboContactResponse {
@@ -121,5 +121,5 @@ export interface BizzaboContactResponse {
   created: string;
   modified: string;
   eventId: number;
-  [key: string]: any; // Allow additional properties from Bizzabo
+  [key: string]: unknown; // Allow additional properties from Bizzabo
 }
