@@ -227,7 +227,11 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
           )}
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" name="application-form">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-6"
+              name="application-form"
+            >
               <div className="flex gap-4 items-start">
                 <FormField
                   control={form.control}
@@ -241,7 +245,6 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                           placeholder="Enter your first name"
                           autoFocus
                           autoComplete="given-name"
-                          name="firstName"
                           {...field}
                         />
                       </FormControl>
