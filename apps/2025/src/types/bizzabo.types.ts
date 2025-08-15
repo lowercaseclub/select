@@ -102,3 +102,24 @@ export interface ScheduleData {
 export interface SessionSpeakerRef {
   speakerId: string;
 }
+
+// Bizzabo Contact types
+export interface BizzaboContact {
+  email: string;
+  firstName: string;
+  lastName: string;
+  company?: string;
+  linkedin?: string;
+  github?: string;
+  twitter?: string;
+  [key: string]: any; // Allow additional properties
+}
+
+export interface BizzaboContactResponse {
+  id: number;
+  email: string;
+  created: string;
+  modified: string;
+  eventId: number;
+  [key: string]: any; // Allow additional properties from Bizzabo
+}

@@ -6,6 +6,8 @@ import {
   BizzaboSession,
   BizzaboStage,
   BizzaboApiResponse,
+  BizzaboContact,
+  BizzaboContactResponse,
 } from "@/types/bizzabo.types";
 // import scheduleData from "@/data/schedule.json"; // Available for future use
 
@@ -22,8 +24,17 @@ async function authenticate(): Promise<void> {
   const accountId = process.env.BIZZABO_ACCOUNT_ID;
   const apiKey = process.env.BIZZABO_API_KEY;
 
+  console.log("Bizzabo Authentication Debug:", {
+    hasClientId: !!clientId,
+    hasClientSecret: !!clientSecret,
+    hasAccountId: !!accountId,
+    hasApiKey: !!apiKey,
+    accountId: accountId,
+  });
+
   // Try OAuth 2.0 client credentials first
   if (clientId && clientSecret && accountId) {
+    console.log("Attempting OAuth 2.0 authentication...");
     const response = await fetch(`${authUrl}/oauth/token`, {
       method: "POST",
       headers: {
@@ -42,13 +53,21 @@ async function authenticate(): Promise<void> {
     if (response.ok) {
       const data = await response.json();
       accessToken = data.access_token;
+      console.log("OAuth 2.0 authentication successful");
       return;
+    } else {
+      console.error(
+        "OAuth 2.0 authentication failed:",
+        response.status,
+        await response.text()
+      );
     }
   }
 
   // Fall back to API key
   if (apiKey) {
     accessToken = apiKey;
+    console.log("Using API key authentication");
     return;
   }
 
@@ -88,12 +107,56 @@ async function makeRequest<T>(endpoint: string): Promise<T> {
   return response.json();
 }
 
-export async function getEvent(): Promise<BizzaboEvent> {
-  const eventId = process.env.BIZZABO_EVENT_ID;
-  if (!eventId) {
-    throw new Error("BIZZABO_EVENT_ID is required to fetch event details.");
+async function makePostRequest<T>(endpoint: string, body: any): Promise<T> {
+  await authenticate();
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+
+  const apiKey = process.env.BIZZABO_API_KEY;
+  if (apiKey && accessToken === apiKey) {
+    if (accessToken.includes(".")) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    } else {
+      headers.Authorization = accessToken;
+      headers["X-API-Key"] = accessToken;
+      headers["X-Bizzabo-API-Key"] = accessToken;
+    }
+  } else {
+    headers.Authorization = `Bearer ${accessToken}`;
   }
-  return await makeRequest<BizzaboEvent>(`/events/${eventId}`);
+
+  console.log("Bizzabo API Request:", {
+    endpoint: `${baseUrl}${endpoint}`,
+    method: "POST",
+    headers: { ...headers, Authorization: "[REDACTED]" },
+    body: body,
+    bodyStringified: JSON.stringify(body),
+  });
+
+  const response = await fetch(`${baseUrl}${endpoint}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Bizzabo API Error Details:", {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+      errorText: errorText,
+      requestBody: body,
+    });
+    throw new Error(
+      `Bizzabo API POST request failed: ${response.status} - ${errorText}`
+    );
+  }
+
+  return response.json();
 }
 
 export async function getSpeakers(): Promise<BizzaboSpeaker[]> {
@@ -108,7 +171,7 @@ export async function getSpeakers(): Promise<BizzaboSpeaker[]> {
         lastname: "Name",
         title: "Role",
         company: "Company",
-      }
+      },
     ];
   }
   const response = await makeRequest<{ content: BizzaboSpeaker[] }>(
@@ -135,7 +198,7 @@ export async function getSessions(): Promise<BizzaboSession[]> {
         speakers: [],
         sessionType: "keynote",
         isPublic: true,
-      }
+      },
     ];
   }
   const response = await makeRequest<{ content: BizzaboSession[] }>(
@@ -154,13 +217,21 @@ export async function getStages(): Promise<BizzaboStage[]> {
         name: "Main Stage",
         location: "Main Venue",
         isActive: true,
-      }
+      },
     ];
   }
   const response = await makeRequest<BizzaboApiResponse<BizzaboStage[]>>(
     `/events/${eventId}/stages`
   );
   return response.data;
+}
+
+export async function getEvent(): Promise<BizzaboEvent> {
+  const eventId = process.env.BIZZABO_EVENT_ID;
+  if (!eventId) {
+    throw new Error("BIZZABO_EVENT_ID is required to fetch event details.");
+  }
+  return await makeRequest<BizzaboEvent>(`/events/${eventId}`);
 }
 
 export async function getEvents(): Promise<BizzaboEvent[]> {
@@ -182,4 +253,75 @@ export async function getAllEventData(): Promise<{
   ]);
 
   return { event, speakers, sessions, stages };
+}
+
+export async function createContact(
+  contact: BizzaboContact
+): Promise<BizzaboContactResponse> {
+  const eventId = process.env.BIZZABO_EVENT_ID;
+  if (!eventId) {
+    throw new Error("BIZZABO_EVENT_ID is required to create contacts.");
+  }
+
+  // Validate event ID is a number
+  const eventIdNum = parseInt(eventId);
+  if (isNaN(eventIdNum)) {
+    throw new Error(`Invalid BIZZABO_EVENT_ID: ${eventId}. Must be a number.`);
+  }
+
+  console.log("Using Event ID:", eventId, "as number:", eventIdNum);
+
+  // Validate required fields
+  if (!contact.email || !contact.firstName || !contact.lastName) {
+    throw new Error(
+      "Email, firstName, and lastName are required for Bizzabo contacts."
+    );
+  }
+
+  // Prepare the contact data according to Bizzabo API requirements
+  // Start with the required fields and add company
+  const contactData: any = {
+    email: contact.email.trim(),
+    firstName: contact.firstName.trim(),
+    lastName: contact.lastName.trim(),
+  };
+
+  // Add company field
+  if (contact.company && contact.company.trim()) {
+    contactData.company = contact.company.trim();
+  }
+
+  // Add social links with correct Bizzabo field names
+  if (contact.linkedin && contact.linkedin.trim()) {
+    contactData.linkedinPage = contact.linkedin.trim();
+  }
+  if (contact.github && contact.github.trim()) {
+    contactData.github = contact.github.trim();
+  }
+  if (contact.twitter && contact.twitter.trim()) {
+    // Extract Twitter username from URL or use as-is if it's already a username
+    const twitterUrl = contact.twitter.trim();
+    const twitterUsername = twitterUrl.includes("twitter.com")
+      ? twitterUrl.split("twitter.com/")[1]?.split("?")[0]?.split("/")[0]
+      : twitterUrl.replace("@", "");
+
+    if (twitterUsername) {
+      contactData.twitter = twitterUsername;
+    }
+  }
+
+  console.log("Creating Bizzabo contact with data:", contactData);
+  console.log("Event ID:", eventId);
+
+  // Try wrapping the data in case Bizzabo expects a specific structure
+  const requestBody = {
+    properties: contactData,
+  };
+
+  console.log("Final request body:", requestBody);
+
+  return await makePostRequest<BizzaboContactResponse>(
+    `/events/${eventIdNum}/contacts`,
+    requestBody
+  );
 }
