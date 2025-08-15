@@ -232,7 +232,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
               className="space-y-6"
               name="application-form"
             >
-              <div className="flex gap-4 items-start">
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -432,15 +432,15 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
     return (
       <Drawer open={isOpen} onOpenChange={handleOpenChange}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-        <DrawerContent className="px-4 pb-4">
-          <DrawerHeader>
+        <DrawerContent className="px-4 pb-4 flex flex-col">
+          <DrawerHeader className="flex-shrink-0">
             <DrawerTitle>{headerContent.title}</DrawerTitle>
             <DrawerDescription className="text-muted-foreground">
               {headerContent.description}
             </DrawerDescription>
           </DrawerHeader>
-          <Separator className="my-4" />
-          <div className="px-4">
+          <Separator className="my-4 flex-shrink-0" />
+          <div className="px-4 overflow-y-auto flex-1 min-h-0">
             <FormContent />
           </div>
         </DrawerContent>
