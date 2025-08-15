@@ -7,9 +7,9 @@ export function AboutSection() {
     <section className="flex flex-col lg:flex-row border-b">
       {/* Left content block with its own padding */}
       <div className="w-full lg:w-[50%] px-8 py-16 lg:py-24">
-        <h2 className="text-2xl sm:text-3xl font-medium mb-6 lg:mb-8">
+        {/* <h2 className="text-2xl sm:text-3xl font-medium mb-6 lg:mb-8">
           About Supabase Select
-        </h2>
+        </h2> */}
         <div className="space-y-4 sm:space-y-6 text-base sm:text-lg max-w-2xl">
           <p>
             Supabase Select is our first user conference, built for everyone
