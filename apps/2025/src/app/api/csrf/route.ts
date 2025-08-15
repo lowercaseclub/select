@@ -11,41 +11,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid request" }, { status: 403 });
     }
 
-    // Get the host from environment or default
-    const allowedHost =
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
-      process.env.NEXT_PUBLIC_VERCEL_URL ||
-      process.env.VERCEL_URL ||
-      "select-2025.vercel.app";
-
-    // Handle different URL formats
-    let allowedOrigins: string[] = [];
-
-    if (allowedHost) {
-      // If it's already a full URL, use it as-is
-      if (allowedHost.startsWith("http")) {
-        allowedOrigins = [
-          allowedHost,
-          allowedHost.replace("https://", "http://"),
-          allowedHost.replace("http://", "https://"),
-        ];
-      } else {
-        // If it's just a hostname, add protocols
-        allowedOrigins = [
-          `https://${allowedHost}`,
-          `http://${allowedHost}`,
-          `https://www.${allowedHost}`,
-          `http://www.${allowedHost}`,
-        ];
-      }
-    }
-
-    // Add select.supabase.com specifically for production
-    allowedOrigins.push(
+    // Hardcoded allowed origins for simplicity
+    const allowedOrigins = [
       "https://select.supabase.com",
-      "http://select.supabase.com"
-    );
+      "http://select.supabase.com",
+      "https://select-2025.vercel.app",
+      "http://select-2025.vercel.app",
+    ];
 
     console.log("Allowed origins:", allowedOrigins);
     console.log("Request origin:", origin);
@@ -77,6 +49,13 @@ export async function GET(request: NextRequest) {
         const refererUrl = new URL(referer);
         const refererOrigin = `${refererUrl.protocol}//${refererUrl.host}`;
         isValidOrigin = allowedOrigins.includes(refererOrigin);
+
+        // Also check if the referer (with trailing slash) matches any allowed origin
+        if (!isValidOrigin) {
+          isValidOrigin = allowedOrigins.some((origin) =>
+            referer.startsWith(origin)
+          );
+        }
       } catch {
         // Invalid referer URL
       }
