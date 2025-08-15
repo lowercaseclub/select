@@ -273,8 +273,8 @@ export function AnimatedGrid() {
 
               const moveType = Math.random();
 
-              if (moveType < 0.05) {
-                // 5% chance: Move vertically (up or down 1 row only)
+              if (moveType < 0.2) {
+                // 30% chance: Move vertically (up or down 1 row only)
                 const direction = Math.random() < 0.5 ? -1 : 1;
                 const minRow = isMobile ? 12 : 1; // Mobile: prevent going above row 12
                 const maxRow = isMobile ? 30 : 20; // Mobile: allow more room below
@@ -303,7 +303,7 @@ export function AnimatedGrid() {
                   }
                 }
               } else {
-                // 95% chance: Move horizontally (change columns only)
+                // 70% chance: Move horizontally (change columns only)
                 const biasedRandom = Math.random() * 0.8 + 0.2;
                 const newColStart = Math.floor(biasedRandom * numColumns) + 1;
                 const maxSpan = Math.min(
@@ -336,7 +336,7 @@ export function AnimatedGrid() {
 
             // Schedule the next move
             scheduleNextMove();
-          }, (5000 + Math.random() * 8000) / controls.cellMovementInterval); // Each cell moves every 5.0-13.0 seconds (controlled by interval)
+          }, (2000 + Math.random() * 3000) / controls.cellMovementInterval); // Each cell moves every 2.0-5.0 seconds (controlled by interval)
 
           movementIntervals.push(intervalId);
         };
@@ -435,12 +435,12 @@ export function AnimatedGrid() {
           let targetWidth;
 
           if (action === "expand") {
-            // Expand: grow the column significantly
-            const growthAmount = Math.random() * 25 + 15; // 15-40% growth
-            targetWidth = Math.min(50, currentWidth + growthAmount); // Cap at 50%
+            // Expand: grow the column moderately
+            const growthAmount = Math.random() * 8 + 3; // 3-11% growth (much more subtle)
+            targetWidth = Math.min(40, currentWidth + growthAmount); // Cap at 40%
           } else {
-            // Contract: shrink the column
-            const shrinkAmount = Math.random() * 15 + 10; // 10-25% shrink
+            // Contract: shrink the column moderately
+            const shrinkAmount = Math.random() * 6 + 2; // 2-8% shrink (much more subtle)
             let proposedWidth = Math.max(7, currentWidth - shrinkAmount); // Minimum 7% for all columns
 
             // Apply column-specific minimum constraints
