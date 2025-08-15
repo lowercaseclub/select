@@ -94,7 +94,7 @@ export async function SpeakersSection() {
                     src={speaker.photoSet.large}
                     alt={`${speaker.firstname} ${speaker.lastname}`}
                     fill
-                    className="object-cover transition-transform duration-300 hover:scale-105"
+                    className="object-cover transition-transform duration-300 hover:scale-105 filter grayscale contrast-125"
                   />
                 )}
               </div>
