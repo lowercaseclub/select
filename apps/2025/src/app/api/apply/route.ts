@@ -8,6 +8,7 @@ import {
   validateRequestHeaders,
   validateURL,
 } from "@/lib/security";
+import { getBaseUrl } from "@/lib/url-utils";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -245,9 +246,9 @@ export async function POST(request: NextRequest) {
       // Send verification email
       if (customerioAppApiKey) {
         try {
-          const verificationUrl = `${
-            process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-          }/api/verify?token=${tempData.verification_token}`;
+          const verificationUrl = `${getBaseUrl(request)}/api/verify?token=${
+            tempData.verification_token
+          }`;
 
           const emailRequest = {
             transactional_message_id: 3, // Verification email template
