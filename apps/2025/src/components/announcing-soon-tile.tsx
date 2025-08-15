@@ -34,13 +34,8 @@ export function AnnouncingSoonTile() {
           </div>
         </div>
       </div>
-      <div>
-        <h3 className="text-xl font-medium text-muted-foreground">
-          Speaker TBA
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          More speakers to be announced soon
-        </p>
+      <div className="space-y-3 sm:space-y-4">
+        {/* Empty space to match speaker card layout */}
       </div>
     </>
   );

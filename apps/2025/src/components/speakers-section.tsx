@@ -105,10 +105,10 @@ export async function SpeakersSection() {
                     {speaker.firstname} {speaker.lastname}
                   </h3>
                   {speaker.title && (
-                    <p className="text-sm sm:text-base text-foreground leading-snug">
+                    <p className="text-sm sm:text-base text-muted-foreground leading-snug">
                       {speaker.title}
                       {""}
-                      <span className="text-light-foreground">
+                      <span className="text-muted-foreground">
                         , {speaker.company}
                       </span>
                     </p>
