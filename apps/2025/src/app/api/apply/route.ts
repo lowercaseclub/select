@@ -1,5 +1,9 @@
 import { extractCSRFTokenFromHeader, validateCSRFToken } from "@/lib/csrf";
-import { CustomerioAppClient, CustomerioSegment } from "@/lib/customerio";
+import {
+  CustomerioAppClient,
+  CustomerioSegment,
+  CustomerioTrackClient,
+} from "@/lib/customerio";
 import { rateCustomer, CustomerRating } from "@/lib/rate-customer";
 import {
   isSuspiciousRequest,
@@ -9,6 +13,10 @@ import {
   validateURL,
 } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createContact, getEvent } from "@/lib/bizzabo-api";
 
 interface ApplicationData {
   firstName: string;
@@ -145,75 +153,180 @@ export async function POST(request: NextRequest) {
     //   factors: ["Enterprise plan subscriber", "Current launch week signup", "2 Supabase services activated"]
     // }
 
-    // 2. Save to Supabase (skip for now)
+    // 2. Save to Supabase
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    // TODO: Uncomment this out once we are ready to deploy
+      if (!supabaseUrl || !supabaseServiceKey) {
+        console.error("Missing Supabase environment variables");
+        return NextResponse.json(
+          { error: "Database configuration error" },
+          { status: 500 }
+        );
+      }
+
+      const supabase = createServiceClient(supabaseUrl, supabaseServiceKey);
+
+      // First, try to find existing application with this email
+      const { data: existingData, error: selectError } = await supabase
+        .from("applications_select25")
+        .select("*")
+        .eq("email", sanitizedData.email)
+        .single();
+
+      if (selectError && selectError.code !== "PGRST116") {
+        console.error("Error checking for existing application:", selectError);
+        return NextResponse.json(
+          { error: "Failed to check for existing application" },
+          { status: 500 }
+        );
+      }
+
+      const applicationData = {
+        first_name: sanitizedData.firstName,
+        last_name: sanitizedData.lastName,
+        email: sanitizedData.email,
+        company: sanitizedData.company,
+        linkedin: sanitizedData.linkedin,
+        github: sanitizedData.github,
+        twitter: sanitizedData.twitter,
+        initial_rating: customerRating
+          ? {
+              score: customerRating.score,
+              tier: customerRating.tier,
+              factors: customerRating.factors,
+            }
+          : null,
+      };
+
+      let data, error;
+
+      if (existingData) {
+        // Update existing application
+        console.log(
+          "Updating existing application for email:",
+          sanitizedData.email
+        );
+        const { data: updateData, error: updateError } = await supabase
+          .from("applications_select25")
+          .update(applicationData)
+          .eq("email", sanitizedData.email)
+          .select()
+          .single();
+        data = updateData;
+        error = updateError;
+      } else {
+        // Insert new application
+        console.log("Creating new application for email:", sanitizedData.email);
+        const { data: insertData, error: insertError } = await supabase
+          .from("applications_select25")
+          .insert(applicationData)
+          .select()
+          .single();
+        data = insertData;
+        error = insertError;
+      }
+
+      if (error) {
+        console.error("Supabase insert error:", error);
+        return NextResponse.json(
+          { error: "Failed to save application to database" },
+          { status: 500 }
+        );
+      }
+
+      console.log("Application saved to Supabase:", data);
+    } catch (error) {
+      console.error("Supabase integration failed:", error);
+      return NextResponse.json(
+        { error: "Failed to save application to database" },
+        { status: 500 }
+      );
+    }
+
     // 3. Save to Customer.io
     // Get environment variables
-    // const customerioSiteId = process.env.CUSTOMERIO_SITE_ID;
-    // const customerioApiKey = process.env.CUSTOMERIO_API_KEY;
+    const customerioSiteId = process.env.CUSTOMERIO_SITE_ID;
+    const customerioApiKey = process.env.CUSTOMERIO_API_KEY;
 
-    // if (!customerioSiteId || !customerioApiKey) {
-    //   console.warn(
-    //     "Customer.io credentials not found, skipping Customer.io integration"
-    //   );
-    // } else {
-    //   try {
-    //     const customerioClient = new CustomerioTrackClient(
-    //       customerioSiteId,
-    //       customerioApiKey
-    //     );
+    if (!customerioSiteId || !customerioApiKey) {
+      console.warn(
+        "Customer.io credentials not found, skipping Customer.io integration"
+      );
+    } else {
+      try {
+        const customerioClient = new CustomerioTrackClient(
+          customerioSiteId,
+          customerioApiKey
+        );
 
-    //     // Get Bizzabo event information for consistency with the sync tool
-    //     let eventInfo = null;
-    //     try {
-    //       const bizzaboClient = getBizzaboClient();
-    //       eventInfo = await bizzaboClient.getEvent();
-    //     } catch (error) {
-    //       console.warn("Failed to fetch Bizzabo event info:", error);
-    //     }
+        // Get Bizzabo event information for consistency with the sync tool
+        let eventInfo = null;
+        try {
+          eventInfo = await getEvent();
+        } catch (error) {
+          console.warn("Failed to fetch Bizzabo event info:", error);
+        }
 
-    //     // Create or update profile in Customer.io
-    //     await customerioClient.createOrUpdateProfile(sanitizedData.email, {
-    //       firstName: sanitizedData.firstName,
-    //       lastName: sanitizedData.lastName,
-    //       company: sanitizedData.company,
-    //       linkedin: sanitizedData.linkedin,
-    //       github: sanitizedData.github,
-    //       twitter: sanitizedData.twitter,
-    //     });
+        // Create or update profile in Customer.io
+        await customerioClient.createOrUpdateProfile(sanitizedData.email, {
+          firstName: sanitizedData.firstName,
+          lastName: sanitizedData.lastName,
+          company: sanitizedData.company,
+          linkedin: sanitizedData.linkedin,
+          github: sanitizedData.github,
+          twitter: sanitizedData.twitter,
+        });
 
-    //     // Track the event_applied event with Bizzabo event data
-    //     const customerioEvent = {
-    //       userId: sanitizedData.email,
-    //       type: "track" as const,
-    //       event: "Event Applied",
-    //       properties: {
-    //         event_id: eventInfo?.id || "supabase_select_2025",
-    //         event_name: eventInfo?.name || "Supabase Select 2025",
-    //         event_type: "event_applied",
-    //         bizzabo_customer_id: null, // Not available from application form
-    //         source: "Select 2025 Application Form",
-    //         application_id: applicationId,
-    //         company: sanitizedData.company,
-    //         linkedin: sanitizedData.linkedin,
-    //         github: sanitizedData.github,
-    //         twitter: sanitizedData.twitter,
-    //         submitted_at: new Date().toISOString(),
-    //       },
-    //       timestamp: customerioClient.isoToUnixTimestamp(
-    //         new Date().toISOString()
-    //       ),
-    //     };
+        // Track the event_applied event with Bizzabo event data
+        const customerioEvent = {
+          userId: sanitizedData.email,
+          type: "track" as const,
+          event: "Event Applied",
+          properties: {
+            event_id: eventInfo?.id || "supabase_select_2025",
+            event_name: eventInfo?.name || "Supabase Select 2025",
+            event_type: "event_applied",
+            bizzabo_customer_id: null, // Not available from application form
+            source: "Select 2025 Application Form",
+            application_id: applicationId,
+            company: sanitizedData.company,
+            linkedin: sanitizedData.linkedin,
+            github: sanitizedData.github,
+            twitter: sanitizedData.twitter,
+            submitted_at: new Date().toISOString(),
+          },
+          timestamp: customerioClient.isoToUnixTimestamp(
+            new Date().toISOString()
+          ),
+        };
 
-    //     await customerioClient.trackEvent(sanitizedData.email, customerioEvent);
-    //   } catch (error) {
-    //     console.error("Customer.io integration failed:", error);
-    //     // Don't fail the entire request if Customer.io fails
-    //   }
-    // }
+        await customerioClient.trackEvent(sanitizedData.email, customerioEvent);
+      } catch (error) {
+        console.error("Customer.io integration failed:", error);
+        // Don't fail the entire request if Customer.io fails
+      }
+    }
 
-    // 4. Save to Bizzabo (this is not possible, so skip for now)
+    // 4. Save to Bizzabo
+    try {
+      const bizzaboContact = {
+        email: sanitizedData.email,
+        firstName: sanitizedData.firstName,
+        lastName: sanitizedData.lastName,
+        company: sanitizedData.company,
+        linkedin: sanitizedData.linkedin,
+        github: sanitizedData.github,
+        twitter: sanitizedData.twitter,
+      };
+
+      const bizzaboResponse = await createContact(bizzaboContact);
+      console.log("Contact created in Bizzabo:", bizzaboResponse);
+    } catch (error) {
+      console.error("Bizzabo contact creation failed:", error);
+      // Don't fail the entire request if Bizzabo fails
+    }
 
     // 5. Send transactional email to the applicant
     if (customerioAppApiKey) {
