@@ -182,7 +182,7 @@ export function normalizeSocialUrl(
  * @param data - Form data containing social media fields
  * @returns Object with normalized URLs
  */
-export function normalizeAllSocialUrls<T extends Record<string, any>>(
+export function normalizeAllSocialUrls<T extends Record<string, unknown>>(
   data: T
 ): T {
   const normalized = { ...data };
