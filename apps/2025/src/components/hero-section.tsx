@@ -31,9 +31,9 @@ export function HeroSection() {
             <ApplicationForm
               trigger={
                 <CrosshairButton
-                  className="bg-accent-1-foreground/20 border border-dashed border-accent-1-foreground/30 text-base font-medium hover:bg-accent-1-foreground/80 hover:border-accent-1-foreground/60 transition-all duration-300 rounded-none text-white"
+                  className="bg-accent-1-foreground/20 border border-dashed border-accent-1-foreground/30 text-xl font-medium hover:bg-accent-1-foreground/80 hover:border-accent-1-foreground/60 transition-all duration-300 rounded-none text-white"
                   crosshairColor="var(--accent-1-foreground)"
-                  crosshairSize={4}
+                  size="lg"
                 >
                   Apply Now
                 </CrosshairButton>
