@@ -26,16 +26,15 @@ export interface BizzaboSpeaker {
 }
 
 export interface BizzaboSession {
-  id: string;
+  id: number;
   title: string;
   description?: string;
-  startTime: string;
-  endTime: string;
+  startDate: string;
+  endDate: string;
   startMinute?: number;
   endMinute?: number;
-  stageId: string;
-  stageName: string;
-  speakers: BizzaboSpeaker[];
+  locationId: number;
+  speakers?: Array<{ speakerId: number }>;
   sessionType:
     | "keynote"
     | "panel"
@@ -44,6 +43,21 @@ export interface BizzaboSession {
     | "lunch"
     | "networking";
   isPublic: boolean;
+  // Additional fields from actual JSON
+  filters?: Array<{ id: number; tags: any[] }>;
+  enableVirtualSession?: boolean;
+  private?: boolean;
+  registration?: boolean;
+  allowRating?: boolean;
+  externalId?: string;
+  onsiteVisibility?: { type: string };
+  registrationFull?: boolean;
+  recordingSession?: any;
+  sessionCardSize?: string;
+  associatedContacts?: Record<string, any>;
+  registrationVisibility?: boolean;
+  registrationCapacityEnable?: boolean;
+  hidden?: boolean;
 }
 
 export interface BizzaboStage {

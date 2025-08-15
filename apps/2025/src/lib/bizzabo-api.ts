@@ -190,15 +190,14 @@ export async function getSessions(): Promise<BizzaboSession[]> {
     // Return fallback/mock data when BIZZABO_EVENT_ID is not configured
     return [
       {
-        id: "1",
+        id: 1,
         title: "Sample Session",
         description: "A sample session for fallback",
-        startTime: "2025-01-01T10:00:00Z",
-        endTime: "2025-01-01T11:00:00Z",
+        startDate: "2025-01-01T10:00:00Z",
+        endDate: "2025-01-01T11:00:00Z",
         startMinute: 600,
         endMinute: 660,
-        stageId: "1",
-        stageName: "main-stage",
+        locationId: 131723, // Main Stage location ID
         speakers: [],
         sessionType: "keynote",
         isPublic: true,

@@ -68,11 +68,14 @@ export function transformSessionToEvent(
   speakers: BizzaboSpeaker[]
 ): ScheduleEvent {
   debug.log("SESSION OBJECT:", session);
+  debug.log("SESSION SPEAKERS:", session.speakers);
+  debug.log("SESSION ASSOCIATED CONTACTS:", session.associatedContacts);
 
+  // Extract speaker names from the speakers array
   const speakerNames = getSpeakerNames(
-    (session.speakers || [])
-      .filter((s) => s.id != null)
-      .map((s) => ({ speakerId: s.id.toString() })),
+    (session.speakers || []).map((s) => ({
+      speakerId: s.speakerId.toString(),
+    })),
     speakers
   );
 
@@ -88,10 +91,10 @@ export function transformSessionToEvent(
     debug.log("NO MINUTES FOUND IN SESSION");
   }
 
-  const stageName = session.stageName || "main-stage";
+  const stageName = mapLocationToStage(session.locationId.toString());
 
   return {
-    id: session.id,
+    id: session.id.toString(),
     time: timeString,
     title: session.title?.toUpperCase() || "",
     speakers: speakerNames,
