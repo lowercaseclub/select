@@ -206,11 +206,11 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
         <div className="flex flex-col items-center gap-6 py-8">
           <Alert>
             <CheckCircle2 />
-            <AlertTitle>Success! Application Submitted!</AlertTitle>
+            <AlertTitle>Application Submitted! Check your email.</AlertTitle>
             <AlertDescription>
               <p>
-                Thank you for your submission. We will review all applications
-                carefully and will inform you soon.
+                Thank you for your submission. Please check your email for a
+                confirmation link to complete your application.
               </p>
             </AlertDescription>
           </Alert>
