@@ -45,7 +45,7 @@ export async function SpeakersSection() {
                 </h3>
               </div>
               <p className="text-muted-foreground text-sm sm:text-base leading-relaxed text-left">
-                We're announcing new speakers regularly on{" "}
+                We&apos;re announcing new speakers regularly on{" "}
                 <a
                   href="https://x.com/supabase"
                   target="_blank"
