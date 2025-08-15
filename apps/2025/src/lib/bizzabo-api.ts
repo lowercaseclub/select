@@ -207,6 +207,13 @@ export async function getSessions(): Promise<BizzaboSession[]> {
   const response = await makeRequest<{ content: BizzaboSession[] }>(
     `/events/${eventId}/agenda/sessions`
   );
+
+  // Debug: Log the raw response to see actual JSON structure
+  console.log(
+    "Raw Bizzabo sessions response:",
+    JSON.stringify(response, null, 2)
+  );
+
   return response.content || [];
 }
 

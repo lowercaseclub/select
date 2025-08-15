@@ -102,14 +102,18 @@ export function Footer() {
           </p>
           <div className="flex gap-6 text-sm">
             <a
-              href="#"
+              href="https://supabase.com/privacy"
               className="text-muted-foreground hover:text-foreground transition-colors"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               Privacy Policy
             </a>
             <a
-              href="#"
+              href="https://supabase.com/terms"
               className="text-muted-foreground hover:text-foreground transition-colors"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               Terms of Service
             </a>

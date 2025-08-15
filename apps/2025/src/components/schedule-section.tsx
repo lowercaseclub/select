@@ -34,7 +34,7 @@ function ScheduleTabContent({
 
 export function ScheduleSection() {
   return (
-    <section className="w-full">
+    <section id="schedule" className="w-full">
       <div className="relative mx-auto max-w-site">
         <div className="border-l border-r px-8 py-16">
           <ColumnLine />
@@ -45,7 +45,7 @@ export function ScheduleSection() {
         <div className="max-w-site relative mx-auto">
           <ColumnLine />
           <div className="max-w-site mx-auto px-8 border-l border-r overflow-hidden">
-            <TabsList className="bg-transparent h-auto p-0 rounded-none w-full justify-start flex gap-4">
+            <TabsList className="bg-transparent h-auto p-0 rounded-none w-full justify-start flex gap-6">
               <ScheduleTabTrigger value="main" stageName="Main Stage" />
               <ScheduleTabTrigger value="build" stageName="Build Stage" />
             </TabsList>
