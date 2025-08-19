@@ -9,7 +9,7 @@ export function SpeakerDisplay({ name, company, title }: SpeakerDisplayProps) {
     <div>
       <div className="text-foreground">{name}</div>
       {(company || title) && (
-        <div className="text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           {[company, title].filter(Boolean).join(", ")}
         </div>
       )}
