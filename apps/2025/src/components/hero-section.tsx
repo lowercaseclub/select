@@ -12,7 +12,7 @@ export function HeroSection() {
 
           <div className="">
             <h1 className="text-3xl ">
-              <time dateTime="2025-10-03">Monday, October 3, 2025</time>
+              <time dateTime="2025-10-03">Friday, October 3, 2025</time>
             </h1>
             <address
               className="text-3xl not-italic"
