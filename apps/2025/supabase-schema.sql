@@ -155,3 +155,74 @@ CREATE POLICY "Service role can read temp applications" ON applications_select25
     FOR SELECT
     TO service_role
     USING (true);
+
+-- Create events_speakers table for speaking applications
+CREATE TABLE IF NOT EXISTS events_speakers (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    company TEXT,
+    city TEXT,
+    country TEXT,
+    linkedin_profile TEXT NOT NULL,
+    github_profile TEXT NOT NULL,
+    talk_description TEXT NOT NULL,
+    interested_future_events BOOLEAN DEFAULT FALSE,
+    source TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Add indexes for common queries
+CREATE INDEX IF NOT EXISTS idx_events_speakers_email ON events_speakers(email);
+CREATE INDEX IF NOT EXISTS idx_events_speakers_created_at ON events_speakers(created_at);
+CREATE INDEX IF NOT EXISTS idx_events_speakers_interested_future_events ON events_speakers(interested_future_events);
+
+-- Create trigger to automatically update updated_at for events_speakers
+DROP TRIGGER IF EXISTS update_events_speakers_updated_at ON events_speakers;
+CREATE TRIGGER update_events_speakers_updated_at 
+    BEFORE UPDATE ON events_speakers 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS for events_speakers table
+ALTER TABLE events_speakers ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Service role can insert speaker applications" ON events_speakers;
+DROP POLICY IF EXISTS "Service role can read speaker applications" ON events_speakers;
+DROP POLICY IF EXISTS "Service role can update speaker applications" ON events_speakers;
+DROP POLICY IF EXISTS "Service role can delete speaker applications" ON events_speakers;
+
+-- Policy to allow service role to insert applications (for API endpoint)
+CREATE POLICY "Service role can insert speaker applications" ON events_speakers
+    FOR INSERT WITH CHECK (auth.role() = 'service_role');
+
+-- Policy to allow service role to read applications (for admin purposes)
+CREATE POLICY "Service role can read speaker applications" ON events_speakers
+    FOR SELECT USING (auth.role() = 'service_role');
+
+-- Policy to allow service role to update applications (for admin purposes)
+CREATE POLICY "Service role can update speaker applications" ON events_speakers
+    FOR UPDATE USING (auth.role() = 'service_role');
+
+-- Policy to allow service role to delete applications (for admin purposes)
+CREATE POLICY "Service role can delete speaker applications" ON events_speakers
+    FOR DELETE USING (auth.role() = 'service_role');
+
+-- Add comments for documentation
+COMMENT ON TABLE events_speakers IS 'Stores speaking applications for Supabase events';
+COMMENT ON COLUMN events_speakers.first_name IS 'First name of the speaker applicant';
+COMMENT ON COLUMN events_speakers.last_name IS 'Last name of the speaker applicant';
+COMMENT ON COLUMN events_speakers.email IS 'Email address of the speaker applicant';
+COMMENT ON COLUMN events_speakers.company IS 'Company name (optional)';
+COMMENT ON COLUMN events_speakers.city IS 'City (optional)';
+COMMENT ON COLUMN events_speakers.country IS 'Country (optional)';
+COMMENT ON COLUMN events_speakers.linkedin_profile IS 'LinkedIn profile URL';
+COMMENT ON COLUMN events_speakers.github_profile IS 'GitHub profile URL';
+COMMENT ON COLUMN events_speakers.talk_description IS 'Description of the proposed talk';
+COMMENT ON COLUMN events_speakers.interested_future_events IS 'Whether applicant is interested in future events if not selected for current event';
+COMMENT ON COLUMN events_speakers.source IS 'Source of the speaking application (e.g., Select 2025)';
+COMMENT ON COLUMN events_speakers.created_at IS 'Timestamp when the application was created';
+COMMENT ON COLUMN events_speakers.updated_at IS 'Timestamp when the application was last updated';

@@ -34,6 +34,14 @@ export function Footer() {
               </li>
               <li>
                 <a
+                  href="/speak"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Speak at Select
+                </a>
+              </li>
+              <li>
+                <a
                   href="#about"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
