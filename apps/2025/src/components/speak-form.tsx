@@ -24,15 +24,11 @@ import { Input } from "@ui/components/input";
 import { Label } from "@ui/components/label";
 import { Textarea } from "@ui/components/textarea";
 import { Separator } from "@ui/components/separator";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import {
-  normalizeAllSocialUrls,
-  normalizeSocialUrl,
-  isValidUrl,
-} from "../lib/url-normalizer";
+import { normalizeSocialUrl, isValidUrl } from "../lib/url-normalizer";
 
 const speakFormSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -373,7 +369,7 @@ export function SpeakForm() {
                     htmlFor="interestedFutureEvents"
                     className="font-normal"
                   >
-                    If my talk is not chosen for Supabase Select, I'd be
+                    If my talk is not chosen for Supabase Select, I&apos;d be
                     interested in future Supabase events
                   </Label>
                 </div>

@@ -20,7 +20,7 @@ const speakFormSchema = z.object({
   interestedFutureEvents: z.boolean().optional(),
 });
 
-type SpeakFormData = z.infer<typeof speakFormSchema>;
+// Type is used implicitly by the schema validation
 
 export async function POST(request: NextRequest) {
   try {

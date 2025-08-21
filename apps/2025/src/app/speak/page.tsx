@@ -31,8 +31,8 @@ export default function SpeakPage() {
                     </p>
                     <p>
                       Note: the agenda is very limited at Supabase Select. If
-                      your talk is not chosen, indicate if you'd be interested
-                      in speaking at future events.
+                      your talk is not chosen, indicate if you&apos;d be
+                      interested in speaking at future events.
                     </p>
                   </div>
                 </div>
