@@ -29,6 +29,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { normalizeSocialUrl, isValidUrl } from "../lib/url-normalizer";
+import { CountrySelector } from "./country-selector";
 
 const speakFormSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -268,10 +269,10 @@ export function SpeakForm() {
                 <FormItem className="w-full md:flex-1">
                   <FormLabel>Country</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Your country"
-                      autoComplete="country-name"
-                      {...field}
+                    <CountrySelector
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                      placeholder="Select your country"
                     />
                   </FormControl>
                   <FormMessage />
