@@ -197,19 +197,27 @@ DROP POLICY IF EXISTS "Service role can delete speaker applications" ON events_s
 
 -- Policy to allow service role to insert applications (for API endpoint)
 CREATE POLICY "Service role can insert speaker applications" ON events_speakers
-    FOR INSERT WITH CHECK (auth.role() = 'service_role');
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (auth.role() = 'service_role');
 
 -- Policy to allow service role to read applications (for admin purposes)
 CREATE POLICY "Service role can read speaker applications" ON events_speakers
-    FOR SELECT USING (auth.role() = 'service_role');
+    FOR SELECT
+    TO authenticated
+    USING (auth.role() = 'service_role');
 
 -- Policy to allow service role to update applications (for admin purposes)
 CREATE POLICY "Service role can update speaker applications" ON events_speakers
-    FOR UPDATE USING (auth.role() = 'service_role');
+    FOR UPDATE
+    TO authenticated
+    USING (auth.role() = 'service_role');
 
 -- Policy to allow service role to delete applications (for admin purposes)
 CREATE POLICY "Service role can delete speaker applications" ON events_speakers
-    FOR DELETE USING (auth.role() = 'service_role');
+    FOR DELETE
+    TO authenticated
+    USING (auth.role() = 'service_role');
 
 -- Add comments for documentation
 COMMENT ON TABLE events_speakers IS 'Stores speaking applications for Supabase events';
