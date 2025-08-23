@@ -19,7 +19,8 @@
         "CUSTOMERIO_APP_API_KEY",
         "OPENAI_API_KEY",
         "ANNOUNCING_SOON_SPEAKERS",
-        "CACHE_REVALIDATE_SECONDS"
+        "CACHE_REVALIDATE_SECONDS",
+        "CSRF_SECRET"
       ]
     },
     "dev": {
