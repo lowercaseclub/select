@@ -10,7 +10,7 @@ export default function SpeakPage() {
       <ContentWrapper>
         <TopLines />
         <div className="relative border-b">
-          <div className="relative z-1">
+          <div className="relative z-10">
             <Header />
             <section className="px-8 pt-24 pb-[366px] md:py-56 xl:py-72">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
