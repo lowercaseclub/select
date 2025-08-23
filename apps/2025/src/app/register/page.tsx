@@ -1,11 +1,45 @@
+"use client";
+
 import { Footer } from "../../components/footer";
 import { Header } from "../../components/header";
 import { ContentWrapper } from "../../components/content-wrapper";
 import { TopLines } from "@/components/top-lines";
 import { AnimatedGrid } from "../../components/animated-grid";
 import Link from "next/link";
+import { useEffect } from "react";
 
 export default function RegisterPage() {
+  useEffect(() => {
+    // Load Bizzabo script on client side only
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.id =
+      "bz-popup-registration-script-ae887e03-ee3b-4c94-be05-54d63f30b781";
+    script.setAttribute("data-event-id", "752577");
+    script.setAttribute("data-registration-proxy", "true");
+    script.setAttribute("data-unique-name", "752577");
+    script.setAttribute("data-flow-id", "ae887e03-ee3b-4c94-be05-54d63f30b781");
+    script.setAttribute("data-inline-widget", "true");
+    script.setAttribute("data-element-id", "start-registration-button");
+    script.setAttribute("data-element-class", "");
+
+    // Add the script content directly
+    script.innerHTML = `
+      (function() {
+        var bz = document.createElement("script");
+        bz.type = "text/javascript";
+        bz.async = true;
+        bz.setAttribute("data-flow-id","ae887e03-ee3b-4c94-be05-54d63f30b781")
+        bz.setAttribute("data-inline-widget", "true")
+        bz.src = "https://organizer.bizzabo.com/widgets/flows/popup/registrationPopup.js";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bz, s);
+      })();
+    `;
+
+    document.head.appendChild(script);
+  }, []);
+
   return (
     <>
       <ContentWrapper>
@@ -48,34 +82,6 @@ export default function RegisterPage() {
         </div>
       </ContentWrapper>
       <Footer />
-
-      {/* Bizzabo "Register for Ticket" Registration Flow Widget Begin */}
-      <script
-        type="text/javascript"
-        id="bz-popup-registration-script-ae887e03-ee3b-4c94-be05-54d63f30b781"
-        data-event-id="752577"
-        data-registration-proxy="true"
-        data-unique-name="752577"
-        data-flow-id="ae887e03-ee3b-4c94-be05-54d63f30b781"
-        data-inline-widget="true"
-        data-element-id="start-registration-button"
-        data-element-class=""
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              var bz = document.createElement("script");
-              bz.type = "text/javascript";
-              bz.async = true;
-              bz.setAttribute("data-flow-id","ae887e03-ee3b-4c94-be05-54d63f30b781")
-              bz.setAttribute("data-inline-widget", "true")
-              bz.src = "https://organizer.bizzabo.com/widgets/flows/popup/registrationPopup.js";
-              var s = document.getElementsByTagName("script")[0];
-              s.parentNode.insertBefore(bz, s);
-            })();
-          `,
-        }}
-      />
-      {/* Bizzabo "Register for Ticket" Registration Flow Widget End */}
     </>
   );
 }

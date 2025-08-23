@@ -19,7 +19,7 @@ export default function HomePage() {
           <div className="absolute top-32 left-0 right-0 bottom-0">
             <AnimatedGrid />
           </div>
-          <div className="relative z-1">
+          <div className="relative z-10">
             <Header />
             <HeroSection />
           </div>
