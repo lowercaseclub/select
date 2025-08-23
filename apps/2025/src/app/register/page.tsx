@@ -3,6 +3,7 @@ import { Header } from "../../components/header";
 import { ContentWrapper } from "../../components/content-wrapper";
 import { TopLines } from "@/components/top-lines";
 import { AnimatedGrid } from "../../components/animated-grid";
+import Link from "next/link";
 
 export default function RegisterPage() {
   return (
@@ -13,7 +14,7 @@ export default function RegisterPage() {
           <div className="absolute top-32 left-0 right-0 bottom-0">
             <AnimatedGrid />
           </div>
-          <div className="relative z-1">
+          <div className="relative z-10">
             <Header />
             <div className="px-8 pb-16 pt-8">
               <div className="max-w-2xl mx-auto text-center">
@@ -21,18 +22,18 @@ export default function RegisterPage() {
                   Register for Supabase Select
                 </h1>
                 <p className="text-lg md:text-xl text-muted-foreground mb-8">
-                  If you've been accepted into the conference, you can begin
-                  your registration process now.
+                  If you&apos;ve been accepted into the conference, you can
+                  begin your registration process now.
                 </p>
                 <p className="text-lg md:text-xl text-muted-foreground mb-8">
-                  If you're not yet accepted into the conference, but would like
-                  to attend,{" "}
-                  <a
+                  If you&apos;re not yet accepted into the conference, but would
+                  like to attend,{" "}
+                  <Link
                     href="/"
                     className="text-primary hover:text-primary/80 underline underline-offset-4"
                   >
                     be sure to apply
-                  </a>
+                  </Link>
                   .
                 </p>
                 <button
