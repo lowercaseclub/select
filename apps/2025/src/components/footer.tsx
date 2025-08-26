@@ -42,6 +42,22 @@ export function Footer() {
               </li>
               <li>
                 <a
+                  href="/code-of-conduct"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Code of Conduct
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/terms"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Terms of Service
+                </a>
+              </li>
+              <li>
+                <a
                   href="#about"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
