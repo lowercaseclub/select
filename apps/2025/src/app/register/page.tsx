@@ -4,7 +4,6 @@ import { Footer } from "../../components/footer";
 import { Header } from "../../components/header";
 import { ContentWrapper } from "../../components/content-wrapper";
 import { TopLines } from "@/components/top-lines";
-import { AnimatedGrid } from "../../components/animated-grid";
 import Link from "next/link";
 import { useEffect } from "react";
 
@@ -45,9 +44,6 @@ export default function RegisterPage() {
       <ContentWrapper>
         <TopLines />
         <div className="relative border-b">
-          <div className="absolute top-32 left-0 right-0 bottom-0">
-            <AnimatedGrid />
-          </div>
           <div className="relative z-10">
             <Header />
             <div className="px-8 pb-16 pt-8">
