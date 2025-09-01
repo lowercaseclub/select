@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
         const customerioEvent = {
           userId: tempApplication.email,
           type: "track" as const,
-          event: "Event Applied",
+          event: "event_applied",
           properties: {
             event_id: eventInfo?.id || "supabase_select_2025",
             event_name: eventInfo?.name || "Supabase Select 2025",
