@@ -6,7 +6,9 @@ import { ContentWrapper } from "../components/content-wrapper";
 import { HeroSection } from "../components/hero-section";
 import { ScheduleSection } from "../components/schedule-section";
 import { SpeakersSection } from "../components/speakers-section";
+import { SponsorsSection } from "../components/sponsors-section";
 import { TopLines } from "@/components/top-lines";
+import { Separator } from "@ui/components/separator";
 
 export const revalidate = 300; // 5 minutes
 
@@ -30,6 +32,10 @@ export default function HomePage() {
         <SpeakersSection />
       </ContentWrapper>
       <ScheduleSection />
+      <Separator />
+      <ContentWrapper>
+        <SponsorsSection />
+      </ContentWrapper>
       <Footer />
     </>
   );
