@@ -187,8 +187,8 @@ export async function GET(request: NextRequest) {
 
         // Create or update profile in Customer.io
         await customerioClient.createOrUpdateProfile(tempApplication.email, {
-          firstName: tempApplication.first_name,
-          lastName: tempApplication.last_name,
+          first_name: tempApplication.first_name,
+          last_name: tempApplication.last_name,
           company: tempApplication.company,
           linkedin: tempApplication.linkedin,
           github: tempApplication.github,
