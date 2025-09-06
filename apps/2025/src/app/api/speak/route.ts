@@ -93,8 +93,8 @@ export async function POST(request: NextRequest) {
 
         // Ensure profile exists / is updated
         await customerioClient.createOrUpdateProfile(validatedData.email, {
-          firstName: validatedData.firstName,
-          lastName: validatedData.lastName,
+          first_name: validatedData.firstName,
+          last_name: validatedData.lastName,
           company: validatedData.company,
           linkedin: validatedData.linkedin,
           github: validatedData.github,
