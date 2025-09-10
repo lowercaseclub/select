@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/second-chance",
+        destination:
+          "https://docs.google.com/forms/d/e/1FAIpQLScerp9XhRfDXIl3fDUiFcbTfdVrgbbVSbh2NKrZ-tnXaNcFng/viewform",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
