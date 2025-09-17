@@ -17,6 +17,11 @@ export function SponsorsSection() {
       logo: "/logos/algolia.svg",
       url: "https://algolia.com",
     },
+    {
+      name: "Snap",
+      logo: "/logos/snap.svg",
+      url: "https://snap.com",
+    },
   ];
 
   return (
@@ -30,7 +35,7 @@ export function SponsorsSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 border border-column-lines w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border border-column-lines w-full">
         {sponsors.map((sponsor, index) => (
           <a
             key={sponsor.name}
@@ -38,11 +43,17 @@ export function SponsorsSection() {
             target="_blank"
             rel="noopener noreferrer"
             className={`group flex items-center justify-center px-4 py-12 sm:px-8 sm:py-16 transition-all duration-200 hover:bg-muted/50 ${
-              index < 2 ? "lg:border-r border-column-lines" : ""
+              index < 3 ? "lg:border-r border-column-lines" : ""
+            } ${
+              index < sponsors.length - 1 && index % 2 === 0
+                ? "md:border-r border-column-lines"
+                : ""
             } ${
               index < sponsors.length - 1
-                ? "border-b lg:border-b-0 border-column-lines"
+                ? "border-b md:border-b-0 lg:border-b-0 border-column-lines"
                 : ""
+            } ${
+              index >= 2 ? "md:border-t lg:border-t-0 border-column-lines" : ""
             }`}
             aria-label={`Visit ${sponsor.name}`}
           >
