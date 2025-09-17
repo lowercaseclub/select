@@ -4,6 +4,7 @@ import { Footer } from "../../components/footer";
 import { Header } from "../../components/header";
 import { ContentWrapper } from "../../components/content-wrapper";
 import { TopLines } from "@/components/top-lines";
+import { CrosshairButton } from "../../components/crosshair-button";
 import Link from "next/link";
 import { useEffect } from "react";
 
@@ -46,34 +47,40 @@ export default function RegisterPage() {
         <div className="relative border-b">
           <div className="relative z-10">
             <Header />
-            <div className="px-8 pb-16 pt-8">
-              <div className="max-w-2xl mx-auto text-center">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6">
+            <section className="px-8 py-48">
+              <div className="mb-12 sm:mb-16 flex flex-col gap-8">
+                <h2 className="text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight">
                   Register for Supabase Select
-                </h1>
-                <p className="text-lg md:text-xl text-muted-foreground mb-8">
-                  If you&apos;ve been accepted into the conference, you can
-                  begin your registration process now.
-                </p>
-                <p className="text-lg md:text-xl text-muted-foreground mb-8">
-                  If you&apos;re not yet accepted into the conference, but would
-                  like to attend,{" "}
-                  <Link
-                    href="/"
-                    className="text-primary hover:text-primary/80 underline underline-offset-4"
+                </h2>
+                <div>
+                  <p className="text-base sm:text-lg text-muted-foreground">
+                    If you&apos;ve been accepted into the conference, you can
+                    begin your registration process now.
+                  </p>
+                  <p className="text-base sm:text-lg text-muted-foreground">
+                    If you&apos;re not yet accepted into the conference, but
+                    would like to attend,{" "}
+                    <Link
+                      href="/"
+                      className="text-accent-1-foreground hover:text-accent-1-foreground/80 underline underline-offset-4"
+                    >
+                      be sure to apply
+                    </Link>
+                    .
+                  </p>
+                </div>
+                <div>
+                  <CrosshairButton
+                    id="start-registration-button"
+                    className="bg-accent-1-foreground/20 border border-dashed border-accent-1-foreground/30 text-2xl font-medium hover:bg-accent-1-foreground/80 hover:border-accent-1-foreground/60 transition-all duration-300 rounded-none text-white h-14 px-12"
+                    crosshairColor="var(--accent-1-foreground)"
+                    size="lg"
                   >
-                    be sure to apply
-                  </Link>
-                  .
-                </p>
-                <button
-                  id="start-registration-button"
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
-                >
-                  Start registration
-                </button>
+                    Start registration
+                  </CrosshairButton>
+                </div>
               </div>
-            </div>
+            </section>
           </div>
         </div>
       </ContentWrapper>
