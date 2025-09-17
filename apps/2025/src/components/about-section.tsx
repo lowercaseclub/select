@@ -4,7 +4,7 @@ import { LocationMap } from "./location-map";
 
 export function AboutSection() {
   return (
-    <section id="about" className="flex flex-col lg:flex-row border-b">
+    <section id="about" className="flex flex-col lg:flex-row border-t border-b">
       {/* Left content block with its own padding */}
       <div className="w-full lg:w-[50%] px-8 py-16 lg:py-24">
         {/* <h2 className="text-2xl sm:text-3xl font-medium mb-6 lg:mb-8">
