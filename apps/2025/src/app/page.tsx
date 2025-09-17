@@ -1,5 +1,6 @@
 import { AboutSection } from "../components/about-section";
 import { AnimatedGrid } from "../components/animated-grid";
+import { FAQSection } from "../components/faq-section";
 import { Footer } from "../components/footer";
 import { Header } from "../components/header";
 import { ContentWrapper } from "../components/content-wrapper";
@@ -39,6 +40,7 @@ export default function HomePage() {
       <Separator />
       <ContentWrapper>
         <SponsorsSection />
+        <FAQSection />
       </ContentWrapper>
       <Footer />
     </>
