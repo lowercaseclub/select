@@ -26,7 +26,7 @@ export async function SpeakersSection() {
   return (
     <section id="speakers" className="px-8 py-24">
       <div className="mb-12 sm:mb-16">
-        <h2 className="text-2xl sm:text-3xl font-medium mb-3 sm:mb-4">
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight mb-3 sm:mb-4">
           Featured Speakers
         </h2>
         <p className="text-base sm:text-lg text-muted-foreground">
@@ -40,7 +40,7 @@ export async function SpeakersSection() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <XLogo className="w-5 h-5 text-foreground" />
-                <h3 className="text-lg sm:text-xl font-medium">
+                <h3 className="text-xl sm:text-2xl font-medium">
                   Follow for Updates
                 </h3>
               </div>
@@ -100,7 +100,7 @@ export async function SpeakersSection() {
               </div>
               <div className="flex flex-col gap-2">
                 <div>
-                  <h3 className="text-lg sm:text-xl font-medium leading-tight">
+                  <h3 className="text-xl sm:text-2xl font-medium leading-tight">
                     {speaker.prefix && `${speaker.prefix} `}
                     {speaker.firstname} {speaker.lastname}
                   </h3>

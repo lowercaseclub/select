@@ -22,7 +22,7 @@ export function SponsorsSection() {
   return (
     <section id="sponsors" className="px-8 py-24">
       <div className="mb-12 sm:mb-16">
-        <h2 className="text-2xl sm:text-3xl font-medium mb-3 sm:mb-4">
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight mb-3 sm:mb-4">
           Sponsors
         </h2>
         <p className="text-base sm:text-lg text-muted-foreground">

@@ -38,7 +38,9 @@ export function ScheduleSection() {
       <div className="relative mx-auto max-w-site">
         <div className="border-l border-r px-8 py-16">
           <ColumnLine />
-          <h2 className="text-3xl font-medium">Schedule</h2>
+          <h2 className="text-5xl md:text-6xl font-medium tracking-tight">
+            Schedule
+          </h2>
         </div>
       </div>
       <Tabs defaultValue="main" className="w-full">
