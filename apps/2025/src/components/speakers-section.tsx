@@ -4,7 +4,6 @@ import { LinkIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
 import { getSpeakers } from "../lib/bizzabo-api";
 import { BizzaboSpeaker } from "../types/bizzabo.types";
 import { AnnouncingSoonTile } from "./announcing-soon-tile";
-import { XLogo } from "./x-logo";
 
 export async function SpeakersSection() {
   let speakers: BizzaboSpeaker[] = [];
@@ -24,7 +23,7 @@ export async function SpeakersSection() {
   );
 
   return (
-    <section id="speakers" className="px-8 py-24">
+    <section id="speakers" className="px-8 pt-24 pb-0">
       <div className="mb-12 sm:mb-16">
         <h2 className="text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight mb-3 sm:mb-4">
           Featured Speakers
@@ -33,34 +32,6 @@ export async function SpeakersSection() {
           Learn from industry leaders and successful founders who are shaping
           the future of technology.
         </p>
-
-        {/* Twitter Announcement Callout */}
-        <div className="mt-8 max-w-2xl relative z-10">
-          <div className="bg-muted/50 border border-column-lines border-l-foreground px-6 py-6 sm:px-8 sm:py-8">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <XLogo className="w-5 h-5 text-foreground" />
-                <h3 className="text-xl sm:text-2xl font-medium">
-                  Follow for Updates
-                </h3>
-              </div>
-              <p className="text-muted-foreground text-sm sm:text-base leading-relaxed text-left">
-                We&apos;re announcing new speakers regularly on{" "}
-                <a
-                  href="https://x.com/supabase"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-foreground hover:underline font-medium transition-colors"
-                >
-                  @supabase
-                </a>
-                . <br />
-                Follow us to be the first to know when we reveal the next
-                speaker lineup.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {(speakers.length === 0 && announcingSoonCount === 0) ||
