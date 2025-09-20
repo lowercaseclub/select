@@ -6,7 +6,7 @@ const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 5; // 5 requests per minute per IP
+const RATE_LIMIT_MAX_REQUESTS = 20; // 5 requests per minute per IP
 
 function getClientIP(request: NextRequest): string {
   // Get IP from various headers (for different deployment scenarios)
