@@ -17,6 +17,62 @@ const authUrl = "https://auth.bizzabo.com";
 
 let accessToken: string | null = null;
 
+// Custom speaker order matching API firstname/lastname structure
+const SPEAKER_ORDER = [
+  { firstname: "Paul", lastname: "Copplestone" },
+  { firstname: "Ant", lastname: "Wilson" },
+  { firstname: "Patrick", lastname: "Collison" },
+  { firstname: "Dylan", lastname: "Field" },
+  { firstname: "Guillermo", lastname: "Rauch" },
+  { firstname: "Christina", lastname: "Cacioppo" },
+  { firstname: "Hahnbee", lastname: "Lee" },
+  { firstname: "James", lastname: "Tamplin" },
+  { firstname: "Elizabeth", lastname: "Dorman" },
+  { firstname: "Tom", lastname: "Blomfield" },
+  { firstname: "Zeno", lastname: "Rocha" },
+  { firstname: "Tyler", lastname: "Mincey" },
+  { firstname: "Terek", lastname: "Judi" },
+  { firstname: "Bil", lastname: "Harmer" },
+  { firstname: "Greg", lastname: "Richardson" },
+  { firstname: "Sugu", lastname: "Sougoumarane" },
+];
+
+/**
+ * Sorts speakers according to the custom order defined in SPEAKER_ORDER array
+ * This matches the order set in the Bizzabo dashboard
+ */
+function sortSpeakersByCustomOrder(
+  speakers: BizzaboSpeaker[]
+): BizzaboSpeaker[] {
+  return speakers.sort((a, b) => {
+    // Find the position of speaker A in our custom order array
+    const indexA = SPEAKER_ORDER.findIndex(
+      (speaker) =>
+        speaker.firstname === a.firstname && speaker.lastname === a.lastname
+    );
+
+    // Find the position of speaker B in our custom order array
+    const indexB = SPEAKER_ORDER.findIndex(
+      (speaker) =>
+        speaker.firstname === b.firstname && speaker.lastname === b.lastname
+    );
+
+    // If both speakers are in our custom order, sort by their positions
+    if (indexA !== -1 && indexB !== -1) {
+      return indexA - indexB;
+    }
+
+    // If only speaker A is in custom order, it comes first
+    if (indexA !== -1) return -1;
+
+    // If only speaker B is in custom order, it comes first
+    if (indexB !== -1) return 1;
+
+    // If neither speaker is in custom order, maintain original order
+    return 0;
+  });
+}
+
 async function authenticate(): Promise<void> {
   if (accessToken) return;
 
@@ -181,7 +237,8 @@ export async function getSpeakers(): Promise<BizzaboSpeaker[]> {
   const response = await makeRequest<{ content: BizzaboSpeaker[] }>(
     `/events/${eventId}/speakers`
   );
-  return response.content || [];
+  const speakers = response.content || [];
+  return sortSpeakersByCustomOrder(speakers);
 }
 
 export async function getSessions(): Promise<BizzaboSession[]> {
