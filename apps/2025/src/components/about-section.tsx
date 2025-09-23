@@ -24,7 +24,7 @@ export function AboutSection() {
           </p>
           <p>
             Whether you&apos;re just getting started or managing infrastructure
-            at scale, you&apos;ll leave with practical insights, better
+            EXPLAIN at scale, you&apos;ll leave with practical insights, better
             workflows, and a stronger connection to the global builder
             community.
           </p>

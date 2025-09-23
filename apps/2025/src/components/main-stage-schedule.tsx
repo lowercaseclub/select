@@ -14,11 +14,11 @@ export async function MainStageSchedule() {
     // Debug: Main Stage sessions loaded
 
     const events = getEventsByStage(sessions, speakers, ["main-stage", "main"]);
-    console.log("MAIN STAGE - Total events found:", events.length);
-    console.log(
-      "MAIN STAGE - Events:",
-      events.map((e) => ({ title: e.title, stage: e.stage }))
-    );
+    // console.log("MAIN STAGE - Total events found:", events.length);
+    // console.log(
+    //   "MAIN STAGE - Events:",
+    //   events.map((e) => ({ title: e.title, stage: e.stage }))
+    // );
 
     // console.log("Main Stage - Filtered events:", events);
 

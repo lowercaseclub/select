@@ -1,9 +1,9 @@
-import Image from "next/image";
 import { UsersIcon } from "@heroicons/react/24/outline";
 import { LinkIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
 import { getSpeakers } from "../lib/bizzabo-api";
 import { BizzaboSpeaker } from "../types/bizzabo.types";
 import { AnnouncingSoonTile } from "./announcing-soon-tile";
+import { HalftoneImageSSR } from "./halftone-image-ssr";
 
 export async function SpeakersSection() {
   let speakers: BizzaboSpeaker[] = [];
@@ -58,14 +58,19 @@ export async function SpeakersSection() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
           {speakers.map((speaker) => (
-            <div key={speaker.id} className="space-y-3 sm:space-y-4">
-              <div className="aspect-square bg-muted border border-column-lines relative overflow-hidden">
+            <div key={speaker.id} className="space-y-3 sm:space-y-4 group">
+              <div
+                className="aspect-square relative overflow-hidden"
+                style={{ backgroundColor: "#000000" }}
+              >
                 {speaker.photoSet?.large && (
-                  <Image
+                  <HalftoneImageSSR
                     src={speaker.photoSet.large}
                     alt={`${speaker.firstname} ${speaker.lastname}`}
-                    fill
-                    className="object-cover transition-transform duration-300 hover:scale-105 filter grayscale contrast-125"
+                    className="transition-transform duration-300"
+                    dotSize={1.75}
+                    spacing={5}
+                    shape="square"
                   />
                 )}
               </div>

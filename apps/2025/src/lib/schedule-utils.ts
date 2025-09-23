@@ -11,11 +11,11 @@ export function getEventsByStage(
 ) {
   const allEvents = sessions.map((session) => transformSessionToEvent(session));
 
-  console.log("FILTERING - Looking for stages:", stageIds);
-  console.log(
-    "FILTERING - All events with stages:",
-    allEvents.map((e) => ({ title: e.title, stage: e.stage }))
-  );
+  // console.log("FILTERING - Looking for stages:", stageIds);
+  // console.log(
+  //   "FILTERING - All events with stages:",
+  //   allEvents.map((e) => ({ title: e.title, stage: e.stage }))
+  // );
 
   const filtered = allEvents.filter((event) => {
     // Include lunch and party sessions on all stages
@@ -24,9 +24,9 @@ export function getEventsByStage(
       event.title.toLowerCase().includes("party");
 
     const matches = stageIds.includes(event.stage) || isLunchOrParty;
-    console.log(
-      `FILTERING - Event "${event.title}" (stage: ${event.stage}) matches: ${matches}`
-    );
+    // console.log(
+    //   `FILTERING - Event "${event.title}" (stage: ${event.stage}) matches: ${matches}`
+    // );
     return matches;
   });
 

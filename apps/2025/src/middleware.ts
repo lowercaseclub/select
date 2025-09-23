@@ -65,7 +65,9 @@ export function middleware(request: NextRequest) {
   }
 
   // Skip middleware for certain API routes that might need different handling
-  const skipRateLimit = request.nextUrl.pathname.startsWith("/api/bizzabo/");
+  const skipRateLimit =
+    request.nextUrl.pathname.startsWith("/api/bizzabo/") ||
+    request.nextUrl.pathname.startsWith("/api/supatone");
 
   if (!skipRateLimit) {
     const clientIP = getClientIP(request);

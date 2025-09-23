@@ -266,10 +266,10 @@ export async function getSessions(): Promise<BizzaboSession[]> {
   );
 
   // Debug: Log the raw response to see actual JSON structure
-  console.log(
-    "Raw Bizzabo sessions response:",
-    JSON.stringify(response, null, 2)
-  );
+  // console.log(
+  //   "Raw Bizzabo sessions response:",
+  //   JSON.stringify(response, null, 2)
+  // );
 
   return response.content || [];
 }
