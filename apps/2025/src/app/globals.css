@@ -12,6 +12,16 @@
   --accent-2-foreground: oklch(0.547 0.134 109.2);
   --accent-3-foreground: oklch(0.577 0.114 131.42);
   --accent-4-foreground: oklch(0.482 0.055 137.45);
+
+  /* New Color Palette - Brand Green System */
+  --brand-green-200: #041c11;
+  --brand-green-300: #072719;
+  --brand-green-400: #0c3925;
+  --brand-green-500: #15593b;
+  --brand-green-default: #3ecf8e;
+  --brand-green-600: #85e0b7;
+  --brand-green-button: #37996b;
+  --brand-green-link: #3ecf8e;
   --column-lines: oklch(0.922 0 0);
   --shapes-stroke-1: oklch(0.571 0 0);
   --card: oklch(1 0 0);
@@ -100,6 +110,16 @@
   --color-accent-2-foreground: var(--accent-2-foreground);
   --color-accent-3-foreground: var(--accent-3-foreground);
   --color-accent-4-foreground: var(--accent-4-foreground);
+
+  /* New Color Palette - Brand Green System */
+  --color-brand-green-200: var(--brand-green-200);
+  --color-brand-green-300: var(--brand-green-300);
+  --color-brand-green-400: var(--brand-green-400);
+  --color-brand-green-500: var(--brand-green-500);
+  --color-brand-green-default: var(--brand-green-default);
+  --color-brand-green-600: var(--brand-green-600);
+  --color-brand-green-button: var(--brand-green-button);
+  --color-brand-green-link: var(--brand-green-link);
   --color-column-lines: var(--column-lines);
   --color-shapes-stroke-1: var(--shapes-stroke-1);
   --color-card: var(--card);

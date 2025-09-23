@@ -37,7 +37,7 @@ const getColumnPosition = (
   const basePosition = columnWidths
     .slice(0, colIndex - 1)
     .reduce((sum, width) => sum + width, 0);
-  return colIndex === 1 ? basePosition : basePosition - 0.1;
+  return colIndex === 1 ? basePosition : basePosition - 0.1; // Move cells left to align with column edge
 };
 
 const getColumnWidth = (
@@ -49,7 +49,7 @@ const getColumnWidth = (
   const baseWidth = columnWidths
     .slice(colStart - 1, colEnd)
     .reduce((sum, width) => sum + width, 0);
-  return colStart === 1 ? baseWidth + 0.1 : baseWidth + 0.2;
+  return colStart === 1 ? baseWidth : baseWidth + 0.1; // Add width back for non-first columns to reach right edge
 };
 
 interface GridCell {
@@ -178,6 +178,10 @@ export function AnimatedGrid() {
           { id: "cell-7", row: 17, colStart: 4, colEnd: 4, delay: 180 },
           { id: "cell-8", row: 24, colStart: 3, colEnd: 3, delay: 600 },
           { id: "cell-9", row: 21, colStart: 1, colEnd: 2, delay: 450 },
+          { id: "cell-10", row: 19, colStart: 3, colEnd: 4, delay: 520 },
+          { id: "cell-11", row: 26, colStart: 1, colEnd: 1, delay: 680 },
+          { id: "cell-12", row: 23, colStart: 4, colEnd: 4, delay: 320 },
+          { id: "cell-13", row: 15, colStart: 2, colEnd: 3, delay: 750 },
         ]
       : isXL
       ? [
@@ -191,6 +195,13 @@ export function AnimatedGrid() {
           { id: "cell-7", row: 11, colStart: 4, colEnd: 5, delay: 600 },
           { id: "cell-8", row: 13, colStart: 7, colEnd: 8, delay: 180 },
           { id: "cell-9", row: 15, colStart: 2, colEnd: 3, delay: 400 },
+          { id: "cell-10", row: 7, colStart: 1, colEnd: 1, delay: 520 },
+          { id: "cell-11", row: 17, colStart: 6, colEnd: 7, delay: 680 },
+          { id: "cell-12", row: 6, colStart: 4, colEnd: 5, delay: 320 },
+          { id: "cell-13", row: 18, colStart: 8, colEnd: 8, delay: 750 },
+          { id: "cell-14", row: 5, colStart: 3, colEnd: 4, delay: 420 },
+          { id: "cell-15", row: 19, colStart: 5, colEnd: 6, delay: 580 },
+          { id: "cell-16", row: 4, colStart: 7, colEnd: 8, delay: 820 },
         ]
       : [
           // Desktop: cells scattered across all columns
@@ -203,6 +214,13 @@ export function AnimatedGrid() {
           { id: "cell-7", row: 7, colStart: 8, colEnd: 8, delay: 600 },
           { id: "cell-8", row: 9, colStart: 2, colEnd: 2, delay: 180 },
           { id: "cell-9", row: 11, colStart: 4, colEnd: 5, delay: 400 },
+          { id: "cell-10", row: 3, colStart: 1, colEnd: 1, delay: 520 },
+          { id: "cell-11", row: 13, colStart: 7, colEnd: 8, delay: 680 },
+          { id: "cell-12", row: 2, colStart: 3, colEnd: 4, delay: 320 },
+          { id: "cell-13", row: 14, colStart: 5, colEnd: 6, delay: 750 },
+          { id: "cell-14", row: 1, colStart: 6, colEnd: 7, delay: 420 },
+          { id: "cell-15", row: 15, colStart: 2, colEnd: 3, delay: 580 },
+          { id: "cell-16", row: 16, colStart: 8, colEnd: 8, delay: 820 },
         ];
 
     // Validate cell column references
@@ -806,7 +824,7 @@ export function AnimatedGrid() {
   const [isControlsOpen, setIsControlsOpen] = useState(false);
 
   return (
-    <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden pointer-events-none">
+    <div className="absolute top-0 left-0 md:left-[33.33%] right-0 bottom-0 overflow-hidden pointer-events-none">
       {/* Animation Controls Panel with Popover */}
       {showAnimationControls && (
         <div className="absolute top-4 right-4 z-50 pointer-events-auto">
@@ -837,10 +855,10 @@ export function AnimatedGrid() {
       )}
       {/* 2 left vertical lines - like spreadsheet margins */}
 
-      {/* Vertical columns in main grid */}
+      {/* Vertical columns in main grid - BEHIND cells */}
       <motion.div
         className="grid h-full"
-        style={{ zIndex: 0 }}
+        style={{ zIndex: 1 }} // Behind cells but above background
         animate={{
           gridTemplateColumns: createColumnWidths(
             currentColumnWidths ||
@@ -861,7 +879,9 @@ export function AnimatedGrid() {
         {Array.from({
           length: numColumns - 1, // Skip last column - container border handles final edge
         }).map((_, i) => (
-          <div key={i} className="border-r border-column-lines" />
+          <div key={i} className="relative">
+            <div className="absolute right-0 top-0 bottom-0 w-px bg-column-lines" />
+          </div>
         ))}
       </motion.div>
 
@@ -873,25 +893,27 @@ export function AnimatedGrid() {
         </div> */}
 
       {/* Cells in main grid area */}
-      <div className="absolute inset-0" style={{ zIndex: 5 }}>
+      <div className="absolute inset-0" style={{ zIndex: 10 }}>
         <AnimatePresence>
           {(movingCells || []).map((cell) => (
             <motion.div
               key={cell.id}
-              className="absolute overflow-hidden bg-background"
+              className="absolute overflow-hidden"
               style={{
                 position: "absolute",
                 height: `${rowHeight}px`,
-                border: "1px solid var(--column-lines)",
+                border: "none",
+                backgroundColor: "var(--background)", // Match site background
                 zIndex: movingCellId === cell.id ? 10 : 1,
               }}
               initial={{
                 opacity: 0,
-                backgroundColor: "transparent",
+                backgroundColor: "var(--background)", // Start with site background
                 width: "0px", // Start at 0 width
               }}
               animate={{
                 opacity: 1,
+                backgroundColor: "var(--background)", // Keep site background as default
                 top: `${(cell.row - 1) * rowHeight - (cell.row - 1)}px`, // Animate vertical position (subtract 1px per row for border overlap)
                 left: `${getColumnPosition(
                   cell.colStart,
@@ -948,34 +970,65 @@ export function AnimatedGrid() {
                   },
                 }}
               >
-                {/* Random color spark animations - only for selected cells */}
-                {controls.enableColorAnimations && (
+                {/* Textured color animations - show all blocks active */}
+                {true && (
                   <motion.div
                     className="w-full h-full"
                     style={{
-                      background: (() => {
-                        const gradients = [
-                          "linear-gradient(135deg, var(--accent-1-foreground), var(--accent-2-foreground))",
-                          "linear-gradient(135deg, var(--accent-2-foreground), var(--accent-3-foreground))",
-                          "linear-gradient(135deg, var(--accent-3-foreground), var(--accent-4-foreground))",
-                          "linear-gradient(135deg, var(--accent-4-foreground), var(--accent-1-foreground))",
-                          "linear-gradient(90deg, var(--accent-1-foreground), var(--accent-3-foreground))",
-                          "linear-gradient(45deg, var(--accent-2-foreground), var(--accent-4-foreground))",
+                      backgroundColor: (() => {
+                        const colors = [
+                          "var(--brand-green-default)",
+                          "var(--brand-green-default)",
+                          "var(--brand-green-default)",
+                          "var(--brand-green-default)",
+                          "var(--brand-green-600)",
+                          "var(--brand-green-600)",
+                          "var(--brand-green-button)",
+                          "var(--brand-green-button)",
+                          "var(--brand-green-500)",
+                          "var(--brand-green-400)",
+                          "var(--brand-green-link)",
+                          "var(--brand-green-300)",
                         ];
-                        return gradients[
-                          cell.id.charCodeAt(5) % gradients.length
+                        return colors[cell.id.charCodeAt(5) % colors.length];
+                      })(),
+                      // Apply textured mask based on cell position and ID - some blocks get full color
+                      ...(() => {
+                        // Determine if this block should be full color or textured
+                        const shouldBeFullColor =
+                          (cell.colStart + cell.row + cell.id.charCodeAt(3)) %
+                            5 ===
+                          0; // Every 5th block is full color
+
+                        if (shouldBeFullColor) {
+                          return {}; // No mask properties = full solid color
+                        }
+
+                        // Apply textured mask for non-full-color blocks
+                        const patterns = [
+                          'url("/pattern-stipple.svg")',
+                          'url("/pattern-checker.svg")',
                         ];
+                        const patternIndex =
+                          (cell.colStart + cell.row + cell.id.charCodeAt(4)) %
+                          patterns.length;
+                        const sizes = ["4px", "5px", "6px", "7px"];
+                        const sizeIndex =
+                          (cell.colStart + cell.row) % sizes.length;
+
+                        return {
+                          maskImage: patterns[patternIndex],
+                          maskSize: sizes[sizeIndex],
+                          maskRepeat: "repeat",
+                          maskPosition: "center",
+                        };
                       })(),
                     }}
                     initial={{
                       clipPath: "inset(0 100% 0 0)", // Start completely hidden
                     }}
                     animate={{
-                      clipPath: !isCellInSelection(cell)
-                        ? cell.id.charCodeAt(6) % 2 === 0
-                          ? "inset(0 0% 0 100%)" // Swipe out right when deselected
-                          : "inset(0 100% 0 0)" // Swipe out left when deselected
-                        : "inset(0 0% 0 0%)", // Show fully when selected (persist through column changes)
+                      clipPath: "inset(0 0% 0 0%)", // Always show fully - disable selection-based animation
                       opacity: isCellInFlashingSelection(cell)
                         ? [1, 0.2, 1] // Single flash: full → dim → full
                         : 1,
@@ -1029,7 +1082,7 @@ export function AnimatedGrid() {
               (selection.endRow - selection.startRow + 1) * rowHeight -
                 (selection.endRow - selection.startRow)
             )}px`,
-            backgroundColor: "rgba(62, 207, 142, 0.08)", // Supabase green background
+            backgroundColor: "rgba(255, 255, 255, 0.08)", // White background with transparency
             zIndex: 20,
           }}
           initial={{ opacity: 0, scale: 0.8 }}
@@ -1052,7 +1105,8 @@ export function AnimatedGrid() {
           <div
             className="absolute inset-0"
             style={{
-              backgroundImage: `radial-gradient(circle, rgba(62, 207, 142, 0.3) 0.5px, transparent 0.5px)`,
+              backgroundImage: `radial-gradient(circle, var(--muted-foreground) 0.5px, transparent 0.5px)`,
+              opacity: 0.3,
               backgroundSize: "8px 8px",
               backgroundPosition: "2px 2px",
             }}
@@ -1062,15 +1116,15 @@ export function AnimatedGrid() {
           <motion.div
             className="absolute inset-0"
             style={{
-              border: "2px solid rgba(62, 207, 142, 0.9)",
+              border: "2px solid var(--foreground)",
               borderRadius: "2px",
               borderStyle: "dashed",
             }}
             animate={{
               borderColor: [
-                "rgba(62, 207, 142, 0.9)",
-                "rgba(62, 207, 142, 0.4)",
-                "rgba(62, 207, 142, 0.9)",
+                "var(--foreground)",
+                "var(--muted-foreground)",
+                "var(--foreground)",
               ],
             }}
             transition={{
@@ -1088,7 +1142,7 @@ export function AnimatedGrid() {
               right: "0px",
               width: "8px",
               height: "8px",
-              backgroundColor: "rgba(62, 207, 142, 0.9)",
+              backgroundColor: "var(--foreground)",
               clipPath: "polygon(100% 0%, 100% 100%, 0% 100%)",
             }}
           />
