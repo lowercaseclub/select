@@ -33,7 +33,6 @@ export default function HomePage() {
         <SpeakersSection />
       </ContentWrapper>
       <ContentWrapper>
-        <FollowUpdatesCallout />
         <AboutSection />
       </ContentWrapper>
       <ScheduleSection />
