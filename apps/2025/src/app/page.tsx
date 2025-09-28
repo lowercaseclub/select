@@ -8,7 +8,6 @@ import { HeroSection } from "../components/hero-section";
 import { ScheduleSection } from "../components/schedule-section";
 import { SpeakersSection } from "../components/speakers-section";
 import { SponsorsSection } from "../components/sponsors-section";
-import { FollowUpdatesCallout } from "../components/follow-updates-callout";
 import { TopLines } from "@/components/top-lines";
 import { Separator } from "@ui/components/separator";
 

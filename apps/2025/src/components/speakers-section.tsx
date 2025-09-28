@@ -23,7 +23,7 @@ export async function SpeakersSection() {
   );
 
   return (
-    <section id="speakers" className="px-8 pt-24 pb-0">
+    <section id="speakers" className="px-8 pt-24 pb-12">
       <div className="mb-12 sm:mb-16">
         <h2 className="text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight mb-3 sm:mb-4">
           Featured Speakers
