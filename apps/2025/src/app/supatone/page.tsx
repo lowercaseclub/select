@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { useForm, useWatch } from "react-hook-form";
 import { SettingsForm } from "./components/settings-form";
+import { WebcamCapture } from "./components/webcam-capture";
 
 export default function SupatonePage() {
   const [processing, setProcessing] = useState(false);
@@ -283,6 +284,18 @@ export default function SupatonePage() {
 
         {/* Settings */}
         <SettingsForm control={control} onSettingsChange={reprocessImage} />
+
+        {/* Webcam Capture */}
+        <WebcamCapture
+          onCapture={(file) => {
+            setCurrentFile(file);
+            setCurrentUrl(""); // Clear URL when webcam captures
+            setResult(null);
+            setResultSvg(null);
+            processImageFromFile(file);
+          }}
+          disabled={processing}
+        />
 
         {/* URL Input */}
         <div className="mb-8">
