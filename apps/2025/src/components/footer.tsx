@@ -7,8 +7,8 @@ export function Footer() {
           <div className="md:col-span-1">
             <h3 className="text-xl font-medium mb-4">Supabase Select</h3>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Where builders come to learn. Jam-packed with sessions from the
-              industry&apos;s best builders.
+              Where builders come to learn. Jam-packed with sessions from the industry&apos;s best
+              builders.
             </p>
           </div>
 
@@ -101,10 +101,7 @@ export function Footer() {
               San Francisco, CA
             </address>
             <div className="mt-4">
-              <time
-                dateTime="2025-10-03"
-                className="text-sm text-muted-foreground"
-              >
+              <time dateTime="2025-10-03" className="text-sm text-muted-foreground">
                 Friday, October 3, 2025
               </time>
             </div>
@@ -113,9 +110,7 @@ export function Footer() {
 
         {/* Bottom section */}
         <div className="mt-12 pt-8 border-t border-column-lines flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-muted-foreground">
-            © 2025 Supabase. All rights reserved.
-          </p>
+          <p className="text-sm text-muted-foreground">© 2025 Supabase. All rights reserved.</p>
           <div className="flex gap-6 text-sm">
             <a
               href="https://supabase.com/privacy"
@@ -137,5 +132,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  );
+  )
 }

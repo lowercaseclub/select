@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   Select,
@@ -6,11 +6,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@repo/ui/src/components/select";
+} from '@repo/ui/src/components/select'
 
 interface ShapeSelectProps {
-  value: "circle" | "square";
-  onValueChange: (value: "circle" | "square") => void;
+  value: 'circle' | 'square'
+  onValueChange: (value: 'circle' | 'square') => void
 }
 
 export function ShapeSelect({ value, onValueChange }: ShapeSelectProps) {
@@ -34,5 +34,5 @@ export function ShapeSelect({ value, onValueChange }: ShapeSelectProps) {
         </SelectItem>
       </SelectContent>
     </Select>
-  );
+  )
 }

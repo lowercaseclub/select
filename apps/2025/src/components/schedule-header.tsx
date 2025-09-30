@@ -7,5 +7,5 @@ export function ScheduleHeader() {
         <div className="col-span-4">SPEAKERS</div>
       </div>
     </div>
-  );
+  )
 }

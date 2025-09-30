@@ -1,17 +1,17 @@
-import { useState } from "react";
+import { useState } from 'react'
 
 export interface AnimationControls {
-  enableColorAnimations: boolean;
-  enableCellMovement: boolean;
-  enableColumnMorphing: boolean;
-  enableSelections: boolean;
-  cellMovementSpeed: number; // Multiplier for actual movement animation speed
-  columnMorphSpeed: number; // Multiplier for column morphing animation speed
-  selectionFrequency: number; // Multiplier for selection creation frequency
-  cellMovementInterval: number; // How often cells move (multiplier for intervals)
-  columnMorphInterval: number; // How often columns morph (multiplier for intervals)
-  selectionInterval: number; // How often selections are created (multiplier for intervals)
-  maxSelections: number; // Maximum number of simultaneous selections
+  enableColorAnimations: boolean
+  enableCellMovement: boolean
+  enableColumnMorphing: boolean
+  enableSelections: boolean
+  cellMovementSpeed: number // Multiplier for actual movement animation speed
+  columnMorphSpeed: number // Multiplier for column morphing animation speed
+  selectionFrequency: number // Multiplier for selection creation frequency
+  cellMovementInterval: number // How often cells move (multiplier for intervals)
+  columnMorphInterval: number // How often columns morph (multiplier for intervals)
+  selectionInterval: number // How often selections are created (multiplier for intervals)
+  maxSelections: number // Maximum number of simultaneous selections
 }
 
 const defaultControls: AnimationControls = {
@@ -26,11 +26,11 @@ const defaultControls: AnimationControls = {
   columnMorphInterval: 1,
   selectionInterval: 1,
   maxSelections: 2,
-};
+}
 
 export function useAnimationControls() {
-  const [controls, setControls] = useState<AnimationControls>(defaultControls);
-  const [showControls, setShowControls] = useState(false);
+  const [controls, setControls] = useState<AnimationControls>(defaultControls)
+  const [showControls, setShowControls] = useState(false)
 
   const updateControl = <K extends keyof AnimationControls>(
     key: K,
@@ -39,16 +39,16 @@ export function useAnimationControls() {
     setControls((prev) => ({
       ...prev,
       [key]: value,
-    }));
-  };
+    }))
+  }
 
   const resetControls = () => {
-    setControls(defaultControls);
-  };
+    setControls(defaultControls)
+  }
 
   const toggleControls = () => {
-    setShowControls((prev) => !prev);
-  };
+    setShowControls((prev) => !prev)
+  }
 
   return {
     controls,
@@ -56,5 +56,5 @@ export function useAnimationControls() {
     updateControl,
     resetControls,
     toggleControls,
-  };
+  }
 }

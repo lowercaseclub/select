@@ -16,5 +16,5 @@ export function ScheduleLoading() {
         </div>
       </div>
     </section>
-  );
+  )
 }

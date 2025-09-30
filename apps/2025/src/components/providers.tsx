@@ -1,9 +1,9 @@
-"use client";
+'use client'
 
-import { ThemeProvider } from "./theme-provider";
+import { ThemeProvider } from './theme-provider'
 
 interface ProvidersProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export function Providers({ children }: ProvidersProps) {
@@ -18,5 +18,5 @@ export function Providers({ children }: ProvidersProps) {
     >
       {children}
     </ThemeProvider>
-  );
+  )
 }

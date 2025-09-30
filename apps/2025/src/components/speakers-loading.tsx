@@ -2,12 +2,10 @@ export function SpeakersLoading() {
   return (
     <section className="px-8 py-24">
       <div className="mb-12 sm:mb-16">
-        <h2 className="text-2xl sm:text-3xl font-medium mb-3 sm:mb-4">
-          Featured Speakers
-        </h2>
+        <h2 className="text-2xl sm:text-3xl font-medium mb-3 sm:mb-4">Featured Speakers</h2>
         <p className="text-base sm:text-lg text-muted-foreground">
-          Learn from industry leaders and successful founders who are shaping
-          the future of technology.
+          Learn from industry leaders and successful founders who are shaping the future of
+          technology.
         </p>
       </div>
 
@@ -28,5 +26,5 @@ export function SpeakersLoading() {
         ))}
       </div>
     </section>
-  );
+  )
 }

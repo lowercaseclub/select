@@ -18,7 +18,7 @@ Use CSS `mask` properties to apply patterns as textures over solid colors:
 ```css
 .textured-background {
   background-color: hsl(var(--brand-500));
-  mask-image: url("/pattern-stipple.svg");
+  mask-image: url('/pattern-stipple.svg');
   mask-size: 4px;
   mask-repeat: repeat;
   mask-position: center;
@@ -32,9 +32,9 @@ Use CSS `mask` properties to apply patterns as textures over solid colors:
   className="bg-brand-300 h-16"
   style={{
     maskImage: 'url("/pattern-checker.svg")',
-    maskSize: "4px",
-    maskRepeat: "repeat",
-    maskPosition: "top left",
+    maskSize: '4px',
+    maskRepeat: 'repeat',
+    maskPosition: 'top left',
   }}
 />
 ```
@@ -162,23 +162,23 @@ animation: terminalLine 10s steps(8, end) 0s infinite reverse;
 
 ```jsx
 const TexturedProgressBar = ({
-  bgColor = "bg-brand",
-  pattern = "pattern-checker.svg",
-  delay = "0s",
+  bgColor = 'bg-brand',
+  pattern = 'pattern-checker.svg',
+  delay = '0s',
 }) => (
   <div className="relative h-8">
     <div
       className={`h-full w-full ${bgColor}`}
       style={{
         maskImage: `url("/${pattern}")`,
-        maskSize: "4px",
-        maskRepeat: "repeat",
-        clipPath: "inset(0 100% 0 0)",
+        maskSize: '4px',
+        maskRepeat: 'repeat',
+        clipPath: 'inset(0 100% 0 0)',
         animation: `terminalLine 10s steps(8, end) ${delay} infinite`,
       }}
     />
   </div>
-);
+)
 ```
 
 This guide provides the foundation for creating consistent textured backgrounds and animated elements using the State of Startups pattern system.

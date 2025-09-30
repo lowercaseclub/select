@@ -139,17 +139,17 @@ Edit `src/types/bizzabo-locations.ts` to match your event's location IDs:
 export const BIZZABO_LOCATIONS: BizzaboLocation[] = [
   {
     id: 131741, // Replace with your Main Stage location ID
-    name: "Main Stage",
-    nameId: "main-stage",
-    description: "HQ Building 1",
+    name: 'Main Stage',
+    nameId: 'main-stage',
+    description: 'HQ Building 1',
   },
   {
     id: 131743, // Replace with your Build Stage location ID
-    name: "Build Stage",
-    nameId: "build-stage",
-    description: "520 YC",
+    name: 'Build Stage',
+    nameId: 'build-stage',
+    description: '520 YC',
   },
-];
+]
 ```
 
 **Note:** Location IDs must be hardcoded because Bizzabo doesn't provide a locations API endpoint. You'll need to determine the correct location IDs from your Bizzabo event setup.
@@ -219,23 +219,19 @@ curl -X POST http://localhost:3000/api/apply \
 ### Common Issues
 
 1. **"Sessions/stages not available yet, using fallback data"**
-
    - Check that `BIZZABO_EVENT_ID` is correct
    - Verify your event has published sessions in Bizzabo
    - Ensure API credentials are valid
 
 2. **"Bizzabo API configuration is missing"**
-
    - Verify all environment variables are set in `.env.local`
    - Restart the development server after adding environment variables
 
 3. **Location mapping issues**
-
    - Update location IDs in `src/types/bizzabo-locations.ts`
    - Check that location IDs match your Bizzabo event setup
 
 4. **Customer.io API errors**
-
    - Verify `CUSTOMERIO_APP_API_KEY` is set for App API access
    - Check that `CUSTOMERIO_SITE_ID` and `CUSTOMERIO_API_KEY` are set for Track API
    - Ensure API keys have correct permissions

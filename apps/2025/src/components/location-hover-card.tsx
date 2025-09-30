@@ -1,18 +1,14 @@
-"use client";
+'use client'
 
 // import { Button } from "@ui/components/button"; // Currently unused
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@ui/components/hover-card";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@ui/components/hover-card'
 
 interface LocationHoverCardProps {
-  children: React.ReactNode;
-  locationName: string;
-  address: string;
-  mapUrl: string;
-  images?: string[];
+  children: React.ReactNode
+  locationName: string
+  address: string
+  mapUrl: string
+  images?: string[]
 }
 
 export function LocationHoverCard({
@@ -36,7 +32,7 @@ export function LocationHoverCard({
             height="100%"
             style={{
               border: 0,
-              filter: "grayscale(100%) invert(1) brightness(1.2) contrast(1.2)",
+              filter: 'grayscale(100%) invert(1) brightness(1.2) contrast(1.2)',
             }}
             allowFullScreen
             loading="lazy"
@@ -62,5 +58,5 @@ export function LocationHoverCard({
         </div>
       </HoverCardContent>
     </HoverCard>
-  );
+  )
 }

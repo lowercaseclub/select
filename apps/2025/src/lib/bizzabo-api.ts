@@ -1,6 +1,6 @@
 // server side interface to bizzabo api
 
-import { debug } from "./debug";
+import { debug } from './debug'
 import {
   BizzaboEvent,
   BizzaboSpeaker,
@@ -9,95 +9,91 @@ import {
   BizzaboApiResponse,
   BizzaboContact,
   BizzaboContactResponse,
-} from "@/types/bizzabo.types";
-import { FALLBACK_SPEAKERS, FALLBACK_SESSIONS } from "./fallback-data";
+} from '@/types/bizzabo.types'
+import { FALLBACK_SPEAKERS, FALLBACK_SESSIONS } from './fallback-data'
 // import scheduleData from "@/data/schedule.json"; // Available for future use
 
-const baseUrl = "https://api.bizzabo.com/v1";
-const authUrl = "https://auth.bizzabo.com";
+const baseUrl = 'https://api.bizzabo.com/v1'
+const authUrl = 'https://auth.bizzabo.com'
 
-let accessToken: string | null = null;
+let accessToken: string | null = null
 
 // Check if we have valid Bizzabo credentials
 function hasValidCredentials(): boolean {
-  const eventId = process.env.BIZZABO_EVENT_ID;
-  const clientId = process.env.BIZZABO_CLIENT_ID;
-  const clientSecret = process.env.BIZZABO_CLIENT_SECRET;
-  const apiKey = process.env.BIZZABO_API_KEY;
-  
-  return !!(eventId && (clientId || apiKey));
+  const eventId = process.env.BIZZABO_EVENT_ID
+  const clientId = process.env.BIZZABO_CLIENT_ID
+  const clientSecret = process.env.BIZZABO_CLIENT_SECRET
+  const apiKey = process.env.BIZZABO_API_KEY
+
+  return !!(eventId && (clientId || apiKey))
 }
 
 // Custom speaker order matching API firstname/lastname structure
 const SPEAKER_ORDER = [
-  { firstname: "Paul", lastname: "Copplestone" },
-  { firstname: "Ant", lastname: "Wilson" },
-  { firstname: "Patrick", lastname: "Collison" },
-  { firstname: "Dylan", lastname: "Field" },
-  { firstname: "Christina", lastname: "Cacioppo" },
-  { firstname: "Guillermo", lastname: "Rauch" },
-  { firstname: "Hahnbee", lastname: "Lee" },
-  { firstname: "James", lastname: "Tamplin" },
-  { firstname: "Elizabeth", lastname: "Dorman" },
-  { firstname: "Tom", lastname: "Blomfield" },
-  { firstname: "Zeno", lastname: "Rocha" },
-  { firstname: "Tyler", lastname: "Mincey" },
-  { firstname: "Alana", lastname: "Goyal" },
-  { firstname: "Terek", lastname: "Judi" },
-  { firstname: "Bil", lastname: "Harmer" },
-  { firstname: "Greg", lastname: "Richardson" },
-  { firstname: "Sugu", lastname: "Sougoumarane" },
-];
+  { firstname: 'Paul', lastname: 'Copplestone' },
+  { firstname: 'Ant', lastname: 'Wilson' },
+  { firstname: 'Patrick', lastname: 'Collison' },
+  { firstname: 'Dylan', lastname: 'Field' },
+  { firstname: 'Christina', lastname: 'Cacioppo' },
+  { firstname: 'Guillermo', lastname: 'Rauch' },
+  { firstname: 'Hahnbee', lastname: 'Lee' },
+  { firstname: 'James', lastname: 'Tamplin' },
+  { firstname: 'Elizabeth', lastname: 'Dorman' },
+  { firstname: 'Tom', lastname: 'Blomfield' },
+  { firstname: 'Zeno', lastname: 'Rocha' },
+  { firstname: 'Tyler', lastname: 'Mincey' },
+  { firstname: 'Alana', lastname: 'Goyal' },
+  { firstname: 'Terek', lastname: 'Judi' },
+  { firstname: 'Bil', lastname: 'Harmer' },
+  { firstname: 'Greg', lastname: 'Richardson' },
+  { firstname: 'Sugu', lastname: 'Sougoumarane' },
+]
 
 /**
  * Sorts speakers according to the custom order defined in SPEAKER_ORDER array
  * This matches the order set in the Bizzabo dashboard
  */
-function sortSpeakersByCustomOrder(
-  speakers: BizzaboSpeaker[]
-): BizzaboSpeaker[] {
+function sortSpeakersByCustomOrder(speakers: BizzaboSpeaker[]): BizzaboSpeaker[] {
   return speakers.sort((a, b) => {
     // Find the position of speaker A in our custom order array
     const indexA = SPEAKER_ORDER.findIndex(
-      (speaker) =>
-        speaker.firstname === a.firstname && speaker.lastname === a.lastname
-    );
+      (speaker) => speaker.firstname === a.firstname && speaker.lastname === a.lastname
+    )
 
     // Find the position of speaker B in our custom order array
     const indexB = SPEAKER_ORDER.findIndex(
-      (speaker) =>
-        speaker.firstname === b.firstname && speaker.lastname === b.lastname
-    );
+      (speaker) => speaker.firstname === b.firstname && speaker.lastname === b.lastname
+    )
 
     // If both speakers are in our custom order, sort by their positions
     if (indexA !== -1 && indexB !== -1) {
-      return indexA - indexB;
+      return indexA - indexB
     }
 
     // If only speaker A is in custom order, it comes first
-    if (indexA !== -1) return -1;
+    if (indexA !== -1) return -1
 
     // If only speaker B is in custom order, it comes first
-    if (indexB !== -1) return 1;
+    if (indexB !== -1) return 1
 
     // If neither speaker is in custom order, maintain original order
-    return 0;
-  });
+    return 0
+  })
 }
 
 async function authenticate(): Promise<void> {
-  if (accessToken) return;
+  if (accessToken) return
 
   // Skip authentication if credentials are not configured
   if (!hasValidCredentials()) {
-    debug.log("Skipping Bizzabo authentication - credentials not configured");
-    return;
+    debug.log('Skipping Bizzabo authentication - credentials not configured')
+    return
   }
 
-  const clientId = process.env.BIZZABO_CLIENT_ID;
-  const clientSecret = process.env.BIZZABO_CLIENT_SECRET;
-  const accountId = process.env.BIZZABO_ACCOUNT_ID;
-  const apiKey = process.env.BIZZABO_API_KEY;
+  const clientId = process.env.BIZZABO_CLIENT_ID
+  const clientSecret = process.env.BIZZABO_CLIENT_SECRET
+  const accountId = process.env.BIZZABO_ACCOUNT_ID
+  const apiKey = process.env.BIZZABO_API_KEY
 
   // debug.log("Bizzabo Authentication Debug:", {
   //   hasClientId: !!clientId,
@@ -111,179 +107,166 @@ async function authenticate(): Promise<void> {
   if (clientId && clientSecret && accountId) {
     // debug.log("Attempting OAuth 2.0 authentication...");
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
       const response = await fetch(`${authUrl}/oauth/token`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify({
           client_id: clientId,
           client_secret: clientSecret,
-          audience: "https://api.bizzabo.com/api",
-          grant_type: "client_credentials",
+          audience: 'https://api.bizzabo.com/api',
+          grant_type: 'client_credentials',
           account_id: parseInt(accountId),
         }),
         signal: controller.signal,
-      });
+      })
 
-      clearTimeout(timeoutId);
+      clearTimeout(timeoutId)
 
       if (response.ok) {
-        const data = await response.json();
-        accessToken = data.access_token;
-        debug.log("OAuth 2.0 authentication successful");
-        return;
+        const data = await response.json()
+        accessToken = data.access_token
+        debug.log('OAuth 2.0 authentication successful')
+        return
       } else {
-        debug.error(
-          "OAuth 2.0 authentication failed:",
-          response.status,
-          await response.text()
-        );
+        debug.error('OAuth 2.0 authentication failed:', response.status, await response.text())
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        debug.error("OAuth 2.0 authentication timed out");
+        debug.error('OAuth 2.0 authentication timed out')
       } else {
-        debug.error("OAuth 2.0 authentication error:", error);
+        debug.error('OAuth 2.0 authentication error:', error)
       }
     }
   }
 
   // Fall back to API key
   if (apiKey) {
-    accessToken = apiKey;
-    debug.log("Using API key authentication");
-    return;
+    accessToken = apiKey
+    debug.log('Using API key authentication')
+    return
   }
 
-  throw new Error("Bizzabo authentication failed - no valid credentials");
+  throw new Error('Bizzabo authentication failed - no valid credentials')
 }
 
 async function makeRequest<T>(endpoint: string): Promise<T> {
-  await authenticate();
+  await authenticate()
 
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  };
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  }
 
-  const apiKey = process.env.BIZZABO_API_KEY;
+  const apiKey = process.env.BIZZABO_API_KEY
   if (apiKey && accessToken === apiKey) {
-    if (accessToken.includes(".")) {
-      headers.Authorization = `Bearer ${accessToken}`;
+    if (accessToken.includes('.')) {
+      headers.Authorization = `Bearer ${accessToken}`
     } else {
-      headers.Authorization = accessToken;
-      headers["X-API-Key"] = accessToken;
-      headers["X-Bizzabo-API-Key"] = accessToken;
+      headers.Authorization = accessToken
+      headers['X-API-Key'] = accessToken
+      headers['X-Bizzabo-API-Key'] = accessToken
     }
   } else {
-    headers.Authorization = `Bearer ${accessToken}`;
+    headers.Authorization = `Bearer ${accessToken}`
   }
 
-  const response = await fetch(`${baseUrl}${endpoint}`, { headers });
+  const response = await fetch(`${baseUrl}${endpoint}`, { headers })
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Bizzabo API request failed: ${response.status} - ${errorText}`
-    );
+    const errorText = await response.text()
+    throw new Error(`Bizzabo API request failed: ${response.status} - ${errorText}`)
   }
 
-  return response.json();
+  return response.json()
 }
 
-async function makePostRequest<T>(
-  endpoint: string,
-  body: Record<string, unknown>
-): Promise<T> {
-  await authenticate();
+async function makePostRequest<T>(endpoint: string, body: Record<string, unknown>): Promise<T> {
+  await authenticate()
 
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  };
-
-  const apiKey = process.env.BIZZABO_API_KEY;
-  if (apiKey && accessToken === apiKey) {
-    if (accessToken.includes(".")) {
-      headers.Authorization = `Bearer ${accessToken}`;
-    } else {
-      headers.Authorization = accessToken;
-      headers["X-API-Key"] = accessToken;
-      headers["X-Bizzabo-API-Key"] = accessToken;
-    }
-  } else {
-    headers.Authorization = `Bearer ${accessToken}`;
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
   }
 
-  debug.log("Bizzabo API Request:", {
+  const apiKey = process.env.BIZZABO_API_KEY
+  if (apiKey && accessToken === apiKey) {
+    if (accessToken.includes('.')) {
+      headers.Authorization = `Bearer ${accessToken}`
+    } else {
+      headers.Authorization = accessToken
+      headers['X-API-Key'] = accessToken
+      headers['X-Bizzabo-API-Key'] = accessToken
+    }
+  } else {
+    headers.Authorization = `Bearer ${accessToken}`
+  }
+
+  debug.log('Bizzabo API Request:', {
     endpoint: `${baseUrl}${endpoint}`,
-    method: "POST",
-    headers: { ...headers, Authorization: "[REDACTED]" },
+    method: 'POST',
+    headers: { ...headers, Authorization: '[REDACTED]' },
     body: body,
     bodyStringified: JSON.stringify(body),
-  });
+  })
 
   const response = await fetch(`${baseUrl}${endpoint}`, {
-    method: "POST",
+    method: 'POST',
     headers,
     body: JSON.stringify(body),
-  });
+  })
 
   if (!response.ok) {
-    const errorText = await response.text();
-    debug.error("Bizzabo API Error Details:", {
+    const errorText = await response.text()
+    debug.error('Bizzabo API Error Details:', {
       status: response.status,
       statusText: response.statusText,
       headers: Object.fromEntries(response.headers.entries()),
       errorText: errorText,
       requestBody: body,
-    });
-    throw new Error(
-      `Bizzabo API POST request failed: ${response.status} - ${errorText}`
-    );
+    })
+    throw new Error(`Bizzabo API POST request failed: ${response.status} - ${errorText}`)
   }
 
-  return response.json();
+  return response.json()
 }
 
 export async function getSpeakers(): Promise<BizzaboSpeaker[]> {
   // Return fallback data if credentials are not configured
   if (!hasValidCredentials()) {
-    debug.log("Using fallback speaker data - Bizzabo credentials not configured");
-    return FALLBACK_SPEAKERS;
+    debug.log('Using fallback speaker data - Bizzabo credentials not configured')
+    return FALLBACK_SPEAKERS
   }
 
   try {
-    const eventId = process.env.BIZZABO_EVENT_ID!;
-    const response = await makeRequest<{ content: BizzaboSpeaker[] }>(
-      `/events/${eventId}/speakers`
-    );
-    const speakers = response.content || [];
-    return sortSpeakersByCustomOrder(speakers);
+    const eventId = process.env.BIZZABO_EVENT_ID!
+    const response = await makeRequest<{ content: BizzaboSpeaker[] }>(`/events/${eventId}/speakers`)
+    const speakers = response.content || []
+    return sortSpeakersByCustomOrder(speakers)
   } catch (error) {
-    debug.error("Failed to fetch speakers from Bizzabo API:", error);
-    debug.log("Falling back to mock speaker data");
-    return FALLBACK_SPEAKERS;
+    debug.error('Failed to fetch speakers from Bizzabo API:', error)
+    debug.log('Falling back to mock speaker data')
+    return FALLBACK_SPEAKERS
   }
 }
 
 export async function getSessions(): Promise<BizzaboSession[]> {
   // Return fallback data if credentials are not configured
   if (!hasValidCredentials()) {
-    debug.log("Using fallback session data - Bizzabo credentials not configured");
-    return FALLBACK_SESSIONS;
+    debug.log('Using fallback session data - Bizzabo credentials not configured')
+    return FALLBACK_SESSIONS
   }
 
   try {
-    const eventId = process.env.BIZZABO_EVENT_ID!;
+    const eventId = process.env.BIZZABO_EVENT_ID!
     const response = await makeRequest<{ content: BizzaboSession[] }>(
       `/events/${eventId}/agenda/sessions`
-    );
+    )
 
     // Debug: Log the raw response to see actual JSON structure
     // console.log(
@@ -291,110 +274,106 @@ export async function getSessions(): Promise<BizzaboSession[]> {
     //   JSON.stringify(response, null, 2)
     // );
 
-    return response.content || [];
+    return response.content || []
   } catch (error) {
-    debug.error("Failed to fetch sessions from Bizzabo API:", error);
-    debug.log("Falling back to mock session data");
-    return FALLBACK_SESSIONS;
+    debug.error('Failed to fetch sessions from Bizzabo API:', error)
+    debug.log('Falling back to mock session data')
+    return FALLBACK_SESSIONS
   }
 }
 
 export async function getStages(): Promise<BizzaboStage[]> {
   // Return fallback data if credentials are not configured
   if (!hasValidCredentials()) {
-    debug.log("Using fallback stage data - Bizzabo credentials not configured");
+    debug.log('Using fallback stage data - Bizzabo credentials not configured')
     return [
       {
-        id: "1",
-        name: "Main Stage",
-        location: "Main Venue",
+        id: '1',
+        name: 'Main Stage',
+        location: 'Main Venue',
         isActive: true,
       },
       {
-        id: "2",
-        name: "Build Stage",
-        location: "Workshop Room",
+        id: '2',
+        name: 'Build Stage',
+        location: 'Workshop Room',
         isActive: true,
       },
-    ];
+    ]
   }
 
   try {
-    const eventId = process.env.BIZZABO_EVENT_ID!;
+    const eventId = process.env.BIZZABO_EVENT_ID!
     const response = await makeRequest<BizzaboApiResponse<BizzaboStage[]>>(
       `/events/${eventId}/stages`
-    );
-    return response.data;
+    )
+    return response.data
   } catch (error) {
-    debug.error("Failed to fetch stages from Bizzabo API:", error);
-    debug.log("Falling back to mock stage data");
+    debug.error('Failed to fetch stages from Bizzabo API:', error)
+    debug.log('Falling back to mock stage data')
     return [
       {
-        id: "1",
-        name: "Main Stage",
-        location: "Main Venue",
+        id: '1',
+        name: 'Main Stage',
+        location: 'Main Venue',
         isActive: true,
       },
       {
-        id: "2",
-        name: "Build Stage",
-        location: "Workshop Room",
+        id: '2',
+        name: 'Build Stage',
+        location: 'Workshop Room',
         isActive: true,
       },
-    ];
+    ]
   }
 }
 
 export async function getEvent(): Promise<BizzaboEvent> {
-  const eventId = process.env.BIZZABO_EVENT_ID;
+  const eventId = process.env.BIZZABO_EVENT_ID
   if (!eventId) {
-    throw new Error("BIZZABO_EVENT_ID is required to fetch event details.");
+    throw new Error('BIZZABO_EVENT_ID is required to fetch event details.')
   }
-  return await makeRequest<BizzaboEvent>(`/events/${eventId}`);
+  return await makeRequest<BizzaboEvent>(`/events/${eventId}`)
 }
 
 export async function getEvents(): Promise<BizzaboEvent[]> {
-  const response = await makeRequest<{ content: BizzaboEvent[] }>(`/events`);
-  return response.content || [];
+  const response = await makeRequest<{ content: BizzaboEvent[] }>(`/events`)
+  return response.content || []
 }
 
 export async function getAllEventData(): Promise<{
-  event: BizzaboEvent;
-  speakers: BizzaboSpeaker[];
-  sessions: BizzaboSession[];
-  stages: BizzaboStage[];
+  event: BizzaboEvent
+  speakers: BizzaboSpeaker[]
+  sessions: BizzaboSession[]
+  stages: BizzaboStage[]
 }> {
   const [event, speakers, sessions, stages] = await Promise.all([
     getEvent(),
     getSpeakers(),
     getSessions(),
     getStages(),
-  ]);
+  ])
 
-  return { event, speakers, sessions, stages };
+  return { event, speakers, sessions, stages }
 }
 
-export async function createContact(
-  contact: BizzaboContact
-): Promise<BizzaboContactResponse> {
-  const eventId = process.env.BIZZABO_EVENT_ID;
+export async function createContact(contact: BizzaboContact): Promise<BizzaboContactResponse> {
+  const eventId = process.env.BIZZABO_EVENT_ID
   if (!eventId) {
-    throw new Error("BIZZABO_EVENT_ID is required to create contacts.");
+    throw new Error('BIZZABO_EVENT_ID is required to create contacts.')
   }
 
   // Validate event ID is a number
-  const eventIdNum = parseInt(eventId);
+  const eventIdNum = parseInt(eventId)
   if (isNaN(eventIdNum)) {
-    throw new Error(`Invalid BIZZABO_EVENT_ID: ${eventId}. Must be a number.`);
+    throw new Error(`Invalid BIZZABO_EVENT_ID: ${eventId}. Must be a number.`)
   }
 
-  debug.log("Using Event ID:", eventId, "as number:", eventIdNum);
+  debug.log('Using Event ID:', eventId, 'as number:', eventIdNum)
 
   // Validate required fields
   if (!contact.email || !contact.firstName || !contact.lastName) {
-    throw new Error(
-      "Email, firstName, and lastName are required for Bizzabo contacts."
-    );
+    throw new Error('Email, firstName, and lastName are required for Bizzabo contacts.')
   }
 
   // Prepare the contact data according to Bizzabo API requirements
@@ -403,44 +382,44 @@ export async function createContact(
     email: contact.email.trim(),
     firstName: contact.firstName.trim(),
     lastName: contact.lastName.trim(),
-  };
+  }
 
   // Add company field
   if (contact.company && contact.company.trim()) {
-    contactData.company = contact.company.trim();
+    contactData.company = contact.company.trim()
   }
 
   // Add social links with correct Bizzabo field names
   if (contact.linkedin && contact.linkedin.trim()) {
-    contactData.linkedinPage = contact.linkedin.trim();
+    contactData.linkedinPage = contact.linkedin.trim()
   }
   if (contact.github && contact.github.trim()) {
-    contactData.github = contact.github.trim();
+    contactData.github = contact.github.trim()
   }
   if (contact.twitter && contact.twitter.trim()) {
     // Extract Twitter username from URL or use as-is if it's already a username
-    const twitterUrl = contact.twitter.trim();
-    const twitterUsername = twitterUrl.includes("twitter.com")
-      ? twitterUrl.split("twitter.com/")[1]?.split("?")[0]?.split("/")[0]
-      : twitterUrl.replace("@", "");
+    const twitterUrl = contact.twitter.trim()
+    const twitterUsername = twitterUrl.includes('twitter.com')
+      ? twitterUrl.split('twitter.com/')[1]?.split('?')[0]?.split('/')[0]
+      : twitterUrl.replace('@', '')
 
     if (twitterUsername) {
-      contactData.twitter = twitterUsername;
+      contactData.twitter = twitterUsername
     }
   }
 
-  debug.log("Creating Bizzabo contact with data:", contactData);
-  debug.log("Event ID:", eventId);
+  debug.log('Creating Bizzabo contact with data:', contactData)
+  debug.log('Event ID:', eventId)
 
   // Try wrapping the data in case Bizzabo expects a specific structure
   const requestBody = {
     properties: contactData,
-  };
+  }
 
-  debug.log("Final request body:", requestBody);
+  debug.log('Final request body:', requestBody)
 
   return await makePostRequest<BizzaboContactResponse>(
     `/events/${eventIdNum}/contacts`,
     requestBody
-  );
+  )
 }

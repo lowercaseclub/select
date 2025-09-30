@@ -1,153 +1,131 @@
-"use client";
+'use client'
 
-import {
-  BuildingOfficeIcon,
-  EnvelopeIcon,
-  PaperAirplaneIcon,
-} from "@heroicons/react/24/outline";
-import {
-  CodeBracketIcon as GitHubIcon,
-  UserIcon as LinkedInIcon,
-} from "@heroicons/react/24/solid";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Alert, AlertDescription, AlertTitle } from "@ui/components/alert";
-import { Button } from "@ui/components/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@ui/components/form";
-import { Input } from "@ui/components/input";
-import { Label } from "@ui/components/label";
-import { Textarea } from "@ui/components/textarea";
-import { Separator } from "@ui/components/separator";
-import { AlertCircle } from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { normalizeSocialUrl, isValidUrl } from "../lib/url-normalizer";
-import { CountrySelector } from "./country-selector";
+import { BuildingOfficeIcon, EnvelopeIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline'
+import { CodeBracketIcon as GitHubIcon, UserIcon as LinkedInIcon } from '@heroicons/react/24/solid'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Alert, AlertDescription, AlertTitle } from '@ui/components/alert'
+import { Button } from '@ui/components/button'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@ui/components/form'
+import { Input } from '@ui/components/input'
+import { Label } from '@ui/components/label'
+import { Textarea } from '@ui/components/textarea'
+import { Separator } from '@ui/components/separator'
+import { AlertCircle } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+import { normalizeSocialUrl, isValidUrl } from '../lib/url-normalizer'
+import { CountrySelector } from './country-selector'
 
 const speakFormSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email address"),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Please enter a valid email address'),
   company: z.string().optional(),
   city: z.string().optional(),
   country: z.string().optional(),
-  linkedin: z.string().min(1, "LinkedIn profile is required"),
-  github: z.string().min(1, "GitHub profile is required"),
-  talkDescription: z
-    .string()
-    .min(10, "Please provide a detailed description of your talk"),
+  linkedin: z.string().min(1, 'LinkedIn profile is required'),
+  github: z.string().min(1, 'GitHub profile is required'),
+  talkDescription: z.string().min(10, 'Please provide a detailed description of your talk'),
   interestedFutureEvents: z.boolean().optional(),
-});
+})
 
-type SpeakFormData = z.infer<typeof speakFormSchema>;
+type SpeakFormData = z.infer<typeof speakFormSchema>
 
 const iconClasses =
-  "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground";
+  'absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground'
 
 export function SpeakForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const form = useForm<SpeakFormData>({
     resolver: zodResolver(speakFormSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      company: "",
-      city: "",
-      country: "",
-      linkedin: "",
-      github: "",
-      talkDescription: "",
+      firstName: '',
+      lastName: '',
+      email: '',
+      company: '',
+      city: '',
+      country: '',
+      linkedin: '',
+      github: '',
+      talkDescription: '',
       interestedFutureEvents: false,
     },
-    mode: "onBlur",
-    reValidateMode: "onBlur",
-  });
+    mode: 'onBlur',
+    reValidateMode: 'onBlur',
+  })
 
   const onSubmit = async (data: SpeakFormData) => {
-    setIsSubmitting(true);
-    setSubmitError(null);
+    setIsSubmitting(true)
+    setSubmitError(null)
 
     try {
       // Step 1: Normalize social media URLs (only LinkedIn and GitHub for speak form)
       const normalizedData = {
         ...data,
-        linkedin: data.linkedin
-          ? normalizeSocialUrl("linkedin", data.linkedin)
-          : "",
-        github: data.github ? normalizeSocialUrl("github", data.github) : "",
-      };
+        linkedin: data.linkedin ? normalizeSocialUrl('linkedin', data.linkedin) : '',
+        github: data.github ? normalizeSocialUrl('github', data.github) : '',
+      }
 
       // Step 2: Update form with normalized values (this will show the corrected URLs)
-      form.setValue("linkedin", normalizedData.linkedin || "");
-      form.setValue("github", normalizedData.github || "");
+      form.setValue('linkedin', normalizedData.linkedin || '')
+      form.setValue('github', normalizedData.github || '')
 
       // Step 3: Validate normalized URLs
       if (!isValidUrl(normalizedData.linkedin)) {
-        throw new Error("Invalid LinkedIn URL");
+        throw new Error('Invalid LinkedIn URL')
       }
       if (!isValidUrl(normalizedData.github)) {
-        throw new Error("Invalid GitHub URL");
+        throw new Error('Invalid GitHub URL')
       }
 
       // Submit to API endpoint
-      const response = await fetch("/api/speak", {
-        method: "POST",
+      const response = await fetch('/api/speak', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(normalizedData),
-      });
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to submit application");
+        throw new Error(result.error || 'Failed to submit application')
       }
 
       // Show success state
-      setIsSubmitted(true);
-      form.reset();
+      setIsSubmitted(true)
+      form.reset()
     } catch (error) {
-      console.error("Error submitting speak form:", error);
+      console.error('Error submitting speak form:', error)
       setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "Error submitting application. Please try again."
-      );
+        error instanceof Error ? error.message : 'Error submitting application. Please try again.'
+      )
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   if (isSubmitted) {
     return (
       <div className="bg-card border rounded-lg p-8 text-center">
         <p className="text-base md:text-lg">
-          Your speaking proposal was submitted. We will review all submissions
-          and get back to you soon.
+          Your speaking proposal was submitted. We will review all submissions and get back to you
+          soon.
         </p>
       </div>
-    );
+    )
   }
 
   return (
     <div className="bg-card border rounded-lg p-6 md:p-8">
       <div className="mb-6">
         <h2 className="text-2xl font-semibold mb-2">Speaking Application</h2>
-        <p className="text-muted-foreground">
-          Tell us about yourself and your proposed talk.
-        </p>
+        <p className="text-muted-foreground">Tell us about yourself and your proposed talk.</p>
       </div>
 
       {false && submitError && (
@@ -168,11 +146,7 @@ export function SpeakForm() {
                 <FormItem className="w-full md:flex-1">
                   <FormLabel>First Name *</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Your first name"
-                      autoComplete="given-name"
-                      {...field}
-                    />
+                    <Input placeholder="Your first name" autoComplete="given-name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -186,11 +160,7 @@ export function SpeakForm() {
                 <FormItem className="w-full md:flex-1">
                   <FormLabel>Last Name *</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Your last name"
-                      autoComplete="family-name"
-                      {...field}
-                    />
+                    <Input placeholder="Your last name" autoComplete="family-name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -251,11 +221,7 @@ export function SpeakForm() {
                 <FormItem className="w-full md:flex-1">
                   <FormLabel>City</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Your city"
-                      autoComplete="address-level2"
-                      {...field}
-                    />
+                    <Input placeholder="Your city" autoComplete="address-level2" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -270,7 +236,7 @@ export function SpeakForm() {
                   <FormLabel>Country</FormLabel>
                   <FormControl>
                     <CountrySelector
-                      value={field.value || ""}
+                      value={field.value || ''}
                       onValueChange={field.onChange}
                       placeholder="Select your country"
                     />
@@ -366,12 +332,9 @@ export function SpeakForm() {
                     checked={!!field.value}
                     onChange={(e) => field.onChange(e.target.checked)}
                   />
-                  <Label
-                    htmlFor="interestedFutureEvents"
-                    className="font-normal"
-                  >
-                    If my talk is not chosen for Supabase Select, I&apos;d be
-                    interested in future Supabase events
+                  <Label htmlFor="interestedFutureEvents" className="font-normal">
+                    If my talk is not chosen for Supabase Select, I&apos;d be interested in future
+                    Supabase events
                   </Label>
                 </div>
                 <FormMessage />
@@ -403,5 +366,5 @@ export function SpeakForm() {
         </form>
       </Form>
     </div>
-  );
+  )
 }

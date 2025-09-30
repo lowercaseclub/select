@@ -1,7 +1,7 @@
 interface SpeakerDisplayProps {
-  name: string;
-  company?: string;
-  title?: string;
+  name: string
+  company?: string
+  title?: string
 }
 
 export function SpeakerDisplay({ name, company, title }: SpeakerDisplayProps) {
@@ -10,9 +10,9 @@ export function SpeakerDisplay({ name, company, title }: SpeakerDisplayProps) {
       <div className="text-foreground">{name}</div>
       {(company || title) && (
         <div className="text-muted-foreground text-sm">
-          {[company, title].filter(Boolean).join(", ")}
+          {[company, title].filter(Boolean).join(', ')}
         </div>
       )}
     </div>
-  );
+  )
 }
