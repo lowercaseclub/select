@@ -17,7 +17,7 @@ function ScheduleTabContent({
   children: React.ReactNode
 }) {
   return (
-    <TabsContent value={value} className="mt-0 pb-20">
+    <TabsContent value={value} className="mt-0 pb-20 border-b">
       <ScheduleLocation
         locationName={locations[locationKey].locationName}
         locationDisplayName={locations[locationKey].locationDisplayName}

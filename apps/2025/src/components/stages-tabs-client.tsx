@@ -15,7 +15,7 @@ export function StagesTabsClient({ children }: StagesTabsClientProps) {
   }
 
   return (
-    <Tabs value={activeStage} onValueChange={handleStageChange} className="w-full">
+    <Tabs value={activeStage} onValueChange={handleStageChange} className="w-full m-0">
       {children}
     </Tabs>
   )

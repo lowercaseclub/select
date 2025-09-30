@@ -47,7 +47,7 @@ export function AboutSection() {
       <div className="h-px lg:h-auto lg:w-px bg-column-lines"></div>
 
       {/* Right content block with its own padding */}
-      <div className="w-full lg:w-[50%]">
+      <div className="w-full lg:w-[50%] lg:pr-8">
         <LocationMap />
       </div>
     </section>
