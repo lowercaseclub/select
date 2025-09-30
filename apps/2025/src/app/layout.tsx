@@ -80,7 +80,7 @@ export default function RootLayout({
         className={`${suisseIntl.variable} ${geistMono.variable} antialiased min-h-screen bg-background  text-foreground`}
       >
         <Providers>
-          <main className="">{children}</main>
+          <main className="relative">{children}</main>
         </Providers>
       </body>
     </html>
