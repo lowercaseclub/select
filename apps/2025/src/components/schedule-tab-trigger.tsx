@@ -14,7 +14,7 @@ export function ScheduleTabTrigger({
 }: ScheduleTabTriggerProps) {
   return (
     <TabsTrigger
-      className={`bg-transparent cursor-pointer border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent rounded-none px-0 py-5 ${className} text-xl md:text-2xl lg:text-3xl`}
+      className={`bg-transparent cursor-pointer border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent rounded-none px-0 py-5 ${className} text-lg md:text-2xl`}
       {...props}
     >
       {stageName}

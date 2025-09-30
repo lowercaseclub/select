@@ -5,7 +5,7 @@ import { ContentWrapper } from '../components/content-wrapper'
 import { SpeakersSection } from '../components/speakers-section'
 import { SponsorsSection } from '../components/sponsors-section'
 import { Separator } from '@ui/components/separator'
-import { StageProvider } from '../contexts/stage-context'
+import { StageProvider } from '../lib/stage-context'
 import LiveStreamTabs from '../components/live-stream-tabs'
 
 export default function HomePage() {

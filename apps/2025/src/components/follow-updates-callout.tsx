@@ -1,4 +1,4 @@
-import { XLogo } from './x-logo'
+import { XLogo } from "./x-logo";
 
 export function FollowUpdatesCallout() {
   return (
@@ -8,10 +8,12 @@ export function FollowUpdatesCallout() {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <XLogo className="w-5 h-5 text-foreground" />
-              <h3 className="text-xl sm:text-2xl font-medium">Follow for Updates</h3>
+              <h3 className="text-xl sm:text-2xl font-medium">
+                Follow for Updates
+              </h3>
             </div>
             <p className="text-muted-foreground text-sm sm:text-base leading-relaxed text-left">
-              We&apos;re announcing new speakers regularly on{' '}
+              We&apos;re announcing new speakers regularly on{" "}
               <a
                 href="https://x.com/supabase"
                 target="_blank"
@@ -21,11 +23,12 @@ export function FollowUpdatesCallout() {
                 @supabase
               </a>
               . <br />
-              Follow us to be the first to know when we reveal the next speaker lineup.
+              Follow us to be the first to know when we reveal the next speaker
+              lineup.
             </p>
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }

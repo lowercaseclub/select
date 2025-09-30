@@ -1,5 +1,5 @@
 interface ScheduleEmptyProps {
-  stageName: string
+  stageName: string;
 }
 
 export function ScheduleEmpty({ stageName }: ScheduleEmptyProps) {
@@ -7,5 +7,5 @@ export function ScheduleEmpty({ stageName }: ScheduleEmptyProps) {
     <p className="text-muted-foreground text-center py-8">
       No events scheduled for {stageName} yet.
     </p>
-  )
+  );
 }

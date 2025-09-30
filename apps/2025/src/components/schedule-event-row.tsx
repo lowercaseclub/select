@@ -1,41 +1,49 @@
-import { BizzaboSpeaker, ScheduleEvent } from '../types/bizzabo.types'
-import { SpeakerDisplay } from './speaker-display'
+import { BizzaboSpeaker, ScheduleEvent } from "../types/bizzabo.types";
+import { SpeakerDisplay } from "./speaker-display";
 
 interface ScheduleEventRowProps {
-  event: ScheduleEvent
-  speakers: BizzaboSpeaker[]
-  index: number
+  event: ScheduleEvent;
+  speakers: BizzaboSpeaker[];
+  index: number;
 }
 
-export function ScheduleEventRow({ event, speakers, index }: ScheduleEventRowProps) {
+export function ScheduleEventRow({
+  event,
+  speakers,
+  index,
+}: ScheduleEventRowProps) {
   const isSpecialEvent =
-    event.title.toLowerCase().includes('doors open') ||
-    event.title.toLowerCase().includes('lunch') ||
-    event.title.toLowerCase().includes('party')
-  const displayTitle = event.title
+    event.title.toLowerCase().includes("doors open") ||
+    event.title.toLowerCase().includes("lunch") ||
+    event.title.toLowerCase().includes("party");
+  const displayTitle = event.title;
 
   // Match event speakers with full speaker data
   const eventSpeakers =
     event.speakers
       ?.map((speakerRef) => {
         // Handle both speakerId and id fields
-        const speakerId = speakerRef.speakerId || speakerRef.id
+        const speakerId = speakerRef.speakerId || speakerRef.id;
 
         if (!speakerId) {
-          console.warn('Speaker reference missing ID:', speakerRef)
-          return null
+          console.warn("Speaker reference missing ID:", speakerRef);
+          return null;
         }
 
-        const matchedSpeaker = speakers.find((speaker) => speaker.id === speakerId)
+        const matchedSpeaker = speakers.find(
+          (speaker) => speaker.id === speakerId
+        );
 
         if (!matchedSpeaker) {
-          console.warn(`Speaker with ID ${speakerId} not found in speakers list`)
-          return null
+          console.warn(
+            `Speaker with ID ${speakerId} not found in speakers list`
+          );
+          return null;
         }
 
-        return matchedSpeaker
+        return matchedSpeaker;
       })
-      .filter((speaker): speaker is BizzaboSpeaker => speaker !== null) || []
+      .filter((speaker): speaker is BizzaboSpeaker => speaker !== null) || [];
 
   return (
     <>
@@ -43,8 +51,8 @@ export function ScheduleEventRow({ event, speakers, index }: ScheduleEventRowPro
       <div
         className={`md:hidden py-4 border-b border-column-lines hover:bg-muted/20 transition-colors ${
           isSpecialEvent
-            ? 'bg-muted/30 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.05)_10px,rgba(255,255,255,0.05)_11px,transparent_11px)]'
-            : ''
+            ? "bg-muted/30 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.05)_10px,rgba(255,255,255,0.05)_11px,transparent_11px)]"
+            : ""
         }`}
       >
         <div className="max-w-site mx-auto px-8">
@@ -52,12 +60,17 @@ export function ScheduleEventRow({ event, speakers, index }: ScheduleEventRowPro
             <div className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
               {event.time}
             </div>
-            <h3 className="font-medium text-base leading-tight">{displayTitle}</h3>
+            <h3 className="font-medium text-base leading-tight">
+              {displayTitle}
+            </h3>
             {eventSpeakers && eventSpeakers.length > 0 && (
               <div className="space-y-1">
                 {eventSpeakers.map((speaker, idx) => {
-                  const fullName = `${speaker.firstname || ''} ${speaker.lastname || ''}`.trim()
-                  const displayName = fullName || speaker.email || `Speaker ${speaker.id}`
+                  const fullName = `${speaker.firstname || ""} ${
+                    speaker.lastname || ""
+                  }`.trim();
+                  const displayName =
+                    fullName || speaker.email || `Speaker ${speaker.id}`;
 
                   return (
                     <SpeakerDisplay
@@ -66,7 +79,7 @@ export function ScheduleEventRow({ event, speakers, index }: ScheduleEventRowPro
                       company={speaker.company}
                       title={speaker.title}
                     />
-                  )
+                  );
                 })}
               </div>
             )}
@@ -84,8 +97,8 @@ export function ScheduleEventRow({ event, speakers, index }: ScheduleEventRowPro
         key={`${event.title}-${event.time}-${index}`}
         className={`hidden md:block py-6 border-b border-column-lines hover:bg-muted/20 transition-colors ${
           isSpecialEvent
-            ? 'bg-muted/30 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.05)_10px,rgba(255,255,255,0.05)_11px,transparent_11px)]'
-            : ''
+            ? "bg-muted/30 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.05)_10px,rgba(255,255,255,0.05)_11px,transparent_11px)]"
+            : ""
         }`}
       >
         <div className="max-w-site mx-auto px-8 grid grid-cols-12 gap-4">
@@ -93,15 +106,20 @@ export function ScheduleEventRow({ event, speakers, index }: ScheduleEventRowPro
           <div className="col-span-5">
             <h3 className="font-medium text-lg">{displayTitle}</h3>
             {event.description && (
-              <p className="text-sm text-muted-foreground mt-1 max-w-lg">{event.description}</p>
+              <p className="text-sm text-muted-foreground mt-1 max-w-lg">
+                {event.description}
+              </p>
             )}
           </div>
           <div className="col-span-4">
             {eventSpeakers && eventSpeakers.length > 0 && (
               <div className="space-y-1">
                 {eventSpeakers.map((speaker, idx) => {
-                  const fullName = `${speaker.firstname || ''} ${speaker.lastname || ''}`.trim()
-                  const displayName = fullName || speaker.email || `Speaker ${speaker.id}`
+                  const fullName = `${speaker.firstname || ""} ${
+                    speaker.lastname || ""
+                  }`.trim();
+                  const displayName =
+                    fullName || speaker.email || `Speaker ${speaker.id}`;
 
                   return (
                     <SpeakerDisplay
@@ -110,7 +128,7 @@ export function ScheduleEventRow({ event, speakers, index }: ScheduleEventRowPro
                       company={speaker.company}
                       title={speaker.title}
                     />
-                  )
+                  );
                 })}
               </div>
             )}
@@ -118,5 +136,5 @@ export function ScheduleEventRow({ event, speakers, index }: ScheduleEventRowPro
         </div>
       </div>
     </>
-  )
+  );
 }

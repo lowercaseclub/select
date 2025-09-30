@@ -1,7 +1,7 @@
 'use client'
 
 import { Tabs } from '@ui/components/tabs'
-import { useStage } from '../contexts/stage-context'
+import { useStage } from '../lib/stage-context'
 
 interface StagesTabsClientProps {
   children: React.ReactNode

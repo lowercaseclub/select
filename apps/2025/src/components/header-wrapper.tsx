@@ -1,8 +1,8 @@
-import { ReactNode } from 'react'
-import { ColumnLine } from './column-line'
+import { ReactNode } from "react";
+import { ColumnLine } from "./column-line";
 
 interface HeaderWrapperProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export function HeaderWrapper({ children }: HeaderWrapperProps) {
@@ -13,5 +13,5 @@ export function HeaderWrapper({ children }: HeaderWrapperProps) {
       <div className="absolute border-t w-full h-px top-32"></div>
       {children}
     </div>
-  )
+  );
 }

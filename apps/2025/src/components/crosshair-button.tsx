@@ -1,20 +1,32 @@
-import * as React from 'react'
-import { Button, ButtonProps } from '@ui/components/button'
-import { cn } from '@ui/lib/utils'
+import * as React from "react";
+import { Button, ButtonProps } from "@ui/components/button";
+import { cn } from "@ui/lib/utils";
 
 interface CrosshairButtonProps extends ButtonProps {
   // use an odd number
-  crosshairSize?: number
-  crosshairColor?: string
+  crosshairSize?: number;
+  crosshairColor?: string;
 }
 
-const CrosshairButton = React.forwardRef<HTMLButtonElement, CrosshairButtonProps>(
-  ({ className, crosshairSize = 9, crosshairColor = 'currentColor', children, ...props }, ref) => {
-    const offset = 0.5
+const CrosshairButton = React.forwardRef<
+  HTMLButtonElement,
+  CrosshairButtonProps
+>(
+  (
+    {
+      className,
+      crosshairSize = 9,
+      crosshairColor = "currentColor",
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const offset = 0.5;
     return (
       <div className="relative inline-block">
         {/* Button */}
-        <Button ref={ref} className={cn('relative', className)} {...props}>
+        <Button ref={ref} className={cn("relative", className)} {...props}>
           {children}
         </Button>
 
@@ -26,7 +38,7 @@ const CrosshairButton = React.forwardRef<HTMLButtonElement, CrosshairButtonProps
             style={{
               left: 0,
               top: `-${crosshairSize / 2 - offset}px`,
-              width: '1px',
+              width: "1px",
               height: `${crosshairSize}px`,
               backgroundColor: crosshairColor,
             }}
@@ -38,7 +50,7 @@ const CrosshairButton = React.forwardRef<HTMLButtonElement, CrosshairButtonProps
               left: `-${crosshairSize / 2 - offset}px`,
               top: 0,
               width: `${crosshairSize}px`,
-              height: '1px',
+              height: "1px",
               backgroundColor: crosshairColor,
             }}
           />
@@ -52,7 +64,7 @@ const CrosshairButton = React.forwardRef<HTMLButtonElement, CrosshairButtonProps
             style={{
               right: 0,
               top: `-${crosshairSize / 2 - offset}px`,
-              width: '1px',
+              width: "1px",
               height: `${crosshairSize}px`,
               backgroundColor: crosshairColor,
             }}
@@ -64,7 +76,7 @@ const CrosshairButton = React.forwardRef<HTMLButtonElement, CrosshairButtonProps
               right: `-${crosshairSize / 2 - offset}px`,
               top: 0,
               width: `${crosshairSize}px`,
-              height: '1px',
+              height: "1px",
               backgroundColor: crosshairColor,
             }}
           />
@@ -78,7 +90,7 @@ const CrosshairButton = React.forwardRef<HTMLButtonElement, CrosshairButtonProps
             style={{
               left: 0,
               bottom: `-${crosshairSize / 2 - offset}px`,
-              width: '1px',
+              width: "1px",
               height: `${crosshairSize}px`,
               backgroundColor: crosshairColor,
             }}
@@ -90,7 +102,7 @@ const CrosshairButton = React.forwardRef<HTMLButtonElement, CrosshairButtonProps
               left: `-${crosshairSize / 2 - offset}px`,
               bottom: 0,
               width: `${crosshairSize}px`,
-              height: '1px',
+              height: "1px",
               backgroundColor: crosshairColor,
             }}
           />
@@ -104,7 +116,7 @@ const CrosshairButton = React.forwardRef<HTMLButtonElement, CrosshairButtonProps
             style={{
               right: 0,
               bottom: `-${crosshairSize / 2 - offset}px`,
-              width: '1px',
+              width: "1px",
               height: `${crosshairSize}px`,
               backgroundColor: crosshairColor,
             }}
@@ -116,16 +128,16 @@ const CrosshairButton = React.forwardRef<HTMLButtonElement, CrosshairButtonProps
               right: `-${crosshairSize / 2 - offset}px`,
               bottom: 0,
               width: `${crosshairSize}px`,
-              height: '1px',
+              height: "1px",
               backgroundColor: crosshairColor,
             }}
           />
         </div>
       </div>
-    )
+    );
   }
-)
+);
 
-CrosshairButton.displayName = 'CrosshairButton'
+CrosshairButton.displayName = "CrosshairButton";
 
-export { CrosshairButton, type CrosshairButtonProps }
+export { CrosshairButton, type CrosshairButtonProps };

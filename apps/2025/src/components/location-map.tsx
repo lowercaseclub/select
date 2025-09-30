@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 export function LocationMap() {
   return (
@@ -9,7 +9,7 @@ export function LocationMap() {
         height="100%"
         style={{
           border: 0,
-          filter: 'grayscale(100%) invert(1) brightness(1.2) contrast(1.2)',
+          filter: "grayscale(100%) invert(1) brightness(1.2) contrast(1.2)",
         }}
         allowFullScreen
         loading="lazy"
@@ -17,5 +17,5 @@ export function LocationMap() {
         title="Event Location - Y Combinator"
       />
     </div>
-  )
+  );
 }

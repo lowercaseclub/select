@@ -1,21 +1,25 @@
-'use client'
+"use client";
 
-import { BuildingOfficeIcon, EnvelopeIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline'
+import {
+  BuildingOfficeIcon,
+  EnvelopeIcon,
+  PaperAirplaneIcon,
+} from "@heroicons/react/24/outline";
 import {
   CodeBracketIcon as GitHubIcon,
   UserIcon as LinkedInIcon,
   ChatBubbleLeftRightIcon as TwitterIcon,
-} from '@heroicons/react/24/solid'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Alert, AlertDescription, AlertTitle } from '@ui/components/alert'
+} from "@heroicons/react/24/solid";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Alert, AlertDescription, AlertTitle } from "@ui/components/alert";
 import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogTitle,
-} from '@ui/components/alert-dialog'
-import { Button } from '@ui/components/button'
+} from "@ui/components/alert-dialog";
+import { Button } from "@ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@ui/components/dialog'
+} from "@ui/components/dialog";
 import {
   Drawer,
   DrawerContent,
@@ -31,184 +35,193 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from '@ui/components/drawer'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@ui/components/form'
-import { Input } from '@ui/components/input'
-import { Separator } from '@ui/components/separator'
-import { AlertCircle, CheckCircle2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import * as z from 'zod'
-import { normalizeAllSocialUrls, isValidUrl } from '../lib/url-normalizer'
+} from "@ui/components/drawer";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@ui/components/form";
+import { Input } from "@ui/components/input";
+import { Separator } from "@ui/components/separator";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { normalizeAllSocialUrls, isValidUrl } from "../lib/url-normalizer";
 
 const applicationSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().email('Please enter a valid email address'),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Please enter a valid email address"),
   company: z.string().optional(),
   linkedin: z.string().optional(),
   github: z.string().optional(),
   twitter: z.string().optional(),
-})
+});
 
-type ApplicationFormData = z.infer<typeof applicationSchema>
+type ApplicationFormData = z.infer<typeof applicationSchema>;
 
 interface ApplicationFormProps {
-  trigger: React.ReactNode
+  trigger: React.ReactNode;
 }
 
 const iconClasses =
-  'absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground'
+  "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground";
 
 export function ApplicationForm({ trigger }: ApplicationFormProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [showConfirmation, setShowConfirmation] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
-  const [csrfToken, setCsrfToken] = useState<string | null>(null)
-  const [isMobile, setIsMobile] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 768px)')
-    setIsMobile(mediaQuery.matches)
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    setIsMobile(mediaQuery.matches);
 
     const handleChange = (e: MediaQueryListEvent) => {
-      setIsMobile(e.matches)
-    }
+      setIsMobile(e.matches);
+    };
 
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      company: '',
-      linkedin: '',
-      github: '',
-      twitter: '',
+      firstName: "",
+      lastName: "",
+      email: "",
+      company: "",
+      linkedin: "",
+      github: "",
+      twitter: "",
     },
-    mode: 'onBlur',
-    reValidateMode: 'onBlur',
-  })
+    mode: "onBlur",
+    reValidateMode: "onBlur",
+  });
 
   // Fetch CSRF token when dialog opens
   const fetchCSRFToken = async () => {
     try {
-      console.log('Fetching CSRF token...')
-      const response = await fetch('/api/csrf')
-      console.log('CSRF response status:', response.status)
+      console.log("Fetching CSRF token...");
+      const response = await fetch("/api/csrf");
+      console.log("CSRF response status:", response.status);
       if (response.ok) {
-        const data = await response.json()
-        console.log('CSRF token received:', data.token ? 'Yes' : 'No')
-        setCsrfToken(data.token)
+        const data = await response.json();
+        console.log("CSRF token received:", data.token ? "Yes" : "No");
+        setCsrfToken(data.token);
       } else {
-        const errorData = await response.json()
-        console.error('Failed to fetch CSRF token:', errorData)
+        const errorData = await response.json();
+        console.error("Failed to fetch CSRF token:", errorData);
       }
     } catch (error) {
-      console.error('Error fetching CSRF token:', error)
+      console.error("Error fetching CSRF token:", error);
     }
-  }
+  };
 
   const onSubmit = async (data: ApplicationFormData) => {
-    setIsSubmitting(true)
-    setSubmitError(null)
+    setIsSubmitting(true);
+    setSubmitError(null);
 
     try {
       // Step 1: Normalize social media URLs
-      const normalizedData = normalizeAllSocialUrls(data)
+      const normalizedData = normalizeAllSocialUrls(data);
 
       // Step 2: Update form with normalized values (this will show the corrected URLs)
-      form.setValue('linkedin', normalizedData.linkedin || '')
-      form.setValue('github', normalizedData.github || '')
-      form.setValue('twitter', normalizedData.twitter || '')
+      form.setValue("linkedin", normalizedData.linkedin || "");
+      form.setValue("github", normalizedData.github || "");
+      form.setValue("twitter", normalizedData.twitter || "");
 
       // Step 3: Validate normalized URLs
-      const urlFields = ['linkedin', 'github', 'twitter'] as const
+      const urlFields = ["linkedin", "github", "twitter"] as const;
       for (const field of urlFields) {
-        if (normalizedData[field] && normalizedData[field]!.trim() !== '') {
+        if (normalizedData[field] && normalizedData[field]!.trim() !== "") {
           if (!isValidUrl(normalizedData[field]!)) {
-            throw new Error(`Invalid ${field} URL: ${normalizedData[field]}`)
+            throw new Error(`Invalid ${field} URL: ${normalizedData[field]}`);
           }
         }
       }
 
       // Check if we have a CSRF token
       if (!csrfToken) {
-        throw new Error('CSRF token not available. Please try again.')
+        throw new Error("CSRF token not available. Please try again.");
       }
 
       // Submit to API
-      const response = await fetch('/api/apply', {
-        method: 'POST',
+      const response = await fetch("/api/apply", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
         },
         body: JSON.stringify(normalizedData),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to submit application')
+        throw new Error(result.error || "Failed to submit application");
       }
 
       // Show success state
-      setIsSubmitted(true)
-      setShowConfirmation(true)
-      form.reset()
+      setIsSubmitted(true);
+      setShowConfirmation(true);
+      form.reset();
     } catch (error) {
-      console.error('Error submitting application:', error)
+      console.error("Error submitting application:", error);
       setSubmitError(
-        error instanceof Error ? error.message : 'Error submitting application. Please try again.'
-      )
+        error instanceof Error
+          ? error.message
+          : "Error submitting application. Please try again."
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleCancel = () => {
-    setIsOpen(false)
-    form.reset()
-    setIsSubmitted(false)
-    setShowConfirmation(false)
-    setSubmitError(null)
-  }
+    setIsOpen(false);
+    form.reset();
+    setIsSubmitted(false);
+    setShowConfirmation(false);
+    setSubmitError(null);
+  };
 
   const handleConfirmationClose = () => {
-    setShowConfirmation(false)
-    setIsOpen(false)
-    form.reset()
-    setIsSubmitted(false)
-    setSubmitError(null)
-  }
+    setShowConfirmation(false);
+    setIsOpen(false);
+    form.reset();
+    setIsSubmitted(false);
+    setSubmitError(null);
+  };
 
   const handleOpenChange = (open: boolean) => {
-    setIsOpen(open)
+    setIsOpen(open);
     if (open) {
       // Fetch CSRF token when dialog opens
-      fetchCSRFToken()
+      fetchCSRFToken();
     } else {
       // Clear CSRF token when dialog closes
-      setCsrfToken(null)
-      setIsSubmitted(false)
-      setShowConfirmation(false)
-      setSubmitError(null)
+      setCsrfToken(null);
+      setIsSubmitted(false);
+      setShowConfirmation(false);
+      setSubmitError(null);
     }
-  }
+  };
 
   // Shared header content
   const headerContent = {
-    title: 'Apply to attend Supabase Select',
+    title: "Apply to attend Supabase Select",
     description:
-      'Because of space limitations, we must limit the number of attendees. Please fill out as much information as you can, and be sure to use the email address with which you have signed up for Supabase.',
-  }
+      "Because of space limitations, we must limit the number of attendees. Please fill out as much information as you can, and be sure to use the email address with which you have signed up for Supabase.",
+  };
 
   // Shared form content component
   const FormContent = ({ isMobileDrawer = false }) => (
@@ -258,7 +271,11 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                     <FormLabel>Last Name *</FormLabel>
                     <FormControl>
                       <div className="relative ">
-                        <Input placeholder="Your last name" autoComplete="family-name" {...field} />
+                        <Input
+                          placeholder="Your last name"
+                          autoComplete="family-name"
+                          {...field}
+                        />
                       </div>
                     </FormControl>
 
@@ -398,7 +415,11 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting} className="flex-1">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1"
+                >
                   {isSubmitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -417,7 +438,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
         </Form>
       </div>
     </>
-  )
+  );
 
   if (isMobile) {
     return (
@@ -426,7 +447,7 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
           <DrawerTrigger asChild>{trigger}</DrawerTrigger>
           <DrawerContent
             className={`flex flex-col max-h-[80vh] transition-transform duration-300 ${
-              showConfirmation ? 'scale-95 opacity-50' : ''
+              showConfirmation ? "scale-95 opacity-50" : ""
             }`}
           >
             <div className="overflow-y-auto flex-1 px-6">
@@ -483,20 +504,25 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
                 <CheckCircle2 className="w-10 h-10 text-green-600" />
               </div>
               <div className="text-center space-y-3">
-                <h3 className="text-xl font-semibold">Application Submitted!</h3>
+                <h3 className="text-xl font-semibold">
+                  Application Submitted!
+                </h3>
                 <p className="text-muted-foreground">
-                  Thank you for your submission. Please check your email for a confirmation link to
-                  complete your application.
+                  Thank you for your submission. Please check your email for a
+                  confirmation link to complete your application.
                 </p>
               </div>
-              <Button onClick={handleConfirmationClose} className="w-full max-w-xs mt-4">
+              <Button
+                onClick={handleConfirmationClose}
+                className="w-full max-w-xs mt-4"
+              >
                 Got it, thanks!
               </Button>
             </div>
           </DrawerContent>
         </Drawer>
       </>
-    )
+    );
   }
 
   return (
@@ -504,7 +530,9 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>{trigger}</DialogTrigger>
         <DialogContent
-          className={`transition-all duration-300 ${showConfirmation ? 'scale-95 opacity-50' : ''}`}
+          className={`transition-all duration-300 ${
+            showConfirmation ? "scale-95 opacity-50" : ""
+          }`}
         >
           <DialogHeader>
             <DialogTitle className="">{headerContent.title}</DialogTitle>
@@ -520,10 +548,12 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
       {/* Confirmation AlertDialog Overlay */}
       <AlertDialog open={showConfirmation} onOpenChange={() => {}}>
         <AlertDialogContent className="z-[60]">
-          <AlertDialogTitle className="sr-only">Application Submitted</AlertDialogTitle>
+          <AlertDialogTitle className="sr-only">
+            Application Submitted
+          </AlertDialogTitle>
           <AlertDialogDescription className="sr-only">
-            Your application has been successfully submitted. Please check your email for
-            confirmation.
+            Your application has been successfully submitted. Please check your
+            email for confirmation.
           </AlertDialogDescription>
           <div className="flex flex-col items-center gap-6 py-4">
             <div className="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full">
@@ -532,16 +562,19 @@ export function ApplicationForm({ trigger }: ApplicationFormProps) {
             <div className="text-center space-y-2">
               <h3 className="text-xl font-semibold">Application Submitted!</h3>
               <p className="text-muted-foreground">
-                Thank you for your submission. Please check your email for a confirmation link to
-                complete your application.
+                Thank you for your submission. Please check your email for a
+                confirmation link to complete your application.
               </p>
             </div>
-            <AlertDialogAction onClick={handleConfirmationClose} className="w-full max-w-xs">
+            <AlertDialogAction
+              onClick={handleConfirmationClose}
+              className="w-full max-w-xs"
+            >
               Got it, thanks!
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }

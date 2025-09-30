@@ -1,36 +1,39 @@
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
-import { BIZZABO_LOCATIONS } from '../types/bizzabo-locations'
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import { BIZZABO_LOCATIONS } from "../types/bizzabo-locations";
 import {
   BizzaboSpeaker,
   BizzaboSession,
   ScheduleEvent,
   SessionSpeakerRef,
-} from '../types/bizzabo.types'
-import { debug } from './debug'
+} from "../types/bizzabo.types";
+import { debug } from "./debug";
 
-dayjs.extend(utc)
-dayjs.extend(timezone)
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
-export function convertMinutesToTimeString(startMinute: number, endMinute: number): string {
+export function convertMinutesToTimeString(
+  startMinute: number,
+  endMinute: number
+): string {
   try {
-    const startHour = Math.floor(startMinute / 60)
-    const startMin = startMinute % 60
-    const endHour = Math.floor(endMinute / 60)
-    const endMin = endMinute % 60
+    const startHour = Math.floor(startMinute / 60);
+    const startMin = startMinute % 60;
+    const endHour = Math.floor(endMinute / 60);
+    const endMin = endMinute % 60;
 
-    const startTimeStr = `${startHour.toString().padStart(2, '0')}:${startMin
+    const startTimeStr = `${startHour.toString().padStart(2, "0")}:${startMin
       .toString()
-      .padStart(2, '0')}`
-    const endTimeStr = `${endHour.toString().padStart(2, '0')}:${endMin
+      .padStart(2, "0")}`;
+    const endTimeStr = `${endHour.toString().padStart(2, "0")}:${endMin
       .toString()
-      .padStart(2, '0')}`
+      .padStart(2, "0")}`;
 
-    return `${startTimeStr} - ${endTimeStr}`
+    return `${startTimeStr} - ${endTimeStr}`;
   } catch (error) {
-    debug.error('Error converting time:', error)
-    return '10:00 AM - 11:00 AM'
+    debug.error("Error converting time:", error);
+    return "10:00 AM - 11:00 AM";
   }
 }
 
@@ -41,56 +44,67 @@ export function getSpeakerNames(
   return (
     sessionSpeakers
       ?.map((speakerObj) => {
-        const speaker = allSpeakers.find((s) => s.id === Number(speakerObj.speakerId))
-        return speaker ? `${speaker.firstname || ''} ${speaker.lastname || ''}`.trim() : ''
+        const speaker = allSpeakers.find(
+          (s) => s.id === Number(speakerObj.speakerId)
+        );
+        return speaker
+          ? `${speaker.firstname || ""} ${speaker.lastname || ""}`.trim()
+          : "";
       })
       .filter(Boolean)
-      .join(', ') || ''
-  )
+      .join(", ") || ""
+  );
 }
 
 export function mapLocationToStage(locationId: string): string {
-  const location = BIZZABO_LOCATIONS.find((loc) => loc.id === Number(locationId))
-  return location ? location.nameId : 'main-stage'
+  const location = BIZZABO_LOCATIONS.find(
+    (loc) => loc.id === Number(locationId)
+  );
+  return location ? location.nameId : "main-stage";
 }
 
-export function transformSessionToEvent(session: BizzaboSession): ScheduleEvent {
-  // debug.log("SESSION OBJECT:", session);
-  // debug.log("SESSION SPEAKERS:", session.speakers);
-  // debug.log("SESSION ASSOCIATED CONTACTS:", session.associatedContacts);
+export function transformSessionToEvent(
+  session: BizzaboSession
+): ScheduleEvent {
+  debug.log("SESSION OBJECT:", session);
+  debug.log("SESSION SPEAKERS:", session.speakers);
+  debug.log("SESSION ASSOCIATED CONTACTS:", session.associatedContacts);
 
-  let timeString = 'TBD'
+  let timeString = "TBD";
 
   if (session.startMinute !== undefined && session.endMinute !== undefined) {
-    // debug.log("FOUND MINUTES:", session.startMinute, session.endMinute);
-    timeString = convertMinutesToTimeString(session.startMinute, session.endMinute)
+    debug.log("FOUND MINUTES:", session.startMinute, session.endMinute);
+    timeString = convertMinutesToTimeString(
+      session.startMinute,
+      session.endMinute
+    );
   } else {
-    debug.log('NO MINUTES FOUND IN SESSION')
+    debug.log("NO MINUTES FOUND IN SESSION");
   }
 
-  const stageName = mapLocationToStage(session.locationId.toString())
+  const stageName = mapLocationToStage(session.locationId.toString());
 
   return {
     id: session.id.toString(),
     time: timeString,
-    title: session.title?.toUpperCase() || '',
+    title: session.title?.toUpperCase() || "",
     speakers: session.speakers || [],
     stage: stageName,
-    description: session.description || '',
+    description: session.description || "",
     sessionType: session.sessionType,
-  }
+  };
 }
 
 export function sortEventsByTime(events: ScheduleEvent[]): ScheduleEvent[] {
   return events.sort((a, b) => {
-    const timeA = a.time.split(' - ')[0]
-    const timeB = b.time.split(' - ')[0]
+    const timeA = a.time.split(" - ")[0];
+    const timeB = b.time.split(" - ")[0];
 
     const getMinutes = (timeStr: string) => {
-      const [hours, minutes] = timeStr.split(':').map(Number)
-      return hours * 60 + minutes
-    }
+      const [hours, minutes] = timeStr.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
 
-    return getMinutes(timeA) - getMinutes(timeB)
-  })
+    return getMinutes(timeA) - getMinutes(timeB);
+  });
 }

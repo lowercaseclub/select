@@ -1,29 +1,42 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@repo/ui/src/components/dialog'
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@repo/ui/src/components/drawer'
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@repo/ui/src/components/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@repo/ui/src/components/drawer";
 
-import { RequestTicketForm } from './request-ticket-form'
+import { RequestTicketForm } from "./request-ticket-form";
 
 interface RequestTicketModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function RequestTicketModal({ open, onOpenChange }: RequestTicketModalProps) {
-  const [isDesktop, setIsDesktop] = useState(false)
+export function RequestTicketModal({
+  open,
+  onOpenChange,
+}: RequestTicketModalProps) {
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
     const checkIsDesktop = () => {
-      setIsDesktop(window.innerWidth >= 768) // md breakpoint
-    }
+      setIsDesktop(window.innerWidth >= 768); // md breakpoint
+    };
 
-    checkIsDesktop()
-    window.addEventListener('resize', checkIsDesktop)
+    checkIsDesktop();
+    window.addEventListener("resize", checkIsDesktop);
 
-    return () => window.removeEventListener('resize', checkIsDesktop)
-  }, [])
+    return () => window.removeEventListener("resize", checkIsDesktop);
+  }, []);
 
   if (isDesktop) {
     return (
@@ -35,7 +48,7 @@ export function RequestTicketModal({ open, onOpenChange }: RequestTicketModalPro
           <RequestTicketForm onClose={() => onOpenChange(false)} />
         </DialogContent>
       </Dialog>
-    )
+    );
   }
 
   return (
@@ -49,5 +62,5 @@ export function RequestTicketModal({ open, onOpenChange }: RequestTicketModalPro
         </div>
       </DrawerContent>
     </Drawer>
-  )
+  );
 }

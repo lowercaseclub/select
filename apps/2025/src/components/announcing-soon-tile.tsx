@@ -34,7 +34,9 @@ export function AnnouncingSoonTile() {
           </div>
         </div>
       </div>
-      <div className="space-y-3 sm:space-y-4">{/* Empty space to match speaker card layout */}</div>
+      <div className="space-y-3 sm:space-y-4">
+        {/* Empty space to match speaker card layout */}
+      </div>
     </>
-  )
+  );
 }

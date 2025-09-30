@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { CrosshairButton } from './crosshair-button'
-import { ApplicationForm } from './application-form'
+import { CrosshairButton } from "./crosshair-button";
+import { ApplicationForm } from "./application-form";
 
 export function HeroSection() {
   return (
@@ -14,14 +14,19 @@ export function HeroSection() {
             <h1 className="text-3xl ">
               <time dateTime="2025-10-03">Friday, October 3, 2025</time>
             </h1>
-            <address className="text-3xl not-italic" style={{ textDecoration: 'none' }}>
+            <address
+              className="text-3xl not-italic"
+              style={{ textDecoration: "none" }}
+            >
               Y Combinator,
               <br />
               580 20th St, San Francisco
             </address>
           </div>
 
-          <p className="text-accent-1-foreground text-3xl  mb-12">Doors open at 9am PT</p>
+          <p className="text-accent-1-foreground text-3xl  mb-12">
+            Doors open at 9am PT
+          </p>
           <div>
             <ApplicationForm
               trigger={
@@ -38,5 +43,5 @@ export function HeroSection() {
         </div>
       </section>
     </>
-  )
+  );
 }

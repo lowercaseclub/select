@@ -22,12 +22,12 @@ export function Header() {
             </Link>
           </div>
 
-          {isHomePage && 
+          {isHomePage && (
             <TabsList className="bg-transparent h-auto p-0 rounded-none justify-start flex gap-6">
               <ScheduleTabTrigger value="main" stageName="Main Stage" />
               <ScheduleTabTrigger value="build" stageName="Build Stage" />
             </TabsList>
-          }
+          )}
         </div>
       </ContentWrapper>
     </header>

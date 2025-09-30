@@ -1,9 +1,9 @@
-import { TopLines } from "@/components/top-lines";
-import { ContentWrapper } from "../../components/content-wrapper";
-import { Header } from "../../components/header";
-import { Footer } from "../../components/footer";
-import { StageProvider } from "../../contexts/stage-context";
-import { StagesTabsClient } from "../../components/stages-tabs-client";
+import { TopLines } from '@/components/top-lines'
+import { ContentWrapper } from '@/components/content-wrapper'
+import { Header } from '@/components/header'
+import { Footer } from '@/components/footer'
+import { StageProvider } from '@/lib/stage-context'
+import { StagesTabsClient } from '@/components/stages-tabs-client'
 
 export default function ApplicationVerifiedPage() {
   return (
@@ -32,5 +32,5 @@ export default function ApplicationVerifiedPage() {
         <Footer />
       </StagesTabsClient>
     </StageProvider>
-  );
+  )
 }

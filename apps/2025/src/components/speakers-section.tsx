@@ -1,23 +1,26 @@
-import { UsersIcon } from '@heroicons/react/24/outline'
-import { LinkIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
-import { getSpeakers } from '../lib/bizzabo-api'
-import { BizzaboSpeaker } from '../types/bizzabo.types'
-import { AnnouncingSoonTile } from './announcing-soon-tile'
-import { HalftoneImageSSR } from './halftone-image-ssr'
+import { UsersIcon } from "@heroicons/react/24/outline";
+import { LinkIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
+import { getSpeakers } from "../lib/bizzabo-api";
+import { BizzaboSpeaker } from "../types/bizzabo.types";
+import { AnnouncingSoonTile } from "./announcing-soon-tile";
+import { HalftoneImageSSR } from "./halftone-image-ssr";
 
 export async function SpeakersSection() {
-  let speakers: BizzaboSpeaker[] = []
+  let speakers: BizzaboSpeaker[] = [];
 
   try {
-    speakers = await getSpeakers()
+    speakers = await getSpeakers();
     // Debug: Speakers data loaded successfully
   } catch {
     // Error handled gracefully - empty speakers array will be used
-    speakers = []
+    speakers = [];
   }
 
   // Add placeholder "Announcing Soon" tiles based on env var
-  const announcingSoonCount = parseInt(process.env.ANNOUNCING_SOON_SPEAKERS || '0', 10)
+  const announcingSoonCount = parseInt(
+    process.env.ANNOUNCING_SOON_SPEAKERS || "0",
+    10
+  );
 
   return (
     <section id="speakers" className="px-8 pt-24 pb-12">
@@ -26,15 +29,19 @@ export async function SpeakersSection() {
           Featured Speakers
         </h2>
         <p className="text-base sm:text-lg text-muted-foreground">
-          Learn from industry leaders and successful founders who are shaping the future of
-          technology.
+          Learn from industry leaders and successful founders who are shaping
+          the future of technology.
         </p>
       </div>
 
       {(speakers.length === 0 && announcingSoonCount === 0) ||
       (speakers.length > 0 &&
         speakers.every(
-          (speaker) => !speaker.firstname && !speaker.lastname && !speaker.bio && !speaker.title
+          (speaker) =>
+            !speaker.firstname &&
+            !speaker.lastname &&
+            !speaker.bio &&
+            !speaker.title
         )) ? (
         <div className="text-center py-16">
           <div className="mb-4">
@@ -44,8 +51,8 @@ export async function SpeakersSection() {
           </div>
           <h3 className="text-xl font-medium mb-2">No Speakers Available</h3>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Speaker information is currently being updated. Please check back soon for our amazing
-            lineup of industry leaders.
+            Speaker information is currently being updated. Please check back
+            soon for our amazing lineup of industry leaders.
           </p>
         </div>
       ) : (
@@ -54,7 +61,7 @@ export async function SpeakersSection() {
             <div key={speaker.id} className="space-y-3 sm:space-y-4 group">
               <div
                 className="aspect-square relative overflow-hidden"
-                style={{ backgroundColor: '#000000' }}
+                style={{ backgroundColor: "#000000" }}
               >
                 {speaker.photoSet?.large && (
                   <HalftoneImageSSR
@@ -76,13 +83,18 @@ export async function SpeakersSection() {
                   {speaker.title && (
                     <p className="text-sm sm:text-base text-muted-foreground leading-snug">
                       {speaker.title}
-                      {''}
-                      <span className="text-muted-foreground">, {speaker.company}</span>
+                      {""}
+                      <span className="text-muted-foreground">
+                        , {speaker.company}
+                      </span>
                     </p>
                   )}
                 </div>
                 {/* Social Links */}
-                {(speaker.linkedIn || speaker.twitterHandle || speaker.web || speaker.blog) && (
+                {(speaker.linkedIn ||
+                  speaker.twitterHandle ||
+                  speaker.web ||
+                  speaker.blog) && (
                   <div className="flex gap-2">
                     {speaker.linkedIn && (
                       <a
@@ -97,7 +109,10 @@ export async function SpeakersSection() {
                     )}
                     {speaker.twitterHandle && (
                       <a
-                        href={`https://twitter.com/${speaker.twitterHandle.replace('@', '')}`}
+                        href={`https://twitter.com/${speaker.twitterHandle.replace(
+                          "@",
+                          ""
+                        )}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-muted-foreground hover:text-foreground transition-colors duration-200 p-1 -m-1"
@@ -138,18 +153,23 @@ export async function SpeakersSection() {
                 )}
 
                 {speaker.bio && (
-                  <p className="text-xs sm:text-sm leading-relaxed line-clamp-4">{speaker.bio}</p>
+                  <p className="text-xs sm:text-sm leading-relaxed line-clamp-4">
+                    {speaker.bio}
+                  </p>
                 )}
               </div>
             </div>
           ))}
           {Array.from({ length: announcingSoonCount }, (_, index) => (
-            <div key={`announcing-soon-${index}`} className="space-y-3 sm:space-y-4">
+            <div
+              key={`announcing-soon-${index}`}
+              className="space-y-3 sm:space-y-4"
+            >
               <AnnouncingSoonTile />
             </div>
           ))}
         </div>
       )}
     </section>
-  )
+  );
 }

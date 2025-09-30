@@ -1,717 +1,776 @@
-'use client'
+"use client";
 
-import { AnimatePresence, motion } from 'framer-motion'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Plus, X } from 'lucide-react'
-import { useMediaQuery } from '../hooks/use-media-query'
-import { useAnimationControls } from '../hooks/use-animation-controls'
-import { AnimationControlsPanel } from './animation-controls'
+import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Plus, X } from "lucide-react";
+import { useMediaQuery } from "../hooks/use-media-query";
+import { useAnimationControls } from "../hooks/use-animation-controls";
+import { AnimationControlsPanel } from "./animation-controls";
 
 function createColumnWidths(widths: readonly number[]): string {
-  const sum = widths.reduce((acc, width) => acc + width, 0)
+  const sum = widths.reduce((acc, width) => acc + width, 0);
   // Allow small floating point precision errors
   if (Math.abs(sum - 100) > 0.001) {
-    throw new Error(`Column widths must sum to 100%, got ${sum}%`)
+    throw new Error(`Column widths must sum to 100%, got ${sum}%`);
   }
 
-  return widths.map((w) => `${w}%`).join(' ') as string
+  return widths.map((w) => `${w}%`).join(" ") as string;
 }
 
 // Grid configuration - responsive
-const DESKTOP_rowHeight = 38 // px
-const MOBILE_rowHeight = 28 // px - smaller for mobile
+const DESKTOP_rowHeight = 38; // px
+const MOBILE_rowHeight = 28; // px - smaller for mobile
 // const _XL_rowHeight = 42; // px - slightly larger for extra large screens (unused)
-const DESKTOP_columnWidthsArray: number[] = [30, 15, 8, 22, 5, 5, 10, 5]
-const MOBILE_columnWidthsArray: number[] = [25, 25, 25, 25] // Equal columns spanning full width
-const DESKTOP_numColumns = DESKTOP_columnWidthsArray.length
-const MOBILE_numColumns = MOBILE_columnWidthsArray.length
+const DESKTOP_columnWidthsArray: number[] = [30, 15, 8, 22, 5, 5, 10, 5];
+const MOBILE_columnWidthsArray: number[] = [25, 25, 25, 25]; // Equal columns spanning full width
+const DESKTOP_numColumns = DESKTOP_columnWidthsArray.length;
+const MOBILE_numColumns = MOBILE_columnWidthsArray.length;
 
 // Animation configuration - now controlled by the control panel
 
 // Calculate cumulative column positions for proper cell positioning
-const getColumnPosition = (colIndex: number, columnWidths: number[]): number => {
-  if (!columnWidths || columnWidths.length === 0) return 0
-  const basePosition = columnWidths.slice(0, colIndex - 1).reduce((sum, width) => sum + width, 0)
-  return colIndex === 1 ? basePosition : basePosition - 0.1 // Move cells left to align with column edge
-}
+const getColumnPosition = (
+  colIndex: number,
+  columnWidths: number[]
+): number => {
+  if (!columnWidths || columnWidths.length === 0) return 0;
+  const basePosition = columnWidths
+    .slice(0, colIndex - 1)
+    .reduce((sum, width) => sum + width, 0);
+  return colIndex === 1 ? basePosition : basePosition - 0.1; // Move cells left to align with column edge
+};
 
-const getColumnWidth = (colStart: number, colEnd: number, columnWidths: number[]): number => {
-  if (!columnWidths || columnWidths.length === 0) return 10
-  const baseWidth = columnWidths.slice(colStart - 1, colEnd).reduce((sum, width) => sum + width, 0)
-  return colStart === 1 ? baseWidth : baseWidth + 0.1 // Add width back for non-first columns to reach right edge
-}
+const getColumnWidth = (
+  colStart: number,
+  colEnd: number,
+  columnWidths: number[]
+): number => {
+  if (!columnWidths || columnWidths.length === 0) return 10;
+  const baseWidth = columnWidths
+    .slice(colStart - 1, colEnd)
+    .reduce((sum, width) => sum + width, 0);
+  return colStart === 1 ? baseWidth : baseWidth + 0.1; // Add width back for non-first columns to reach right edge
+};
 
 interface GridCell {
-  id: string
-  row: number // grid row number
-  colStart: number // starting column (1-12)
-  colEnd: number // ending column (1-12)
-  delay: number
+  id: string;
+  row: number; // grid row number
+  colStart: number; // starting column (1-12)
+  colEnd: number; // ending column (1-12)
+  delay: number;
 }
 
 export function AnimatedGrid() {
-  const isMobile = useMediaQuery('(max-width: 768px)')
-  const isXL = useMediaQuery('(min-width: 1280px)')
-  const [, setIsInitialRender] = useState(true)
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isXL = useMediaQuery("(min-width: 1280px)");
+  const [, setIsInitialRender] = useState(true);
 
   // Animation controls
-  const { controls, updateControl, resetControls } = useAnimationControls()
+  const { controls, updateControl, resetControls } = useAnimationControls();
 
-  const [movingCells, setMovingCells] = useState<GridCell[]>([])
+  const [movingCells, setMovingCells] = useState<GridCell[]>([]);
   const selectionsRef = useRef<
     Array<{
-      id: string
-      startRow: number
-      startCol: number
-      endRow: number
-      endCol: number
-      isFlashing: boolean
+      id: string;
+      startRow: number;
+      startCol: number;
+      endRow: number;
+      endCol: number;
+      isFlashing: boolean;
     }>
-  >([])
+  >([]);
   const [currentColumnWidths, setCurrentColumnWidths] = useState(
     isMobile ? MOBILE_columnWidthsArray : DESKTOP_columnWidthsArray
-  )
-  const [isColumnChanging, setIsColumnChanging] = useState(false)
-  const isColumnChangingRef = useRef(isColumnChanging)
+  );
+  const [isColumnChanging, setIsColumnChanging] = useState(false);
+  const isColumnChangingRef = useRef(isColumnChanging);
 
   // Update ref when state changes
   useEffect(() => {
-    isColumnChangingRef.current = isColumnChanging
-  }, [isColumnChanging])
-  const [movingCellId, setMovingCellId] = useState<string | null>(null)
+    isColumnChangingRef.current = isColumnChanging;
+  }, [isColumnChanging]);
+  const [movingCellId, setMovingCellId] = useState<string | null>(null);
   const [selections, setSelections] = useState<
     Array<{
-      id: string
-      startRow: number
-      startCol: number
-      endRow: number
-      endCol: number
-      isFlashing: boolean
+      id: string;
+      startRow: number;
+      startCol: number;
+      endRow: number;
+      endCol: number;
+      isFlashing: boolean;
     }>
-  >([])
+  >([]);
 
   // Keep ref in sync with selections state
   useEffect(() => {
-    selectionsRef.current = selections
-  }, [selections])
+    selectionsRef.current = selections;
+  }, [selections]);
 
   // Get responsive configuration values
-  const rowHeight = isMobile ? MOBILE_rowHeight : DESKTOP_rowHeight
-  const columnWidthsArray = isMobile ? MOBILE_columnWidthsArray : DESKTOP_columnWidthsArray
-  const numColumns = isMobile ? MOBILE_numColumns : DESKTOP_numColumns
+  const rowHeight = isMobile ? MOBILE_rowHeight : DESKTOP_rowHeight;
+  const columnWidthsArray = isMobile
+    ? MOBILE_columnWidthsArray
+    : DESKTOP_columnWidthsArray;
+  const numColumns = isMobile ? MOBILE_numColumns : DESKTOP_numColumns;
 
   // Helper function to check if two cells overlap
   const cellsOverlap = (cell1: GridCell, cell2: GridCell) => {
-    const rowOverlap = cell1.row === cell2.row
-    const colOverlap = cell1.colStart <= cell2.colEnd && cell1.colEnd >= cell2.colStart
-    return rowOverlap && colOverlap
-  }
+    const rowOverlap = cell1.row === cell2.row;
+    const colOverlap =
+      cell1.colStart <= cell2.colEnd && cell1.colEnd >= cell2.colStart;
+    return rowOverlap && colOverlap;
+  };
 
   // Helper function to check if a cell position would cause overlap
-  const wouldOverlap = useCallback((testCell: GridCell, otherCells: GridCell[]) => {
-    return otherCells.some((other) => other.id !== testCell.id && cellsOverlap(testCell, other))
-  }, [])
+  const wouldOverlap = useCallback(
+    (testCell: GridCell, otherCells: GridCell[]) => {
+      return otherCells.some(
+        (other) => other.id !== testCell.id && cellsOverlap(testCell, other)
+      );
+    },
+    []
+  );
 
   // Helper function to check if a cell is within any selection
   const isCellInSelection = (cell: GridCell) => {
     return selections.some((selection) => {
-      const cellInRowRange = cell.row >= selection.startRow && cell.row <= selection.endRow
-      const cellInColRange = cell.colStart <= selection.endCol && cell.colEnd >= selection.startCol
-      return cellInRowRange && cellInColRange
-    })
-  }
+      const cellInRowRange =
+        cell.row >= selection.startRow && cell.row <= selection.endRow;
+      const cellInColRange =
+        cell.colStart <= selection.endCol && cell.colEnd >= selection.startCol;
+      return cellInRowRange && cellInColRange;
+    });
+  };
 
   // Helper function to check if a cell is within a flashing selection
   const isCellInFlashingSelection = (cell: GridCell) => {
     return selections.some((selection) => {
-      if (!selection.isFlashing) return false
-      const cellInRowRange = cell.row >= selection.startRow && cell.row <= selection.endRow
-      const cellInColRange = cell.colStart <= selection.endCol && cell.colEnd >= selection.startCol
-      return cellInRowRange && cellInColRange
-    })
-  }
+      if (!selection.isFlashing) return false;
+      const cellInRowRange =
+        cell.row >= selection.startRow && cell.row <= selection.endRow;
+      const cellInColRange =
+        cell.colStart <= selection.endCol && cell.colEnd >= selection.startCol;
+      return cellInRowRange && cellInColRange;
+    });
+  };
 
   // Separate effect for speed controls that don't need to restart intervals
   useEffect(() => {
     // Speed controls only affect animation durations, not intervals
     // No need to restart anything here
-  }, [controls.cellMovementSpeed, controls.columnMorphSpeed, controls.selectionFrequency])
+  }, [
+    controls.cellMovementSpeed,
+    controls.columnMorphSpeed,
+    controls.selectionFrequency,
+  ]);
 
   useEffect(() => {
     // Generate initial cells - different patterns for mobile vs desktop vs XL
     const animatedCells: GridCell[] = isMobile
       ? [
           // Mobile: cells scattered across all columns
-          { id: 'cell-1', row: 16, colStart: 1, colEnd: 2, delay: 80 },
-          { id: 'cell-2', row: 22, colStart: 3, colEnd: 4, delay: 220 },
-          { id: 'cell-3', row: 18, colStart: 2, colEnd: 2, delay: 150 },
-          { id: 'cell-4', row: 25, colStart: 4, colEnd: 4, delay: 350 },
-          { id: 'cell-5', row: 20, colStart: 1, colEnd: 1, delay: 290 },
-          { id: 'cell-6', row: 28, colStart: 2, colEnd: 3, delay: 400 },
-          { id: 'cell-7', row: 17, colStart: 4, colEnd: 4, delay: 180 },
-          { id: 'cell-8', row: 24, colStart: 3, colEnd: 3, delay: 600 },
-          { id: 'cell-9', row: 21, colStart: 1, colEnd: 2, delay: 450 },
-          { id: 'cell-10', row: 19, colStart: 3, colEnd: 4, delay: 520 },
-          { id: 'cell-11', row: 26, colStart: 1, colEnd: 1, delay: 680 },
-          { id: 'cell-12', row: 23, colStart: 4, colEnd: 4, delay: 320 },
-          { id: 'cell-13', row: 15, colStart: 2, colEnd: 3, delay: 750 },
+          { id: "cell-1", row: 16, colStart: 1, colEnd: 2, delay: 80 },
+          { id: "cell-2", row: 22, colStart: 3, colEnd: 4, delay: 220 },
+          { id: "cell-3", row: 18, colStart: 2, colEnd: 2, delay: 150 },
+          { id: "cell-4", row: 25, colStart: 4, colEnd: 4, delay: 350 },
+          { id: "cell-5", row: 20, colStart: 1, colEnd: 1, delay: 290 },
+          { id: "cell-6", row: 28, colStart: 2, colEnd: 3, delay: 400 },
+          { id: "cell-7", row: 17, colStart: 4, colEnd: 4, delay: 180 },
+          { id: "cell-8", row: 24, colStart: 3, colEnd: 3, delay: 600 },
+          { id: "cell-9", row: 21, colStart: 1, colEnd: 2, delay: 450 },
+          { id: "cell-10", row: 19, colStart: 3, colEnd: 4, delay: 520 },
+          { id: "cell-11", row: 26, colStart: 1, colEnd: 1, delay: 680 },
+          { id: "cell-12", row: 23, colStart: 4, colEnd: 4, delay: 320 },
+          { id: "cell-13", row: 15, colStart: 2, colEnd: 3, delay: 750 },
         ]
       : isXL
-        ? [
-            // XL desktop: cells scattered across more columns
-            { id: 'cell-1', row: 9, colStart: 2, colEnd: 3, delay: 80 },
-            { id: 'cell-2', row: 12, colStart: 5, colEnd: 6, delay: 220 },
-            { id: 'cell-3', row: 8, colStart: 7, colEnd: 7, delay: 150 },
-            { id: 'cell-4', row: 14, colStart: 3, colEnd: 4, delay: 350 },
-            { id: 'cell-5', row: 10, colStart: 6, colEnd: 8, delay: 290 },
-            { id: 'cell-6', row: 16, colStart: 1, colEnd: 2, delay: 450 },
-            { id: 'cell-7', row: 11, colStart: 4, colEnd: 5, delay: 600 },
-            { id: 'cell-8', row: 13, colStart: 7, colEnd: 8, delay: 180 },
-            { id: 'cell-9', row: 15, colStart: 2, colEnd: 3, delay: 400 },
-            { id: 'cell-10', row: 7, colStart: 1, colEnd: 1, delay: 520 },
-            { id: 'cell-11', row: 17, colStart: 6, colEnd: 7, delay: 680 },
-            { id: 'cell-12', row: 6, colStart: 4, colEnd: 5, delay: 320 },
-            { id: 'cell-13', row: 18, colStart: 8, colEnd: 8, delay: 750 },
-            { id: 'cell-14', row: 5, colStart: 3, colEnd: 4, delay: 420 },
-            { id: 'cell-15', row: 19, colStart: 5, colEnd: 6, delay: 580 },
-            { id: 'cell-16', row: 4, colStart: 7, colEnd: 8, delay: 820 },
-          ]
-        : [
-            // Desktop: cells scattered across all columns
-            { id: 'cell-1', row: 5, colStart: 2, colEnd: 3, delay: 80 },
-            { id: 'cell-2', row: 8, colStart: 5, colEnd: 6, delay: 220 },
-            { id: 'cell-3', row: 4, colStart: 7, colEnd: 8, delay: 150 },
-            { id: 'cell-4', row: 10, colStart: 1, colEnd: 2, delay: 350 },
-            { id: 'cell-5', row: 6, colStart: 3, colEnd: 4, delay: 290 },
-            { id: 'cell-6', row: 12, colStart: 6, colEnd: 7, delay: 450 },
-            { id: 'cell-7', row: 7, colStart: 8, colEnd: 8, delay: 600 },
-            { id: 'cell-8', row: 9, colStart: 2, colEnd: 2, delay: 180 },
-            { id: 'cell-9', row: 11, colStart: 4, colEnd: 5, delay: 400 },
-            { id: 'cell-10', row: 3, colStart: 1, colEnd: 1, delay: 520 },
-            { id: 'cell-11', row: 13, colStart: 7, colEnd: 8, delay: 680 },
-            { id: 'cell-12', row: 2, colStart: 3, colEnd: 4, delay: 320 },
-            { id: 'cell-13', row: 14, colStart: 5, colEnd: 6, delay: 750 },
-            { id: 'cell-14', row: 1, colStart: 6, colEnd: 7, delay: 420 },
-            { id: 'cell-15', row: 15, colStart: 2, colEnd: 3, delay: 580 },
-            { id: 'cell-16', row: 16, colStart: 8, colEnd: 8, delay: 820 },
-          ]
+      ? [
+          // XL desktop: cells scattered across more columns
+          { id: "cell-1", row: 9, colStart: 2, colEnd: 3, delay: 80 },
+          { id: "cell-2", row: 12, colStart: 5, colEnd: 6, delay: 220 },
+          { id: "cell-3", row: 8, colStart: 7, colEnd: 7, delay: 150 },
+          { id: "cell-4", row: 14, colStart: 3, colEnd: 4, delay: 350 },
+          { id: "cell-5", row: 10, colStart: 6, colEnd: 8, delay: 290 },
+          { id: "cell-6", row: 16, colStart: 1, colEnd: 2, delay: 450 },
+          { id: "cell-7", row: 11, colStart: 4, colEnd: 5, delay: 600 },
+          { id: "cell-8", row: 13, colStart: 7, colEnd: 8, delay: 180 },
+          { id: "cell-9", row: 15, colStart: 2, colEnd: 3, delay: 400 },
+          { id: "cell-10", row: 7, colStart: 1, colEnd: 1, delay: 520 },
+          { id: "cell-11", row: 17, colStart: 6, colEnd: 7, delay: 680 },
+          { id: "cell-12", row: 6, colStart: 4, colEnd: 5, delay: 320 },
+          { id: "cell-13", row: 18, colStart: 8, colEnd: 8, delay: 750 },
+          { id: "cell-14", row: 5, colStart: 3, colEnd: 4, delay: 420 },
+          { id: "cell-15", row: 19, colStart: 5, colEnd: 6, delay: 580 },
+          { id: "cell-16", row: 4, colStart: 7, colEnd: 8, delay: 820 },
+        ]
+      : [
+          // Desktop: cells scattered across all columns
+          { id: "cell-1", row: 5, colStart: 2, colEnd: 3, delay: 80 },
+          { id: "cell-2", row: 8, colStart: 5, colEnd: 6, delay: 220 },
+          { id: "cell-3", row: 4, colStart: 7, colEnd: 8, delay: 150 },
+          { id: "cell-4", row: 10, colStart: 1, colEnd: 2, delay: 350 },
+          { id: "cell-5", row: 6, colStart: 3, colEnd: 4, delay: 290 },
+          { id: "cell-6", row: 12, colStart: 6, colEnd: 7, delay: 450 },
+          { id: "cell-7", row: 7, colStart: 8, colEnd: 8, delay: 600 },
+          { id: "cell-8", row: 9, colStart: 2, colEnd: 2, delay: 180 },
+          { id: "cell-9", row: 11, colStart: 4, colEnd: 5, delay: 400 },
+          { id: "cell-10", row: 3, colStart: 1, colEnd: 1, delay: 520 },
+          { id: "cell-11", row: 13, colStart: 7, colEnd: 8, delay: 680 },
+          { id: "cell-12", row: 2, colStart: 3, colEnd: 4, delay: 320 },
+          { id: "cell-13", row: 14, colStart: 5, colEnd: 6, delay: 750 },
+          { id: "cell-14", row: 1, colStart: 6, colEnd: 7, delay: 420 },
+          { id: "cell-15", row: 15, colStart: 2, colEnd: 3, delay: 580 },
+          { id: "cell-16", row: 16, colStart: 8, colEnd: 8, delay: 820 },
+        ];
 
     // Validate cell column references
     animatedCells.forEach((cell) => {
       if (cell.colStart < 1 || cell.colStart > numColumns) {
         throw new Error(
           `Cell ${cell.id}: colStart ${cell.colStart} is out of range (1-${numColumns})`
-        )
+        );
       }
       if (cell.colEnd < 1 || cell.colEnd > numColumns) {
-        throw new Error(`Cell ${cell.id}: colEnd ${cell.colEnd} is out of range (1-${numColumns})`)
+        throw new Error(
+          `Cell ${cell.id}: colEnd ${cell.colEnd} is out of range (1-${numColumns})`
+        );
       }
       if (cell.colStart > cell.colEnd) {
         throw new Error(
           `Cell ${cell.id}: colStart ${cell.colStart} must be less than or equal to colEnd ${cell.colEnd}`
-        )
+        );
       }
-    })
+    });
 
-    setMovingCells(animatedCells)
+    setMovingCells(animatedCells);
 
     // Disable initial render flag after cells have animated in
     setTimeout(() => {
-      setIsInitialRender(false)
-    }, 1000) // Wait for initial animations to complete
+      setIsInitialRender(false);
+    }, 1000); // Wait for initial animations to complete
 
     // Multiple movement timers for simultaneous action, but with proper collision detection
-    const movementIntervals: NodeJS.Timeout[] = []
-    const cleanupFunctions: (() => void)[] = []
+    const movementIntervals: NodeJS.Timeout[] = [];
+    const cleanupFunctions: (() => void)[] = [];
 
     animatedCells.forEach((cell, index) => {
-      const moveDelay = 100 + index * 50 // Stagger initial start times
-      let currentIntervalId: NodeJS.Timeout | null = null
-      let isActive = true // Flag to prevent scheduling after cleanup
+      const moveDelay = 100 + index * 50; // Stagger initial start times
+      let currentIntervalId: NodeJS.Timeout | null = null;
+      let isActive = true; // Flag to prevent scheduling after cleanup
 
       const initialTimeout = setTimeout(() => {
         const scheduleNextMove = () => {
           // Prevent scheduling if this cell's movement has been cleaned up
-          if (!isActive) return
+          if (!isActive) return;
 
-          currentIntervalId = setTimeout(
-            () => {
-              // Check if movement should be skipped, but still reschedule
-              if (!isActive || isColumnChangingRef.current || !controls.enableCellMovement) {
-                if (isActive) scheduleNextMove() // Only reschedule if still active
-                return
+          currentIntervalId = setTimeout(() => {
+            // Check if movement should be skipped, but still reschedule
+            if (
+              !isActive ||
+              isColumnChangingRef.current ||
+              !controls.enableCellMovement
+            ) {
+              if (isActive) scheduleNextMove(); // Only reschedule if still active
+              return;
+            }
+
+            // Debug logging (only in development)
+            if (process.env.NODE_ENV === "development") {
+              console.debug(`Cell ${cell.id} attempting to move...`);
+            }
+
+            setMovingCells((prevCells) => {
+              // Safety check for undefined state
+              if (!prevCells || !Array.isArray(prevCells)) {
+                return prevCells;
               }
 
-              // Debug logging (only in development)
-              if (process.env.NODE_ENV === 'development') {
-                console.debug(`Cell ${cell.id} attempting to move...`)
-              }
+              // Find this specific cell in current state
+              const cellIndex = prevCells.findIndex((c) => c.id === cell.id);
+              if (cellIndex === -1) return prevCells; // Cell doesn't exist anymore
 
-              setMovingCells((prevCells) => {
-                // Safety check for undefined state
-                if (!prevCells || !Array.isArray(prevCells)) {
-                  return prevCells
-                }
+              const currentCell = prevCells[cellIndex];
 
-                // Find this specific cell in current state
-                const cellIndex = prevCells.findIndex((c) => c.id === cell.id)
-                if (cellIndex === -1) return prevCells // Cell doesn't exist anymore
-
-                const currentCell = prevCells[cellIndex]
-
-                // Don't move cells that are currently in a selection (check with current selections)
-                const isCurrentlySelected = selectionsRef.current.some((selection) => {
+              // Don't move cells that are currently in a selection (check with current selections)
+              const isCurrentlySelected = selectionsRef.current.some(
+                (selection) => {
                   const cellInRowRange =
-                    currentCell.row >= selection.startRow && currentCell.row <= selection.endRow
+                    currentCell.row >= selection.startRow &&
+                    currentCell.row <= selection.endRow;
                   const cellInColRange =
                     currentCell.colStart <= selection.endCol &&
-                    currentCell.colEnd >= selection.startCol
-                  return cellInRowRange && cellInColRange
-                })
-
-                if (isCurrentlySelected) {
-                  return prevCells // Don't move, but will reschedule below
+                    currentCell.colEnd >= selection.startCol;
+                  return cellInRowRange && cellInColRange;
                 }
+              );
 
-                const moveType = Math.random()
+              if (isCurrentlySelected) {
+                return prevCells; // Don't move, but will reschedule below
+              }
 
-                if (moveType < 0.3) {
-                  // 30% chance: Move vertically (up or down 1 row only)
-                  const direction = Math.random() < 0.5 ? -1 : 1
-                  const minRow = isMobile ? 12 : 1 // Mobile: prevent going above row 12
-                  const maxRow = isMobile ? 30 : 20 // Mobile: allow more room below
-                  const newRow = Math.max(minRow, Math.min(maxRow, currentCell.row + direction))
+              const moveType = Math.random();
 
-                  if (newRow !== currentCell.row) {
-                    const testCell = {
-                      ...currentCell,
-                      row: newRow,
-                      colStart: currentCell.colStart, // Explicitly preserve
-                      colEnd: currentCell.colEnd, // Explicitly preserve
-                    }
-                    const otherCells = prevCells.filter((_, i) => i !== cellIndex)
+              if (moveType < 0.3) {
+                // 30% chance: Move vertically (up or down 1 row only)
+                const direction = Math.random() < 0.5 ? -1 : 1;
+                const minRow = isMobile ? 12 : 1; // Mobile: prevent going above row 12
+                const maxRow = isMobile ? 30 : 20; // Mobile: allow more room below
+                const newRow = Math.max(
+                  minRow,
+                  Math.min(maxRow, currentCell.row + direction)
+                );
 
-                    if (!wouldOverlap(testCell, otherCells)) {
-                      setMovingCellId(currentCell.id)
-                      setTimeout(() => setMovingCellId(null), 800) // Clear highlight after animation
-                      return prevCells.map((c, i) => (i === cellIndex ? testCell : c))
-                    }
-                  }
-                } else {
-                  // 70% chance: Move horizontally (change columns only)
-                  const biasedRandom = Math.random() * 0.8 + 0.2
-                  const newColStart = Math.floor(biasedRandom * numColumns) + 1
-                  const maxSpan = Math.min(numColumns - newColStart + 1, isMobile ? 2 : 4)
-                  const newSpan = Math.floor(Math.random() * maxSpan) + 1
-                  const newColEnd = newColStart + newSpan - 1
-
+                if (newRow !== currentCell.row) {
                   const testCell = {
                     ...currentCell,
-                    colStart: newColStart,
-                    colEnd: newColEnd,
-                    row: currentCell.row, // Explicitly preserve
-                  }
-                  const otherCells = prevCells.filter((_, i) => i !== cellIndex)
+                    row: newRow,
+                    colStart: currentCell.colStart, // Explicitly preserve
+                    colEnd: currentCell.colEnd, // Explicitly preserve
+                  };
+                  const otherCells = prevCells.filter(
+                    (_, i) => i !== cellIndex
+                  );
 
                   if (!wouldOverlap(testCell, otherCells)) {
-                    setMovingCellId(currentCell.id)
-                    setTimeout(() => setMovingCellId(null), 400) // Clear highlight after animation
-                    return prevCells.map((c, i) => (i === cellIndex ? testCell : c))
+                    setMovingCellId(currentCell.id);
+                    setTimeout(() => setMovingCellId(null), 800); // Clear highlight after animation
+                    return prevCells.map((c, i) =>
+                      i === cellIndex ? testCell : c
+                    );
                   }
                 }
+              } else {
+                // 70% chance: Move horizontally (change columns only)
+                const biasedRandom = Math.random() * 0.8 + 0.2;
+                const newColStart = Math.floor(biasedRandom * numColumns) + 1;
+                const maxSpan = Math.min(
+                  numColumns - newColStart + 1,
+                  isMobile ? 2 : 4
+                );
+                const newSpan = Math.floor(Math.random() * maxSpan) + 1;
+                const newColEnd = newColStart + newSpan - 1;
 
-                // If no valid move found, return unchanged
-                return prevCells
-              })
+                const testCell = {
+                  ...currentCell,
+                  colStart: newColStart,
+                  colEnd: newColEnd,
+                  row: currentCell.row, // Explicitly preserve
+                };
+                const otherCells = prevCells.filter((_, i) => i !== cellIndex);
 
-              // Schedule the next move only if still active
-              if (isActive) {
-                scheduleNextMove()
+                if (!wouldOverlap(testCell, otherCells)) {
+                  setMovingCellId(currentCell.id);
+                  setTimeout(() => setMovingCellId(null), 400); // Clear highlight after animation
+                  return prevCells.map((c, i) =>
+                    i === cellIndex ? testCell : c
+                  );
+                }
               }
-            },
-            (2000 + Math.random() * 3000) / controls.cellMovementInterval
-          ) // Each cell moves every 2.0-5.0 seconds (controlled by interval)
-        }
+
+              // If no valid move found, return unchanged
+              return prevCells;
+            });
+
+            // Schedule the next move only if still active
+            if (isActive) {
+              scheduleNextMove();
+            }
+          }, (2000 + Math.random() * 3000) / controls.cellMovementInterval); // Each cell moves every 2.0-5.0 seconds (controlled by interval)
+        };
 
         // Start the movement cycle
-        scheduleNextMove()
-      }, moveDelay)
+        scheduleNextMove();
+      }, moveDelay);
 
       // Track initial timeout and cleanup function
-      movementIntervals.push(initialTimeout)
+      movementIntervals.push(initialTimeout);
       cleanupFunctions.push(() => {
-        isActive = false // Mark as inactive to prevent further scheduling
+        isActive = false; // Mark as inactive to prevent further scheduling
         if (currentIntervalId) {
-          clearTimeout(currentIntervalId)
-          currentIntervalId = null
+          clearTimeout(currentIntervalId);
+          currentIntervalId = null;
         }
-        clearTimeout(initialTimeout) // Also clear the initial timeout
-      })
-    })
+        clearTimeout(initialTimeout); // Also clear the initial timeout
+      });
+    });
 
     // Dynamic cell addition/removal (currently disabled)
     // const cellCounter = animatedCells.length;
-    const addRemoveInterval = setInterval(
-      () => {
-        // Both cell addition and removal are disabled
-        // Keeping the interval structure for potential future use
-      },
-      4000 + Math.random() * 6000
-    ) // Every 4-10 seconds
+    const addRemoveInterval = setInterval(() => {
+      // Both cell addition and removal are disabled
+      // Keeping the interval structure for potential future use
+    }, 4000 + Math.random() * 6000); // Every 4-10 seconds
 
     // Column width morphing - focus on one column at a time
-    const columnMorphInterval = setInterval(
-      () => {
-        if (!controls.enableColumnMorphing) return // Skip if disabled
+    const columnMorphInterval = setInterval(() => {
+      if (!controls.enableColumnMorphing) return; // Skip if disabled
 
-        // First, stop all traffic for 4 seconds
-        setIsColumnChanging(true)
+      // First, stop all traffic for 4 seconds
+      setIsColumnChanging(true);
 
-        // Wait 4 seconds, then make the column change
-        setTimeout(() => {
-          setCurrentColumnWidths((prevWidths) => {
-            const newWidths = [...prevWidths]
+      // Wait 4 seconds, then make the column change
+      setTimeout(() => {
+        setCurrentColumnWidths((prevWidths) => {
+          const newWidths = [...prevWidths];
 
-            // Choose one column to modify with bias towards smaller/larger columns
-            let columnIndex
-            let action: 'expand' | 'contract'
+          // Choose one column to modify with bias towards smaller/larger columns
+          let columnIndex;
+          let action: "expand" | "contract";
 
-            // Find small columns (< 12%), large columns (> 25%), and categorize by position
-            const smallColumns = prevWidths
-              .map((width, index) => ({ width, index }))
-              .filter((col) => col.width < 12)
-            const largeColumns = prevWidths
-              .map((width, index) => ({ width, index }))
-              .filter((col) => col.width > 25)
+          // Find small columns (< 12%), large columns (> 25%), and categorize by position
+          const smallColumns = prevWidths
+            .map((width, index) => ({ width, index }))
+            .filter((col) => col.width < 12);
+          const largeColumns = prevWidths
+            .map((width, index) => ({ width, index }))
+            .filter((col) => col.width > 25);
 
-            // Right columns (4-7), left columns (0-3)
-            const rightColumns = prevWidths
-              .map((width, index) => ({ width, index }))
-              .filter((col) => col.index >= 4)
-            const leftColumns = prevWidths
-              .map((width, index) => ({ width, index }))
-              .filter((col) => col.index <= 3)
-            const farRightColumns = prevWidths
-              .map((width, index) => ({ width, index }))
-              .filter((col) => col.index >= 5 && col.width < 8) // Far right and small
+          // Right columns (4-7), left columns (0-3)
+          const rightColumns = prevWidths
+            .map((width, index) => ({ width, index }))
+            .filter((col) => col.index >= 4);
+          const leftColumns = prevWidths
+            .map((width, index) => ({ width, index }))
+            .filter((col) => col.index <= 3);
+          const farRightColumns = prevWidths
+            .map((width, index) => ({ width, index }))
+            .filter((col) => col.index >= 5 && col.width < 8); // Far right and small
 
-            const biasChance = Math.random()
+          const biasChance = Math.random();
 
-            if (biasChance < 0.35 && rightColumns.length > 0) {
-              // 35% chance: Expand a right column (bias towards right)
-              const randomRight = rightColumns[Math.floor(Math.random() * rightColumns.length)]
-              columnIndex = randomRight.index
-              action = 'expand'
-            } else if (biasChance < 0.5 && farRightColumns.length > 0) {
-              // 15% chance: Expand a small far-right column (prevent eternal deflation)
-              const randomFarRight =
-                farRightColumns[Math.floor(Math.random() * farRightColumns.length)]
-              columnIndex = randomFarRight.index
-              action = 'expand'
-            } else if (biasChance < 0.65 && smallColumns.length > 0) {
-              // 15% chance: Expand any small column
-              const randomSmall = smallColumns[Math.floor(Math.random() * smallColumns.length)]
-              columnIndex = randomSmall.index
-              action = 'expand'
-            } else if (biasChance < 0.8 && leftColumns.length > 0) {
-              // 15% chance: Contract a left column (make more room for right)
-              const randomLeft = leftColumns[Math.floor(Math.random() * leftColumns.length)]
-              columnIndex = randomLeft.index
-              action = 'contract'
-            } else if (biasChance < 0.9 && largeColumns.length > 0) {
-              // 10% chance: Contract any large column
-              const randomLarge = largeColumns[Math.floor(Math.random() * largeColumns.length)]
-              columnIndex = randomLarge.index
-              action = 'contract'
-            } else {
-              // 10% chance: Random column, random action (fallback)
-              // Bias the random selection towards right side too
-              const biasedColumnRandom = Math.random() * 0.7 + 0.3 // 0.3-1.0
-              columnIndex = Math.floor(biasedColumnRandom * newWidths.length)
-              action = Math.random() < 0.6 ? 'expand' : 'contract' // Slight bias towards expansion
-            }
-
-            const currentWidth = newWidths[columnIndex]
-
-            let targetWidth
-
-            if (action === 'expand') {
-              // Expand: grow the column moderately
-              const growthAmount = Math.random() * 8 + 3 // 3-11% growth (much more subtle)
-              targetWidth = Math.min(40, currentWidth + growthAmount) // Cap at 40%
-            } else {
-              // Contract: shrink the column moderately
-              const shrinkAmount = Math.random() * 6 + 2 // 2-8% shrink (much more subtle)
-              let proposedWidth = Math.max(7, currentWidth - shrinkAmount) // Minimum 7% for all columns
-
-              // Apply column-specific minimum constraints
-              if (columnIndex === 0) {
-                proposedWidth = Math.max(25, proposedWidth) // First column min 25%
-              } else if (columnIndex === 1) {
-                proposedWidth = Math.max(10, proposedWidth) // Second column min 10%
-              }
-
-              // Check how many columns would be very small (< 9%) if we shrink this one
-              const verySmallCount = prevWidths.filter((w, i) =>
-                i === columnIndex ? proposedWidth < 9 : w < 9
-              ).length
-
-              // Don't allow more than 1 very small columns
-              if (verySmallCount > 1) {
-                targetWidth = Math.max(9, proposedWidth) // Keep it at least 9%
-              } else {
-                targetWidth = proposedWidth // Allow shrinking within constraints
-              }
-            }
-
-            // Set the target column's new width
-            newWidths[columnIndex] = targetWidth
-
-            // Calculate remaining space to distribute
-            const usedWidth = targetWidth
-            const remainingWidth = 100 - usedWidth
-
-            // Get the original proportions of the other columns
-            const otherColumns = prevWidths.filter((_, i) => i !== columnIndex)
-            const otherColumnsTotal = otherColumns.reduce((sum, width) => sum + width, 0)
-
-            // Distribute remaining space proportionally among other columns
-            // const distributedIndex = 0;
-            for (let i = 0; i < newWidths.length; i++) {
-              if (i !== columnIndex) {
-                const originalProportion = prevWidths[i] / otherColumnsTotal
-                newWidths[i] = remainingWidth * originalProportion
-              }
-            }
-
-            // Apply column-specific minimums after redistribution
-            let totalAdjustment = 0
-            if (newWidths[0] < 25) {
-              totalAdjustment += 25 - newWidths[0]
-              newWidths[0] = 25
-            }
-            if (newWidths[1] < 10) {
-              totalAdjustment += 10 - newWidths[1]
-              newWidths[1] = 10
-            }
-            // Apply 7% minimum to all other columns
-            for (let i = 2; i < newWidths.length; i++) {
-              if (newWidths[i] < 7) {
-                totalAdjustment += 7 - newWidths[i]
-                newWidths[i] = 7
-              }
-            }
-
-            // If we had to boost columns, take the deficit from the target column if it's expandable
-            if (totalAdjustment > 0) {
-              // First try to take from the target column if it was expanded and is large enough
-              if (action === 'expand' && newWidths[columnIndex] > 25) {
-                const maxFromTarget = Math.min(totalAdjustment, newWidths[columnIndex] - 25)
-                newWidths[columnIndex] -= maxFromTarget
-                totalAdjustment -= maxFromTarget
-              }
-
-              // If still need adjustment, take from other large columns
-              if (totalAdjustment > 0) {
-                // Find the largest non-protected columns
-                let largestIndex = -1
-                let largestWidth = 0
-                for (let i = 0; i < newWidths.length; i++) {
-                  if (i !== columnIndex && newWidths[i] > largestWidth) {
-                    largestIndex = i
-                    largestWidth = newWidths[i]
-                  }
-                }
-
-                if (largestIndex !== -1) {
-                  const minForLargest = largestIndex === 0 ? 25 : largestIndex === 1 ? 10 : 12
-                  const maxReduction = Math.max(0, newWidths[largestIndex] - minForLargest)
-                  const actualReduction = Math.min(totalAdjustment, maxReduction)
-                  newWidths[largestIndex] -= actualReduction
-                }
-              }
-            }
-
-            // Prevent too many columns from being very small (< 10%)
-            const verySmallIndices = newWidths
-              .map((width, index) => ({ width, index }))
-              .filter((col) => col.width < 10)
-              .map((col) => col.index)
-
-            if (verySmallIndices.length > 1) {
-              // Allow only 1 very small column
-              // Boost the smallest columns back to appropriate minimums
-              const sortedSmall = verySmallIndices.sort((a, b) => newWidths[a] - newWidths[b])
-
-              // Keep only the 1 smallest, boost the rest to appropriate minimums
-              for (let i = 1; i < sortedSmall.length; i++) {
-                const indexToBoost = sortedSmall[i]
-                let minimumWidth = 10
-
-                // Apply column-specific minimums
-                if (indexToBoost === 0) {
-                  minimumWidth = 25 // First column min 25%
-                } else if (indexToBoost === 1) {
-                  minimumWidth = 10 // Second column min 10%
-                } else {
-                  minimumWidth = 12 // All other columns min 12%
-                }
-
-                const deficit = minimumWidth - newWidths[indexToBoost]
-                newWidths[indexToBoost] = minimumWidth
-
-                // Take the deficit from the largest non-boosted column
-                let largestIndex = 0
-                for (let j = 0; j < newWidths.length; j++) {
-                  if (!sortedSmall.slice(2).includes(j) && newWidths[j] > newWidths[largestIndex]) {
-                    largestIndex = j
-                  }
-                }
-                newWidths[largestIndex] = Math.max(10, newWidths[largestIndex] - deficit)
-              }
-            }
-
-            // Ensure we sum exactly to 100% (handle floating point precision)
-            const total = newWidths.reduce((sum, width) => sum + width, 0)
-            const adjustment = 100 - total
-
-            // Apply adjustment to the largest column
-            let largestIndex = 0
-            for (let i = 0; i < newWidths.length; i++) {
-              if (newWidths[i] > newWidths[largestIndex]) {
-                largestIndex = i
-              }
-            }
-            newWidths[largestIndex] += adjustment
-
-            return newWidths
-          })
-
-          // Resume cell movement after column change
-          setTimeout(() => {
-            setIsColumnChanging(false)
-          }, 600) // After column animation (0.4s) + slight delay
-        }, 4000) // Wait 4 seconds before making the change
-      },
-      (4000 + Math.random() * 6000) / controls.columnMorphInterval
-    ) // Every 4-10 seconds (controlled by interval)
-
-    // Spreadsheet-style selection simulation (multiple selections)
-    const selectionInterval = setInterval(
-      () => {
-        if (!controls.enableSelections) return // Skip if disabled
-
-        // Only create new selection if we have less than maxSelections
-        setSelections((prevSelections) => {
-          if (prevSelections.length >= controls.maxSelections) return prevSelections
-
-          // Pick a random starting cell - different ranges for mobile vs desktop
-          const minSelectionRow = isMobile ? 15 : isXL ? 8 : 4 // Mobile: row 15, XL: row 8, Desktop: row 4
-          const maxSelectionRow = isMobile ? 28 : isXL ? 15 : 11 // Mobile: row 28, XL: row 15, Desktop: row 11
-          // Ensure we can always fit at least 2 rows by limiting startRow range
-          const maxStartRow = maxSelectionRow - 1 // Ensure startRow + 1 <= maxSelectionRow
-          const startRowRange = maxStartRow - minSelectionRow + 1
-          const startRow = Math.floor(Math.random() * Math.max(1, startRowRange)) + minSelectionRow // This ensures startRow + 1 will never exceed maxSelectionRow
-          const biasedRandom = Math.random() * 0.6 + 0.4 // Bias towards right (0.4-1.0)
-          const startCol = Math.floor(biasedRandom * (numColumns - 1)) + 1 // Favor columns 4-7
-
-          const selectionId = `selection-${Date.now()}-${Math.random()}`
-
-          // Start with minimum 2-row selection (startRow to startRow + 1 = 2 rows)
-          const newSelection = {
-            id: selectionId,
-            startRow,
-            startCol,
-            endRow: startRow + 1, // Always 2 rows minimum (startRow is guaranteed to be <= maxSelectionRow - 1)
-            endCol: startCol,
-            isFlashing: false,
+          if (biasChance < 0.35 && rightColumns.length > 0) {
+            // 35% chance: Expand a right column (bias towards right)
+            const randomRight =
+              rightColumns[Math.floor(Math.random() * rightColumns.length)];
+            columnIndex = randomRight.index;
+            action = "expand";
+          } else if (biasChance < 0.5 && farRightColumns.length > 0) {
+            // 15% chance: Expand a small far-right column (prevent eternal deflation)
+            const randomFarRight =
+              farRightColumns[
+                Math.floor(Math.random() * farRightColumns.length)
+              ];
+            columnIndex = randomFarRight.index;
+            action = "expand";
+          } else if (biasChance < 0.65 && smallColumns.length > 0) {
+            // 15% chance: Expand any small column
+            const randomSmall =
+              smallColumns[Math.floor(Math.random() * smallColumns.length)];
+            columnIndex = randomSmall.index;
+            action = "expand";
+          } else if (biasChance < 0.8 && leftColumns.length > 0) {
+            // 15% chance: Contract a left column (make more room for right)
+            const randomLeft =
+              leftColumns[Math.floor(Math.random() * leftColumns.length)];
+            columnIndex = randomLeft.index;
+            action = "contract";
+          } else if (biasChance < 0.9 && largeColumns.length > 0) {
+            // 10% chance: Contract any large column
+            const randomLarge =
+              largeColumns[Math.floor(Math.random() * largeColumns.length)];
+            columnIndex = randomLarge.index;
+            action = "contract";
+          } else {
+            // 10% chance: Random column, random action (fallback)
+            // Bias the random selection towards right side too
+            const biasedColumnRandom = Math.random() * 0.7 + 0.3; // 0.3-1.0
+            columnIndex = Math.floor(biasedColumnRandom * newWidths.length);
+            action = Math.random() < 0.6 ? "expand" : "contract"; // Slight bias towards expansion
           }
 
-          // Add the new selection
-          const updatedSelections = [...prevSelections, newSelection]
+          const currentWidth = newWidths[columnIndex];
 
-          // Simulate dragging - expand the selection over time
-          let currentEndRow = startRow + 1 // Start with exactly 2 rows
-          let currentEndCol = startCol
+          let targetWidth;
 
-          const dragSteps = Math.floor(Math.random() * 8) + 3 // 3-10 steps
-          const dragInterval = setInterval(
-            () => {
-              // Randomly expand in different directions
-              const direction = Math.random()
+          if (action === "expand") {
+            // Expand: grow the column moderately
+            const growthAmount = Math.random() * 8 + 3; // 3-11% growth (much more subtle)
+            targetWidth = Math.min(40, currentWidth + growthAmount); // Cap at 40%
+          } else {
+            // Contract: shrink the column moderately
+            const shrinkAmount = Math.random() * 6 + 2; // 2-8% shrink (much more subtle)
+            let proposedWidth = Math.max(7, currentWidth - shrinkAmount); // Minimum 7% for all columns
 
-              // Calculate current column span
-              const currentColSpan = currentEndCol - startCol + 1
+            // Apply column-specific minimum constraints
+            if (columnIndex === 0) {
+              proposedWidth = Math.max(25, proposedWidth); // First column min 25%
+            } else if (columnIndex === 1) {
+              proposedWidth = Math.max(10, proposedWidth); // Second column min 10%
+            }
 
-              if (direction < 0.4) {
-                // Expand right (only if we haven't reached 3 columns)
-                if (currentColSpan < 3) {
-                  currentEndCol = Math.min(numColumns, currentEndCol + 1)
+            // Check how many columns would be very small (< 9%) if we shrink this one
+            const verySmallCount = prevWidths.filter((w, i) =>
+              i === columnIndex ? proposedWidth < 9 : w < 9
+            ).length;
+
+            // Don't allow more than 1 very small columns
+            if (verySmallCount > 1) {
+              targetWidth = Math.max(9, proposedWidth); // Keep it at least 9%
+            } else {
+              targetWidth = proposedWidth; // Allow shrinking within constraints
+            }
+          }
+
+          // Set the target column's new width
+          newWidths[columnIndex] = targetWidth;
+
+          // Calculate remaining space to distribute
+          const usedWidth = targetWidth;
+          const remainingWidth = 100 - usedWidth;
+
+          // Get the original proportions of the other columns
+          const otherColumns = prevWidths.filter((_, i) => i !== columnIndex);
+          const otherColumnsTotal = otherColumns.reduce(
+            (sum, width) => sum + width,
+            0
+          );
+
+          // Distribute remaining space proportionally among other columns
+          // const distributedIndex = 0;
+          for (let i = 0; i < newWidths.length; i++) {
+            if (i !== columnIndex) {
+              const originalProportion = prevWidths[i] / otherColumnsTotal;
+              newWidths[i] = remainingWidth * originalProportion;
+            }
+          }
+
+          // Apply column-specific minimums after redistribution
+          let totalAdjustment = 0;
+          if (newWidths[0] < 25) {
+            totalAdjustment += 25 - newWidths[0];
+            newWidths[0] = 25;
+          }
+          if (newWidths[1] < 10) {
+            totalAdjustment += 10 - newWidths[1];
+            newWidths[1] = 10;
+          }
+          // Apply 7% minimum to all other columns
+          for (let i = 2; i < newWidths.length; i++) {
+            if (newWidths[i] < 7) {
+              totalAdjustment += 7 - newWidths[i];
+              newWidths[i] = 7;
+            }
+          }
+
+          // If we had to boost columns, take the deficit from the target column if it's expandable
+          if (totalAdjustment > 0) {
+            // First try to take from the target column if it was expanded and is large enough
+            if (action === "expand" && newWidths[columnIndex] > 25) {
+              const maxFromTarget = Math.min(
+                totalAdjustment,
+                newWidths[columnIndex] - 25
+              );
+              newWidths[columnIndex] -= maxFromTarget;
+              totalAdjustment -= maxFromTarget;
+            }
+
+            // If still need adjustment, take from other large columns
+            if (totalAdjustment > 0) {
+              // Find the largest non-protected columns
+              let largestIndex = -1;
+              let largestWidth = 0;
+              for (let i = 0; i < newWidths.length; i++) {
+                if (i !== columnIndex && newWidths[i] > largestWidth) {
+                  largestIndex = i;
+                  largestWidth = newWidths[i];
                 }
-              } else if (direction < 0.7) {
-                // Expand down (different limits for mobile vs desktop)
-                const maxExpandRow = isMobile ? 28 : 12
-                currentEndRow = Math.min(maxExpandRow, currentEndRow + 1)
-              } else if (direction < 0.85) {
-                // Expand diagonally (only expand column if under 3 column limit)
-                if (currentColSpan < 3) {
-                  currentEndCol = Math.min(numColumns, currentEndCol + 1)
-                }
-                const maxExpandRow = isMobile ? 28 : 12
-                currentEndRow = Math.min(maxExpandRow, currentEndRow + 1)
               }
-              // 15% chance to not expand (pause)
 
-              setSelections((prevSels) =>
-                prevSels.map((sel) => {
-                  if (sel.id === selectionId) {
-                    // Ensure endRow is always at least startRow + 1 (minimum 2 rows)
-                    const safeEndRow = Math.max(currentEndRow, sel.startRow + 1)
-                    return { ...sel, endRow: safeEndRow, endCol: currentEndCol }
-                  }
-                  return sel
-                })
-              )
-            },
-            150 + Math.random() * 100
-          ) // 150-250ms between drag steps
+              if (largestIndex !== -1) {
+                const minForLargest =
+                  largestIndex === 0 ? 25 : largestIndex === 1 ? 10 : 12;
+                const maxReduction = Math.max(
+                  0,
+                  newWidths[largestIndex] - minForLargest
+                );
+                const actualReduction = Math.min(totalAdjustment, maxReduction);
+                newWidths[largestIndex] -= actualReduction;
+              }
+            }
+          }
 
-          // Stop dragging after a few steps
+          // Prevent too many columns from being very small (< 10%)
+          const verySmallIndices = newWidths
+            .map((width, index) => ({ width, index }))
+            .filter((col) => col.width < 10)
+            .map((col) => col.index);
+
+          if (verySmallIndices.length > 1) {
+            // Allow only 1 very small column
+            // Boost the smallest columns back to appropriate minimums
+            const sortedSmall = verySmallIndices.sort(
+              (a, b) => newWidths[a] - newWidths[b]
+            );
+
+            // Keep only the 1 smallest, boost the rest to appropriate minimums
+            for (let i = 1; i < sortedSmall.length; i++) {
+              const indexToBoost = sortedSmall[i];
+              let minimumWidth = 10;
+
+              // Apply column-specific minimums
+              if (indexToBoost === 0) {
+                minimumWidth = 25; // First column min 25%
+              } else if (indexToBoost === 1) {
+                minimumWidth = 10; // Second column min 10%
+              } else {
+                minimumWidth = 12; // All other columns min 12%
+              }
+
+              const deficit = minimumWidth - newWidths[indexToBoost];
+              newWidths[indexToBoost] = minimumWidth;
+
+              // Take the deficit from the largest non-boosted column
+              let largestIndex = 0;
+              for (let j = 0; j < newWidths.length; j++) {
+                if (
+                  !sortedSmall.slice(2).includes(j) &&
+                  newWidths[j] > newWidths[largestIndex]
+                ) {
+                  largestIndex = j;
+                }
+              }
+              newWidths[largestIndex] = Math.max(
+                10,
+                newWidths[largestIndex] - deficit
+              );
+            }
+          }
+
+          // Ensure we sum exactly to 100% (handle floating point precision)
+          const total = newWidths.reduce((sum, width) => sum + width, 0);
+          const adjustment = 100 - total;
+
+          // Apply adjustment to the largest column
+          let largestIndex = 0;
+          for (let i = 0; i < newWidths.length; i++) {
+            if (newWidths[i] > newWidths[largestIndex]) {
+              largestIndex = i;
+            }
+          }
+          newWidths[largestIndex] += adjustment;
+
+          return newWidths;
+        });
+
+        // Resume cell movement after column change
+        setTimeout(() => {
+          setIsColumnChanging(false);
+        }, 600); // After column animation (0.4s) + slight delay
+      }, 4000); // Wait 4 seconds before making the change
+    }, (4000 + Math.random() * 6000) / controls.columnMorphInterval); // Every 4-10 seconds (controlled by interval)
+
+    // Spreadsheet-style selection simulation (multiple selections)
+    const selectionInterval = setInterval(() => {
+      if (!controls.enableSelections) return; // Skip if disabled
+
+      // Only create new selection if we have less than maxSelections
+      setSelections((prevSelections) => {
+        if (prevSelections.length >= controls.maxSelections)
+          return prevSelections;
+
+        // Pick a random starting cell - different ranges for mobile vs desktop
+        const minSelectionRow = isMobile ? 15 : isXL ? 8 : 4; // Mobile: row 15, XL: row 8, Desktop: row 4
+        const maxSelectionRow = isMobile ? 28 : isXL ? 15 : 11; // Mobile: row 28, XL: row 15, Desktop: row 11
+        // Ensure we can always fit at least 2 rows by limiting startRow range
+        const maxStartRow = maxSelectionRow - 1; // Ensure startRow + 1 <= maxSelectionRow
+        const startRowRange = maxStartRow - minSelectionRow + 1;
+        const startRow =
+          Math.floor(Math.random() * Math.max(1, startRowRange)) +
+          minSelectionRow; // This ensures startRow + 1 will never exceed maxSelectionRow
+        const biasedRandom = Math.random() * 0.6 + 0.4; // Bias towards right (0.4-1.0)
+        const startCol = Math.floor(biasedRandom * (numColumns - 1)) + 1; // Favor columns 4-7
+
+        const selectionId = `selection-${Date.now()}-${Math.random()}`;
+
+        // Start with minimum 2-row selection (startRow to startRow + 1 = 2 rows)
+        const newSelection = {
+          id: selectionId,
+          startRow,
+          startCol,
+          endRow: startRow + 1, // Always 2 rows minimum (startRow is guaranteed to be <= maxSelectionRow - 1)
+          endCol: startCol,
+          isFlashing: false,
+        };
+
+        // Add the new selection
+        const updatedSelections = [...prevSelections, newSelection];
+
+        // Simulate dragging - expand the selection over time
+        let currentEndRow = startRow + 1; // Start with exactly 2 rows
+        let currentEndCol = startCol;
+
+        const dragSteps = Math.floor(Math.random() * 8) + 3; // 3-10 steps
+        const dragInterval = setInterval(() => {
+          // Randomly expand in different directions
+          const direction = Math.random();
+
+          // Calculate current column span
+          const currentColSpan = currentEndCol - startCol + 1;
+
+          if (direction < 0.4) {
+            // Expand right (only if we haven't reached 3 columns)
+            if (currentColSpan < 3) {
+              currentEndCol = Math.min(numColumns, currentEndCol + 1);
+            }
+          } else if (direction < 0.7) {
+            // Expand down (different limits for mobile vs desktop)
+            const maxExpandRow = isMobile ? 28 : 12;
+            currentEndRow = Math.min(maxExpandRow, currentEndRow + 1);
+          } else if (direction < 0.85) {
+            // Expand diagonally (only expand column if under 3 column limit)
+            if (currentColSpan < 3) {
+              currentEndCol = Math.min(numColumns, currentEndCol + 1);
+            }
+            const maxExpandRow = isMobile ? 28 : 12;
+            currentEndRow = Math.min(maxExpandRow, currentEndRow + 1);
+          }
+          // 15% chance to not expand (pause)
+
+          setSelections((prevSels) =>
+            prevSels.map((sel) => {
+              if (sel.id === selectionId) {
+                // Ensure endRow is always at least startRow + 1 (minimum 2 rows)
+                const safeEndRow = Math.max(currentEndRow, sel.startRow + 1);
+                return { ...sel, endRow: safeEndRow, endCol: currentEndCol };
+              }
+              return sel;
+            })
+          );
+        }, 150 + Math.random() * 100); // 150-250ms between drag steps
+
+        // Stop dragging after a few steps
+        setTimeout(() => {
+          clearInterval(dragInterval);
+
+          // Keep selection visible for a moment, then flash before clearing
           setTimeout(() => {
-            clearInterval(dragInterval)
+            // Start flashing before disappearing (old school computer style)
+            setSelections((prevSels) =>
+              prevSels.map((sel) =>
+                sel.id === selectionId ? { ...sel, isFlashing: true } : sel
+              )
+            );
 
-            // Keep selection visible for a moment, then flash before clearing
-            setTimeout(
-              () => {
-                // Start flashing before disappearing (old school computer style)
-                setSelections((prevSels) =>
-                  prevSels.map((sel) =>
-                    sel.id === selectionId ? { ...sel, isFlashing: true } : sel
-                  )
-                )
+            // Flash for about 400ms (fast flashes), then clear
+            setTimeout(() => {
+              setSelections((prevSels) =>
+                prevSels.filter((sel) => sel.id !== selectionId)
+              );
+            }, 400);
+          }, 1000 + Math.random() * 2000); // Hold selection for 1-3 seconds
+        }, dragSteps * 200);
 
-                // Flash for about 400ms (fast flashes), then clear
-                setTimeout(() => {
-                  setSelections((prevSels) => prevSels.filter((sel) => sel.id !== selectionId))
-                }, 400)
-              },
-              1000 + Math.random() * 2000
-            ) // Hold selection for 1-3 seconds
-          }, dragSteps * 200)
-
-          return updatedSelections
-        })
-      },
-      (2000 + Math.random() * 4000) / controls.selectionInterval
-    ) // New selection every 2-6 seconds (controlled by interval)
+        return updatedSelections;
+      });
+    }, (2000 + Math.random() * 4000) / controls.selectionInterval); // New selection every 2-6 seconds (controlled by interval)
 
     return () => {
-      movementIntervals.forEach(clearTimeout)
-      cleanupFunctions.forEach((cleanup) => cleanup())
-      clearInterval(addRemoveInterval)
-      clearInterval(columnMorphInterval)
-      clearInterval(selectionInterval)
-    }
+      movementIntervals.forEach(clearTimeout);
+      cleanupFunctions.forEach((cleanup) => cleanup());
+      clearInterval(addRemoveInterval);
+      clearInterval(columnMorphInterval);
+      clearInterval(selectionInterval);
+    };
   }, [
     isMobile,
     isXL,
@@ -726,7 +785,7 @@ export function AnimatedGrid() {
     controls.selectionInterval,
     controls.maxSelections,
     // Speed controls are handled separately and don't restart intervals
-  ])
+  ]);
 
   // Handle screen resize: move cells to appropriate rows when switching mobile/desktop
   useEffect(() => {
@@ -737,29 +796,32 @@ export function AnimatedGrid() {
           return {
             ...cell,
             row: Math.max(12, cell.row + 12), // Push down by 12 rows minimum
-          }
+          };
         } else if (!isMobile && cell.row > 15) {
           // Moving to desktop: allow cells to move up to middle area
           return {
             ...cell,
             row: Math.max(4, cell.row - 8), // Pull up by 8 rows
-          }
+          };
         }
-        return cell
-      })
-    })
-  }, [isMobile])
+        return cell;
+      });
+    });
+  }, [isMobile]);
 
   // Update column widths when screen size changes
   useEffect(() => {
-    setCurrentColumnWidths(isMobile ? MOBILE_columnWidthsArray : DESKTOP_columnWidthsArray)
+    setCurrentColumnWidths(
+      isMobile ? MOBILE_columnWidthsArray : DESKTOP_columnWidthsArray
+    );
     // Clear selections when switching between mobile/desktop since they may be in wrong row ranges
-    setSelections([])
-  }, [isMobile])
+    setSelections([]);
+  }, [isMobile]);
 
-  const showAnimationControls = process.env.NEXT_PUBLIC_SHOW_ANIMATION_CONTROL === 'true'
+  const showAnimationControls =
+    process.env.NEXT_PUBLIC_SHOW_ANIMATION_CONTROL === "true";
 
-  const [isControlsOpen, setIsControlsOpen] = useState(false)
+  const [isControlsOpen, setIsControlsOpen] = useState(false);
 
   return (
     <div className="absolute top-0 left-0 md:left-[33.33%] right-0 bottom-0 overflow-hidden pointer-events-none">
@@ -775,7 +837,11 @@ export function AnimatedGrid() {
             <button
               className="w-8 h-8 rounded-full bg-background/80 hover:bg-background/90 backdrop-blur-sm border border-muted-foreground/20 hover:border-muted-foreground/40 data-[open=true]:border-foreground/60 data-[open=true]:bg-background transition-shadow duration-200 flex items-center justify-center group hover:shadow-md"
               data-open={isControlsOpen}
-              aria-label={isControlsOpen ? 'Close animation controls' : 'Open animation controls'}
+              aria-label={
+                isControlsOpen
+                  ? "Close animation controls"
+                  : "Open animation controls"
+              }
             >
               <div
                 className="text-muted-foreground group-hover:text-foreground transition-transform duration-200 data-[open=true]:rotate-90"
@@ -795,7 +861,8 @@ export function AnimatedGrid() {
         style={{ zIndex: 1 }} // Behind cells but above background
         animate={{
           gridTemplateColumns: createColumnWidths(
-            currentColumnWidths || (isMobile ? MOBILE_columnWidthsArray : DESKTOP_columnWidthsArray)
+            currentColumnWidths ||
+              (isMobile ? MOBILE_columnWidthsArray : DESKTOP_columnWidthsArray)
           ),
         }}
         transition={{
@@ -833,20 +900,20 @@ export function AnimatedGrid() {
               key={cell.id}
               className="absolute overflow-hidden"
               style={{
-                position: 'absolute',
+                position: "absolute",
                 height: `${rowHeight}px`,
-                border: 'none',
-                backgroundColor: 'var(--background)', // Match site background
+                border: "none",
+                backgroundColor: "var(--background)", // Match site background
                 zIndex: movingCellId === cell.id ? 10 : 1,
               }}
               initial={{
                 opacity: 0,
-                backgroundColor: 'var(--background)', // Start with site background
-                width: '0px', // Start at 0 width
+                backgroundColor: "var(--background)", // Start with site background
+                width: "0px", // Start at 0 width
               }}
               animate={{
                 opacity: 1,
-                backgroundColor: 'var(--background)', // Keep site background as default
+                backgroundColor: "var(--background)", // Keep site background as default
                 top: `${(cell.row - 1) * rowHeight - (cell.row - 1)}px`, // Animate vertical position (subtract 1px per row for border overlap)
                 left: `${getColumnPosition(
                   cell.colStart,
@@ -864,15 +931,21 @@ export function AnimatedGrid() {
                   delay: cell.delay / 1000,
                 },
                 width: {
-                  duration: (0.4 + (cell.id.charCodeAt(3) % 4) * 0.1) / controls.cellMovementSpeed, // 0.4-0.7s for more visible spring
+                  duration:
+                    (0.4 + (cell.id.charCodeAt(3) % 4) * 0.1) /
+                    controls.cellMovementSpeed, // 0.4-0.7s for more visible spring
                   ease: [0.25, 1.15, 0.65, 1], // Subtle but visible spring
                 },
                 top: {
-                  duration: (0.4 + (cell.id.charCodeAt(3) % 4) * 0.1) / controls.cellMovementSpeed, // 0.4-0.7s for more visible spring
+                  duration:
+                    (0.4 + (cell.id.charCodeAt(3) % 4) * 0.1) /
+                    controls.cellMovementSpeed, // 0.4-0.7s for more visible spring
                   ease: [0.25, 1.15, 0.65, 1], // Subtle but visible spring
                 },
                 left: {
-                  duration: (0.4 + (cell.id.charCodeAt(3) % 4) * 0.1) / controls.cellMovementSpeed, // 0.4-0.7s for more visible spring
+                  duration:
+                    (0.4 + (cell.id.charCodeAt(3) % 4) * 0.1) /
+                    controls.cellMovementSpeed, // 0.4-0.7s for more visible spring
                   ease: [0.25, 1.15, 0.65, 1], // Subtle but visible spring
                 },
               }}
@@ -881,13 +954,13 @@ export function AnimatedGrid() {
               <motion.div
                 className="w-full h-full"
                 style={{
-                  backgroundColor: 'transparent', // No color during animation
+                  backgroundColor: "transparent", // No color during animation
                 }}
                 initial={{
-                  clipPath: 'inset(0 100% 0 0)', // Start fully clipped from right
+                  clipPath: "inset(0 100% 0 0)", // Start fully clipped from right
                 }}
                 animate={{
-                  clipPath: 'inset(0 0% 0 0)', // Reveal to full width
+                  clipPath: "inset(0 0% 0 0)", // Reveal to full width
                 }}
                 transition={{
                   clipPath: {
@@ -904,54 +977,58 @@ export function AnimatedGrid() {
                     style={{
                       backgroundColor: (() => {
                         const colors = [
-                          'var(--brand-green-default)',
-                          'var(--brand-green-default)',
-                          'var(--brand-green-default)',
-                          'var(--brand-green-default)',
-                          'var(--brand-green-600)',
-                          'var(--brand-green-600)',
-                          'var(--brand-green-button)',
-                          'var(--brand-green-button)',
-                          'var(--brand-green-500)',
-                          'var(--brand-green-400)',
-                          'var(--brand-green-link)',
-                          'var(--brand-green-300)',
-                        ]
-                        return colors[cell.id.charCodeAt(5) % colors.length]
+                          "var(--brand-green-default)",
+                          "var(--brand-green-default)",
+                          "var(--brand-green-default)",
+                          "var(--brand-green-default)",
+                          "var(--brand-green-600)",
+                          "var(--brand-green-600)",
+                          "var(--brand-green-button)",
+                          "var(--brand-green-button)",
+                          "var(--brand-green-500)",
+                          "var(--brand-green-400)",
+                          "var(--brand-green-link)",
+                          "var(--brand-green-300)",
+                        ];
+                        return colors[cell.id.charCodeAt(5) % colors.length];
                       })(),
                       // Apply textured mask based on cell position and ID - some blocks get full color
                       ...(() => {
                         // Determine if this block should be full color or textured
                         const shouldBeFullColor =
-                          (cell.colStart + cell.row + cell.id.charCodeAt(3)) % 5 === 0 // Every 5th block is full color
+                          (cell.colStart + cell.row + cell.id.charCodeAt(3)) %
+                            5 ===
+                          0; // Every 5th block is full color
 
                         if (shouldBeFullColor) {
-                          return {} // No mask properties = full solid color
+                          return {}; // No mask properties = full solid color
                         }
 
                         // Apply textured mask for non-full-color blocks
                         const patterns = [
                           'url("/pattern-stipple.svg")',
                           'url("/pattern-checker.svg")',
-                        ]
+                        ];
                         const patternIndex =
-                          (cell.colStart + cell.row + cell.id.charCodeAt(4)) % patterns.length
-                        const sizes = ['4px', '5px', '6px', '7px']
-                        const sizeIndex = (cell.colStart + cell.row) % sizes.length
+                          (cell.colStart + cell.row + cell.id.charCodeAt(4)) %
+                          patterns.length;
+                        const sizes = ["4px", "5px", "6px", "7px"];
+                        const sizeIndex =
+                          (cell.colStart + cell.row) % sizes.length;
 
                         return {
                           maskImage: patterns[patternIndex],
                           maskSize: sizes[sizeIndex],
-                          maskRepeat: 'repeat',
-                          maskPosition: 'center',
-                        }
+                          maskRepeat: "repeat",
+                          maskPosition: "center",
+                        };
                       })(),
                     }}
                     initial={{
-                      clipPath: 'inset(0 100% 0 0)', // Start completely hidden
+                      clipPath: "inset(0 100% 0 0)", // Start completely hidden
                     }}
                     animate={{
-                      clipPath: 'inset(0 0% 0 0%)', // Always show fully - disable selection-based animation
+                      clipPath: "inset(0 0% 0 0%)", // Always show fully - disable selection-based animation
                       opacity: isCellInFlashingSelection(cell)
                         ? [1, 0.2, 1] // Single flash: full → dim → full
                         : 1,
@@ -983,21 +1060,29 @@ export function AnimatedGrid() {
           key={selection.id}
           className="absolute pointer-events-none"
           style={{
-            top: `${(selection.startRow - 1) * rowHeight - (selection.startRow - 1)}px`,
+            top: `${
+              (selection.startRow - 1) * rowHeight - (selection.startRow - 1)
+            }px`,
             left: `${getColumnPosition(
               selection.startCol,
               currentColumnWidths || columnWidthsArray
             )}%`,
             width: `${
-              getColumnPosition(selection.endCol + 1, currentColumnWidths || columnWidthsArray) -
-              getColumnPosition(selection.startCol, currentColumnWidths || columnWidthsArray)
+              getColumnPosition(
+                selection.endCol + 1,
+                currentColumnWidths || columnWidthsArray
+              ) -
+              getColumnPosition(
+                selection.startCol,
+                currentColumnWidths || columnWidthsArray
+              )
             }%`,
             height: `${Math.max(
               2 * rowHeight - 1, // Minimum 2 rows height
               (selection.endRow - selection.startRow + 1) * rowHeight -
                 (selection.endRow - selection.startRow)
             )}px`,
-            backgroundColor: 'rgba(255, 255, 255, 0.08)', // White background with transparency
+            backgroundColor: "rgba(255, 255, 255, 0.08)", // White background with transparency
             zIndex: 20,
           }}
           initial={{ opacity: 0, scale: 0.8 }}
@@ -1010,8 +1095,10 @@ export function AnimatedGrid() {
             duration: selection.isFlashing
               ? 0.4 / controls.selectionFrequency
               : 0.1 / controls.selectionFrequency,
-            ease: selection.isFlashing ? 'linear' : 'easeOut',
-            times: selection.isFlashing ? [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 1] : undefined,
+            ease: selection.isFlashing ? "linear" : "easeOut",
+            times: selection.isFlashing
+              ? [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 1]
+              : undefined,
           }}
         >
           {/* Dot grid pattern inside selection */}
@@ -1020,8 +1107,8 @@ export function AnimatedGrid() {
             style={{
               backgroundImage: `radial-gradient(circle, var(--muted-foreground) 0.5px, transparent 0.5px)`,
               opacity: 0.3,
-              backgroundSize: '8px 8px',
-              backgroundPosition: '2px 2px',
+              backgroundSize: "8px 8px",
+              backgroundPosition: "2px 2px",
             }}
           />
 
@@ -1029,17 +1116,21 @@ export function AnimatedGrid() {
           <motion.div
             className="absolute inset-0"
             style={{
-              border: '2px solid var(--foreground)',
-              borderRadius: '2px',
-              borderStyle: 'dashed',
+              border: "2px solid var(--foreground)",
+              borderRadius: "2px",
+              borderStyle: "dashed",
             }}
             animate={{
-              borderColor: ['var(--foreground)', 'var(--muted-foreground)', 'var(--foreground)'],
+              borderColor: [
+                "var(--foreground)",
+                "var(--muted-foreground)",
+                "var(--foreground)",
+              ],
             }}
             transition={{
               duration: 1.2,
               repeat: Infinity,
-              ease: 'linear',
+              ease: "linear",
             }}
           />
 
@@ -1047,12 +1138,12 @@ export function AnimatedGrid() {
           <div
             className="absolute"
             style={{
-              bottom: '0px',
-              right: '0px',
-              width: '8px',
-              height: '8px',
-              backgroundColor: 'var(--foreground)',
-              clipPath: 'polygon(100% 0%, 100% 100%, 0% 100%)',
+              bottom: "0px",
+              right: "0px",
+              width: "8px",
+              height: "8px",
+              backgroundColor: "var(--foreground)",
+              clipPath: "polygon(100% 0%, 100% 100%, 0% 100%)",
             }}
           />
 
@@ -1060,10 +1151,10 @@ export function AnimatedGrid() {
           <motion.div
             className="absolute inset-0"
             style={{
-              border: '1px solid rgba(255, 255, 255, 0.6)',
-              borderRadius: '2px',
-              borderStyle: 'dotted',
-              transform: 'translate(1px, 1px)',
+              border: "1px solid rgba(255, 255, 255, 0.6)",
+              borderRadius: "2px",
+              borderStyle: "dotted",
+              transform: "translate(1px, 1px)",
             }}
             animate={{
               opacity: [0.8, 0.3, 0.8],
@@ -1071,11 +1162,11 @@ export function AnimatedGrid() {
             transition={{
               duration: 0.8 / controls.selectionFrequency,
               repeat: Infinity,
-              ease: 'linear',
+              ease: "linear",
             }}
           />
         </motion.div>
       ))}
     </div>
-  )
+  );
 }

@@ -1,23 +1,29 @@
-import { getSessions, getSpeakers } from '../lib/bizzabo-api'
-import { getEventsByStage } from '../lib/schedule-utils'
-import { ScheduleEventRow } from './schedule-event-row'
-import { ScheduleError } from './schedule-error'
-import { ScheduleEmpty } from './schedule-empty'
-import { cache } from 'react'
-
-// Cache the data fetching to prevent re-execution
-const getMainStageData = cache(async () => {
-  const [sessions, speakers] = await Promise.all([getSessions(), getSpeakers()])
-  return { sessions, speakers }
-})
+import { getSessions, getSpeakers } from "../lib/bizzabo-api";
+import { getEventsByStage } from "../lib/schedule-utils";
+import { ScheduleEventRow } from "./schedule-event-row";
+import { ScheduleError } from "./schedule-error";
+import { ScheduleEmpty } from "./schedule-empty";
 
 export async function MainStageSchedule() {
   try {
-    const { sessions, speakers } = await getMainStageData()
-    const events = getEventsByStage(sessions, speakers, ['main-stage', 'main'])
+    const [sessions, speakers] = await Promise.all([
+      getSessions(),
+      getSpeakers(),
+    ]);
+
+    // Debug: Main Stage sessions loaded
+
+    const events = getEventsByStage(sessions, speakers, ["main-stage", "main"]);
+    // console.log("MAIN STAGE - Total events found:", events.length);
+    // console.log(
+    //   "MAIN STAGE - Events:",
+    //   events.map((e) => ({ title: e.title, stage: e.stage }))
+    // );
+
+    // console.log("Main Stage - Filtered events:", events);
 
     if (events.length === 0) {
-      return <ScheduleEmpty stageName="Main Stage" />
+      return <ScheduleEmpty stageName="Main Stage" />;
     }
 
     return (
@@ -32,10 +38,10 @@ export async function MainStageSchedule() {
           />
         ))}
       </div>
-    )
+    );
   } catch (error) {
     // Error handled gracefully - fallback schedule will be shown
-    console.error('MAIN STAGE ERROR:', error)
-    return <ScheduleError stageName="Main Stage" />
+    console.error("MAIN STAGE ERROR:", error);
+    return <ScheduleError stageName="Main Stage" />;
   }
 }
