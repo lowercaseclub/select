@@ -34,7 +34,7 @@ export function ScheduleSection() {
   return (
     <section id="schedule" className="w-full">
       <div className="relative mx-auto max-w-site">
-        <div className="border-l border-r px-8 pt-16 pb-8">
+        <div className="px-8 pt-16 pb-8">
           <ColumnLine />
           <h2 className="text-5xl md:text-6xl font-medium tracking-tight">Schedule</h2>
         </div>

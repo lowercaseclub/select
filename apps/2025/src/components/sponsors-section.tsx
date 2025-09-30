@@ -1,28 +1,28 @@
-import Image from "next/image";
+import Image from 'next/image'
 
 export function SponsorsSection() {
   const sponsors = [
     {
-      name: "Figma",
-      logo: "/logos/figma.svg",
-      url: "https://figma.com",
+      name: 'Figma',
+      logo: '/logos/figma.svg',
+      url: 'https://figma.com',
     },
     {
-      name: "Resend",
-      logo: "/logos/resend.svg",
-      url: "https://resend.com",
+      name: 'Resend',
+      logo: '/logos/resend.svg',
+      url: 'https://resend.com',
     },
     {
-      name: "Algolia",
-      logo: "/logos/algolia.svg",
-      url: "https://algolia.com",
+      name: 'Algolia',
+      logo: '/logos/algolia.svg',
+      url: 'https://algolia.com',
     },
     {
-      name: "Snap",
-      logo: "/logos/snap.svg",
-      url: "https://snap.com",
+      name: 'Snap',
+      logo: '/logos/snap.svg',
+      url: 'https://snap.com',
     },
-  ];
+  ]
 
   return (
     <section id="sponsors" className="px-8 py-24">
@@ -35,7 +35,7 @@ export function SponsorsSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border border-column-lines w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border border-x-0 border-column-lines w-full">
         {sponsors.map((sponsor, index) => (
           <a
             key={sponsor.name}
@@ -43,18 +43,16 @@ export function SponsorsSection() {
             target="_blank"
             rel="noopener noreferrer"
             className={`group flex items-center justify-center px-4 py-12 sm:px-8 sm:py-16 transition-all duration-200 hover:bg-muted/50 ${
-              index < 3 ? "lg:border-r border-column-lines" : ""
+              index < 3 ? 'lg:border-r border-column-lines' : ''
             } ${
               index < sponsors.length - 1 && index % 2 === 0
-                ? "md:border-r border-column-lines"
-                : ""
+                ? 'md:border-r border-column-lines'
+                : ''
             } ${
               index < sponsors.length - 1
-                ? "border-b md:border-b-0 lg:border-b-0 border-column-lines"
-                : ""
-            } ${
-              index >= 2 ? "md:border-t lg:border-t-0 border-column-lines" : ""
-            }`}
+                ? 'border-b md:border-b-0 lg:border-b-0 border-column-lines'
+                : ''
+            } ${index >= 2 ? 'md:border-t lg:border-t-0 border-column-lines' : ''}`}
             aria-label={`Visit ${sponsor.name}`}
           >
             <div className="opacity-60 group-hover:opacity-100 transition-opacity duration-200 w-full flex items-center justify-center">
@@ -70,5 +68,5 @@ export function SponsorsSection() {
         ))}
       </div>
     </section>
-  );
+  )
 }

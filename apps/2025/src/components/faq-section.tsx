@@ -57,7 +57,7 @@ const faqs: FAQItem[] = [
 
 export function FAQSection() {
   return (
-    <section className="relative z-10 bg-background flex flex-col lg:flex-row border-t border-b">
+    <section className="relative z-10 bg-background flex flex-col lg:flex-row border-t">
       {/* Left content block with FAQ header */}
       <div className="w-full lg:w-[50%] px-8 py-16 lg:py-24">
         <h2 className="text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight mb-3 sm:mb-4">
