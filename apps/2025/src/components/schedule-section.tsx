@@ -1,13 +1,13 @@
-import { TabsContent } from "@ui/components/tabs";
+import { TabsContent, TabsList } from "@ui/components/tabs";
 import { ColumnLine } from "./column-line";
 import { Separator } from "@ui/components/separator";
 import { MainStageSchedule } from "./main-stage-schedule";
 import { BuildStageSchedule } from "./build-stage-schedule";
 import { ScheduleLocation } from "./schedule-location";
 import { ScheduleHeader } from "./schedule-header";
-import { Tabs, TabsList } from "@ui/components/tabs";
 import { ScheduleTabTrigger } from "./schedule-tab-trigger";
 import locations from "../data/locations.json";
+import { ScheduleTabsClient } from "./schedule-tabs-client";
 
 function ScheduleTabContent({
   value,
@@ -43,10 +43,10 @@ export function ScheduleSection() {
           </h2>
         </div>
       </div>
-      <Tabs defaultValue="main" className="w-full">
+      <ScheduleTabsClient>
         <div className="max-w-site relative mx-auto">
           <ColumnLine />
-          <div className="max-w-site mx-auto px-8 border-l border-r overflow-hidden">
+          <div className="max-w-site mx-auto px-8 border-l border-r">
             <TabsList className="bg-transparent h-auto p-0 rounded-none w-full justify-start flex gap-6">
               <ScheduleTabTrigger value="main" stageName="Main Stage" />
               <ScheduleTabTrigger value="build" stageName="Build Stage" />
@@ -61,7 +61,7 @@ export function ScheduleSection() {
         <ScheduleTabContent value="build" locationKey="build-stage">
           <BuildStageSchedule />
         </ScheduleTabContent>
-      </Tabs>
+      </ScheduleTabsClient>
     </section>
   );
 }

@@ -10,12 +10,23 @@ import {
   BizzaboContact,
   BizzaboContactResponse,
 } from "@/types/bizzabo.types";
+import { FALLBACK_SPEAKERS, FALLBACK_SESSIONS } from "./fallback-data";
 // import scheduleData from "@/data/schedule.json"; // Available for future use
 
 const baseUrl = "https://api.bizzabo.com/v1";
 const authUrl = "https://auth.bizzabo.com";
 
 let accessToken: string | null = null;
+
+// Check if we have valid Bizzabo credentials
+function hasValidCredentials(): boolean {
+  const eventId = process.env.BIZZABO_EVENT_ID;
+  const clientId = process.env.BIZZABO_CLIENT_ID;
+  const clientSecret = process.env.BIZZABO_CLIENT_SECRET;
+  const apiKey = process.env.BIZZABO_API_KEY;
+  
+  return !!(eventId && (clientId || apiKey));
+}
 
 // Custom speaker order matching API firstname/lastname structure
 const SPEAKER_ORDER = [
@@ -77,48 +88,68 @@ function sortSpeakersByCustomOrder(
 async function authenticate(): Promise<void> {
   if (accessToken) return;
 
+  // Skip authentication if credentials are not configured
+  if (!hasValidCredentials()) {
+    debug.log("Skipping Bizzabo authentication - credentials not configured");
+    return;
+  }
+
   const clientId = process.env.BIZZABO_CLIENT_ID;
   const clientSecret = process.env.BIZZABO_CLIENT_SECRET;
   const accountId = process.env.BIZZABO_ACCOUNT_ID;
   const apiKey = process.env.BIZZABO_API_KEY;
 
-  debug.log("Bizzabo Authentication Debug:", {
-    hasClientId: !!clientId,
-    hasClientSecret: !!clientSecret,
-    hasAccountId: !!accountId,
-    hasApiKey: !!apiKey,
-    accountId: accountId,
-  });
+  // debug.log("Bizzabo Authentication Debug:", {
+  //   hasClientId: !!clientId,
+  //   hasClientSecret: !!clientSecret,
+  //   hasAccountId: !!accountId,
+  //   hasApiKey: !!apiKey,
+  //   accountId: accountId,
+  // });
 
   // Try OAuth 2.0 client credentials first
   if (clientId && clientSecret && accountId) {
-    debug.log("Attempting OAuth 2.0 authentication...");
-    const response = await fetch(`${authUrl}/oauth/token`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        audience: "https://api.bizzabo.com/api",
-        grant_type: "client_credentials",
-        account_id: parseInt(accountId),
-      }),
-    });
+    // debug.log("Attempting OAuth 2.0 authentication...");
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch(`${authUrl}/oauth/token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          client_id: clientId,
+          client_secret: clientSecret,
+          audience: "https://api.bizzabo.com/api",
+          grant_type: "client_credentials",
+          account_id: parseInt(accountId),
+        }),
+        signal: controller.signal,
+      });
 
-    if (response.ok) {
-      const data = await response.json();
-      accessToken = data.access_token;
-      debug.log("OAuth 2.0 authentication successful");
-      return;
-    } else {
-      debug.error(
-        "OAuth 2.0 authentication failed:",
-        response.status,
-        await response.text()
-      );
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        accessToken = data.access_token;
+        debug.log("OAuth 2.0 authentication successful");
+        return;
+      } else {
+        debug.error(
+          "OAuth 2.0 authentication failed:",
+          response.status,
+          await response.text()
+        );
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        debug.error("OAuth 2.0 authentication timed out");
+      } else {
+        debug.error("OAuth 2.0 authentication error:", error);
+      }
     }
   }
 
@@ -221,64 +252,57 @@ async function makePostRequest<T>(
 }
 
 export async function getSpeakers(): Promise<BizzaboSpeaker[]> {
-  const eventId = process.env.BIZZABO_EVENT_ID;
-  if (!eventId) {
-    // Return fallback/mock data when BIZZABO_EVENT_ID is not configured
-    return [
-      {
-        id: 1,
-        email: "speaker@example.com",
-        firstname: "Speaker",
-        lastname: "Name",
-        title: "Role",
-        company: "Company",
-      },
-    ];
+  // Return fallback data if credentials are not configured
+  if (!hasValidCredentials()) {
+    debug.log("Using fallback speaker data - Bizzabo credentials not configured");
+    return FALLBACK_SPEAKERS;
   }
-  const response = await makeRequest<{ content: BizzaboSpeaker[] }>(
-    `/events/${eventId}/speakers`
-  );
-  const speakers = response.content || [];
-  return sortSpeakersByCustomOrder(speakers);
+
+  try {
+    const eventId = process.env.BIZZABO_EVENT_ID!;
+    const response = await makeRequest<{ content: BizzaboSpeaker[] }>(
+      `/events/${eventId}/speakers`
+    );
+    const speakers = response.content || [];
+    return sortSpeakersByCustomOrder(speakers);
+  } catch (error) {
+    debug.error("Failed to fetch speakers from Bizzabo API:", error);
+    debug.log("Falling back to mock speaker data");
+    return FALLBACK_SPEAKERS;
+  }
 }
 
 export async function getSessions(): Promise<BizzaboSession[]> {
-  const eventId = process.env.BIZZABO_EVENT_ID;
-  if (!eventId) {
-    // Return fallback/mock data when BIZZABO_EVENT_ID is not configured
-    return [
-      {
-        id: 1,
-        title: "Sample Session",
-        description: "A sample session for fallback",
-        startDate: "2025-01-01T10:00:00Z",
-        endDate: "2025-01-01T11:00:00Z",
-        startMinute: 600,
-        endMinute: 660,
-        locationId: 131723, // Main Stage location ID
-        speakers: [],
-        sessionType: "keynote",
-        isPublic: true,
-      },
-    ];
+  // Return fallback data if credentials are not configured
+  if (!hasValidCredentials()) {
+    debug.log("Using fallback session data - Bizzabo credentials not configured");
+    return FALLBACK_SESSIONS;
   }
-  const response = await makeRequest<{ content: BizzaboSession[] }>(
-    `/events/${eventId}/agenda/sessions`
-  );
 
-  // Debug: Log the raw response to see actual JSON structure
-  // console.log(
-  //   "Raw Bizzabo sessions response:",
-  //   JSON.stringify(response, null, 2)
-  // );
+  try {
+    const eventId = process.env.BIZZABO_EVENT_ID!;
+    const response = await makeRequest<{ content: BizzaboSession[] }>(
+      `/events/${eventId}/agenda/sessions`
+    );
 
-  return response.content || [];
+    // Debug: Log the raw response to see actual JSON structure
+    // console.log(
+    //   "Raw Bizzabo sessions response:",
+    //   JSON.stringify(response, null, 2)
+    // );
+
+    return response.content || [];
+  } catch (error) {
+    debug.error("Failed to fetch sessions from Bizzabo API:", error);
+    debug.log("Falling back to mock session data");
+    return FALLBACK_SESSIONS;
+  }
 }
 
 export async function getStages(): Promise<BizzaboStage[]> {
-  const eventId = process.env.BIZZABO_EVENT_ID;
-  if (!eventId) {
-    // Return fallback/mock data when BIZZABO_EVENT_ID is not configured
+  // Return fallback data if credentials are not configured
+  if (!hasValidCredentials()) {
+    debug.log("Using fallback stage data - Bizzabo credentials not configured");
     return [
       {
         id: "1",
@@ -286,12 +310,39 @@ export async function getStages(): Promise<BizzaboStage[]> {
         location: "Main Venue",
         isActive: true,
       },
+      {
+        id: "2",
+        name: "Build Stage",
+        location: "Workshop Room",
+        isActive: true,
+      },
     ];
   }
-  const response = await makeRequest<BizzaboApiResponse<BizzaboStage[]>>(
-    `/events/${eventId}/stages`
-  );
-  return response.data;
+
+  try {
+    const eventId = process.env.BIZZABO_EVENT_ID!;
+    const response = await makeRequest<BizzaboApiResponse<BizzaboStage[]>>(
+      `/events/${eventId}/stages`
+    );
+    return response.data;
+  } catch (error) {
+    debug.error("Failed to fetch stages from Bizzabo API:", error);
+    debug.log("Falling back to mock stage data");
+    return [
+      {
+        id: "1",
+        name: "Main Stage",
+        location: "Main Venue",
+        isActive: true,
+      },
+      {
+        id: "2",
+        name: "Build Stage",
+        location: "Workshop Room",
+        isActive: true,
+      },
+    ];
+  }
 }
 
 export async function getEvent(): Promise<BizzaboEvent> {

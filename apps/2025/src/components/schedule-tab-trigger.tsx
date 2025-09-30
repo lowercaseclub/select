@@ -1,8 +1,10 @@
 import { TabsTrigger } from "@ui/components/tabs";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
 interface ScheduleTabTriggerProps extends ComponentProps<typeof TabsTrigger> {
   stageName: string;
+  className?: string;
+  value: string;
 }
 
 export function ScheduleTabTrigger({

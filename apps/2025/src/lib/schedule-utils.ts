@@ -30,6 +30,6 @@ export function getEventsByStage(
     return matches;
   });
 
-  console.log("FILTERING - Final filtered events:", filtered.length);
+  // console.log("FILTERING - Final filtered events:", filtered.length);
   return sortEventsByTime(filtered);
 }

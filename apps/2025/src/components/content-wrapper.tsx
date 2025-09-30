@@ -11,6 +11,7 @@ export function ContentWrapper({ children }: ContentWrapperProps) {
       <div className="relative overflow-hidden border-l border-r border-column-lines max-w-site mx-auto">
         <ColumnLine />
         {children}
+        <ColumnLine className="left-auto right-8" />
       </div>
     </div>
   );

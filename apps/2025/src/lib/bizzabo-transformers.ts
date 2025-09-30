@@ -66,14 +66,14 @@ export function mapLocationToStage(locationId: string): string {
 export function transformSessionToEvent(
   session: BizzaboSession
 ): ScheduleEvent {
-  debug.log("SESSION OBJECT:", session);
-  debug.log("SESSION SPEAKERS:", session.speakers);
-  debug.log("SESSION ASSOCIATED CONTACTS:", session.associatedContacts);
+  // debug.log("SESSION OBJECT:", session);
+  // debug.log("SESSION SPEAKERS:", session.speakers);
+  // debug.log("SESSION ASSOCIATED CONTACTS:", session.associatedContacts);
 
   let timeString = "TBD";
 
   if (session.startMinute !== undefined && session.endMinute !== undefined) {
-    debug.log("FOUND MINUTES:", session.startMinute, session.endMinute);
+    // debug.log("FOUND MINUTES:", session.startMinute, session.endMinute);
     timeString = convertMinutesToTimeString(
       session.startMinute,
       session.endMinute

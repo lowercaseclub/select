@@ -3,24 +3,21 @@ import { getEventsByStage } from "../lib/schedule-utils";
 import { ScheduleEventRow } from "./schedule-event-row";
 import { ScheduleError } from "./schedule-error";
 import { ScheduleEmpty } from "./schedule-empty";
+import { cache } from "react";
+
+// Cache the data fetching to prevent re-execution
+const getMainStageData = cache(async () => {
+  const [sessions, speakers] = await Promise.all([
+    getSessions(),
+    getSpeakers(),
+  ]);
+  return { sessions, speakers };
+});
 
 export async function MainStageSchedule() {
   try {
-    const [sessions, speakers] = await Promise.all([
-      getSessions(),
-      getSpeakers(),
-    ]);
-
-    // Debug: Main Stage sessions loaded
-
+    const { sessions, speakers } = await getMainStageData();
     const events = getEventsByStage(sessions, speakers, ["main-stage", "main"]);
-    // console.log("MAIN STAGE - Total events found:", events.length);
-    // console.log(
-    //   "MAIN STAGE - Events:",
-    //   events.map((e) => ({ title: e.title, stage: e.stage }))
-    // );
-
-    // console.log("Main Stage - Filtered events:", events);
 
     if (events.length === 0) {
       return <ScheduleEmpty stageName="Main Stage" />;
