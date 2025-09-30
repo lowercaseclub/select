@@ -4,49 +4,51 @@
 // These types help transform Bizzabo's location IDs into human-readable stage names
 
 export interface BizzaboLocation {
-  id: number
-  name: string
-  nameId: string
-  description: string
+  id: number;
+  name: string;
+  nameId: string;
+  description: string;
 }
 
 // Environment-specific location mappings
 const DEV_LOCATIONS: BizzaboLocation[] = [
   {
     id: 131741,
-    name: 'Main Stage',
-    nameId: 'main-stage',
-    description: 'HQ Building 1',
+    name: "Main Stage",
+    nameId: "main-stage",
+    description: "HQ Building 1",
   },
   {
     id: 131743,
-    name: 'Build Stage',
-    nameId: 'build-stage',
-    description: '520 YC',
+    name: "Build Stage",
+    nameId: "build-stage",
+    description: "520 YC",
   },
-]
+];
 
 const PROD_LOCATIONS: BizzaboLocation[] = [
   {
     id: 131723,
-    name: 'Main Stage',
-    nameId: 'main-stage',
-    description: 'HQ Building 1',
+    name: "Main Stage",
+    nameId: "main-stage",
+    description: "HQ Building 1",
   },
   {
     id: 131724,
-    name: 'Build Stage',
-    nameId: 'build-stage',
-    description: '520 YC',
+    name: "Build Stage",
+    nameId: "build-stage",
+    description: "520 YC",
   },
   {
     id: 131725,
-    name: 'Common Area',
-    nameId: 'common-area',
-    description: 'Common Area',
+    name: "Common Area",
+    nameId: "common-area",
+    description: "Common Area",
   },
-]
+];
 
 // Use prod locations if NEXT_PUBLIC_VERCEL_ENV is production, otherwise use dev
 export const BIZZABO_LOCATIONS: BizzaboLocation[] =
-  process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' ? PROD_LOCATIONS : DEV_LOCATIONS
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+    ? PROD_LOCATIONS
+    : DEV_LOCATIONS;

@@ -15,7 +15,7 @@ export function LivestreamHero() {
         const stageName = stageKey === 'main' ? 'Main Stage' : 'Build Stage'
 
         return (
-          <TabsContent key={stageKey} value={stageKey} className="w-full h-full m-0 px-4">
+          <TabsContent key={stageKey} value={stageKey} className="w-full h-full m-0">
             <div className="h-auto max-h-[calc(100dvh-32px-var(--header-height))] border max-w-full relative overflow-hidden group aspect-video mx-auto">
               <iframe
                 src={`${streamUrl}?autoplay=1&enablejsapi=1&origin=https%3A%2F%supabase.com&rel=0&modestbranding=1&theme=dark`}

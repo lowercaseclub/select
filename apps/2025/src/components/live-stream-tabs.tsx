@@ -8,7 +8,7 @@ const LiveStreamTabs = () => {
   return (
     <StagesTabsClient>
       <Header />
-      <ContentWrapper>
+      <ContentWrapper hasColumnLine={false}>
         <LivestreamHero />
       </ContentWrapper>
       <ScheduleSection />
