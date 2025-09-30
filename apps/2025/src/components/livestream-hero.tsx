@@ -7,10 +7,7 @@ const STREAM_URLS = {
 
 export function LivestreamHero() {
   return (
-    <section
-      className="relative px-8 pt-4 pb-6 border-b"
-      style={{ marginTop: 'var(--header-height)' }}
-    >
+    <section className="relative px-8 pt-4 pb-6 border-b">
       {Object.entries(STREAM_URLS).map(([stageKey, streamUrl]) => {
         const stageName = stageKey === 'main' ? 'Main Stage' : 'Build Stage'
 
