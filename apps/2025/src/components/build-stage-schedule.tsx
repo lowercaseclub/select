@@ -1,27 +1,21 @@
-import { getSessions, getSpeakers } from "../lib/bizzabo-api";
-import { getEventsByStage } from "../lib/schedule-utils";
-import { ScheduleEventRow } from "./schedule-event-row";
-import { ScheduleError } from "./schedule-error";
-import { ScheduleEmpty } from "./schedule-empty";
+import { getSessions, getSpeakers } from '../lib/bizzabo-api'
+import { getEventsByStage } from '../lib/schedule-utils'
+import { ScheduleEventRow } from './schedule-event-row'
+import { ScheduleError } from './schedule-error'
+import { ScheduleEmpty } from './schedule-empty'
 
 export async function BuildStageSchedule() {
   try {
-    const [sessions, speakers] = await Promise.all([
-      getSessions(),
-      getSpeakers(),
-    ]);
+    const [sessions, speakers] = await Promise.all([getSessions(), getSpeakers()])
 
     // console.log("Build Stage - Raw sessions:", sessions);
 
-    const events = getEventsByStage(sessions, speakers, [
-      "build-stage",
-      "build",
-    ]);
+    const events = getEventsByStage(sessions, speakers, ['build-stage', 'build'])
 
     // console.log("Build Stage - Filtered events:", events);
 
     if (events.length === 0) {
-      return <ScheduleEmpty stageName="Build Stage" />;
+      return <ScheduleEmpty stageName="Build Stage" />
     }
 
     return (
@@ -36,9 +30,9 @@ export async function BuildStageSchedule() {
           />
         ))}
       </div>
-    );
+    )
   } catch {
     // Error handled gracefully - fallback schedule will be shown
-    return <ScheduleError stageName="Build Stage" />;
+    return <ScheduleError stageName="Build Stage" />
   }
 }
