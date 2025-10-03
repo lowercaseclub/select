@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { convertSFTimeToLocal, getTimezoneAbbreviation } from '../lib/timezone-utils'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@ui/components/hover-card'
 
 interface TimezoneTimeDisplayProps {
   sfTime: string
@@ -35,56 +36,33 @@ export function TimezoneTimeDisplay({
   }
 
   const { localTime, timezone, isSameTimezone } = timeDisplay
-  const timezoneAbbr = getTimezoneAbbreviation(timezone)
+  const sfTimezoneAbbr = getTimezoneAbbreviation('America/Los_Angeles')
+  const localTimezoneAbbr = getTimezoneAbbreviation(timezone)
 
-  // Don't show localized time if user is in SF timezone or timezone detection failed
-  const shouldShowLocalTime = !isSameTimezone && timezone !== 'America/Los_Angeles'
+  // Don't show tooltip if user is in SF timezone or timezone detection failed
+  const shouldShowTooltip = !isSameTimezone && timezone !== 'America/Los_Angeles' && showTimezone
 
-  if (variant === 'compact') {
+  // Default and compact variants - show tooltip on hover
+  if (shouldShowTooltip) {
     return (
-      <span className={className}>
-        {shouldShowLocalTime ? (
-          <>
-            {sfTime}{' '}
-            {/* <span className="text-muted-foreground text-xs">
-              ({localTime} {timezoneAbbr})
-            </span> */}
-          </>
-        ) : (
-          sfTime
-        )}
-      </span>
-    )
-  }
-
-  if (variant === 'detailed') {
-    return (
-      <div className={className}>
-        <div className="font-mono text-sm">{sfTime}</div>
-        {!isSameTimezone && timezone !== 'America/Los_Angeles' && (
-          <div className="font-mono text-xs text-muted-foreground">
-            {localTime} <span className="text-muted-foreground">{timezoneAbbr}</span>
+      <HoverCard>
+        <HoverCardTrigger asChild>
+          <span className={className}>{sfTime}</span>
+        </HoverCardTrigger>
+        <HoverCardContent side="right" className="w-auto text-xs p-2">
+          <div className="space-y-1 text-sm">
+            <div className="font-mono">
+              <span className="text-muted-foreground">{sfTimezoneAbbr}</span> {sfTime}{' '}
+            </div>
+            <div className="font-mono">
+              <span className="text-muted-foreground">{localTimezoneAbbr}</span> {localTime}{' '}
+            </div>
           </div>
-        )}
-      </div>
+        </HoverCardContent>
+      </HoverCard>
     )
   }
 
-  // Default variant
-  return (
-    <span className={className}>
-      {isSameTimezone || timezone === 'America/Los_Angeles' ? (
-        sfTime
-      ) : (
-        <>
-          {sfTime}
-          {showTimezone && (
-            <span className="text-muted-foreground text-xs ml-1">
-              ({localTime} {timezoneAbbr})
-            </span>
-          )}
-        </>
-      )}
-    </span>
-  )
+  // No tooltip needed - just show the time
+  return <span className={className}>{sfTime}</span>
 }
