@@ -47,9 +47,9 @@ export function TimezoneTimeDisplay({
     return (
       <HoverCard>
         <HoverCardTrigger asChild>
-          <span className={className}>{sfTime}</span>
+          <span className={`cursor-pointer ${className}`}>{sfTime}</span>
         </HoverCardTrigger>
-        <HoverCardContent side="right" className="w-auto text-xs p-2">
+        <HoverCardContent side="right" className="w-auto text-xs p-">
           <div className="space-y-1 text-sm">
             <div className="font-mono">
               <span className="text-muted-foreground">{sfTimezoneAbbr}</span> {sfTime}{' '}
