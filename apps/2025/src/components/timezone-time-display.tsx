@@ -63,7 +63,7 @@ export function TimezoneTimeDisplay({
         <div className="font-mono text-sm">{sfTime}</div>
         {!isSameTimezone && timezone !== 'America/Los_Angeles' && (
           <div className="font-mono text-xs text-muted-foreground">
-            {localTime} <span className="text-muted-foreground">({timezoneAbbr})</span>
+            {localTime} <span className="text-muted-foreground">{timezoneAbbr}</span>
           </div>
         )}
       </div>
