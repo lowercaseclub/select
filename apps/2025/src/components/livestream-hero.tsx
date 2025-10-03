@@ -1,8 +1,8 @@
 import { TabsContent } from '@ui/components/tabs'
 
 const STREAM_URLS = {
-  main: 'https://www.youtube-nocookie.com/embed/MAIN_VIDEO_ID',
-  build: 'https://www.youtube-nocookie.com/embed/BUILD_VIDEO_ID',
+  main: 'https://www.youtube-nocookie.com/embed/OaABqBG732Y',
+  build: 'https://www.youtube-nocookie.com/embed/GbBGYNNMWCg',
 }
 
 export function LivestreamHero() {
