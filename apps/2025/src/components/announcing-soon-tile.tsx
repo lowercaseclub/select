@@ -27,16 +27,13 @@ export function AnnouncingSoonTile() {
             vectorEffect="non-scaling-stroke"
           />
         </svg>
-        {/* Overlay text */}
         <div className="relative z-10 text-center">
           <div className="bg-black/30 px-3 py-1 rounded text-white text-xs font-medium tracking-wider">
             ANNOUNCEMENT SOON
           </div>
         </div>
       </div>
-      <div className="space-y-3 sm:space-y-4">
-        {/* Empty space to match speaker card layout */}
-      </div>
+      <div className="space-y-3 sm:space-y-4">{/* Empty space to match speaker card layout */}</div>
     </>
-  );
+  )
 }

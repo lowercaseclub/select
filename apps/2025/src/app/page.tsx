@@ -1,46 +1,37 @@
-import { AboutSection } from "../components/about-section";
-import { AnimatedGrid } from "../components/animated-grid";
-import { FAQSection } from "../components/faq-section";
-import { Footer } from "../components/footer";
-import { Header } from "../components/header";
-import { ContentWrapper } from "../components/content-wrapper";
-import { HeroSection } from "../components/hero-section";
-import { ScheduleSection } from "../components/schedule-section";
-import { SpeakersSection } from "../components/speakers-section";
-import { SponsorsSection } from "../components/sponsors-section";
-import { TopLines } from "@/components/top-lines";
-import { Separator } from "@ui/components/separator";
+import { ContentWrapper } from '../components/content-wrapper'
+import LiveStreamTabs from '@/components/live-stream-tabs'
+import dynamic from 'next/dynamic'
 
-export const revalidate = 300; // 5 minutes
+const AboutSection = dynamic(() =>
+  import('@/components/about-section').then((mod) => mod.AboutSection)
+)
+const FAQSection = dynamic(() => import('@/components/faq-section').then((mod) => mod.FAQSection))
+const SpeakersSection = dynamic(() =>
+  import('@/components/speakers-section').then((mod) => mod.SpeakersSection)
+)
+const SponsorsSection = dynamic(() =>
+  import('@/components/sponsors-section').then((mod) => mod.SponsorsSection)
+)
+const Separator = dynamic(() => import('@ui/components/separator').then((mod) => mod.Separator))
+const StageProvider = dynamic(() => import('@/lib/stage-context').then((mod) => mod.StageProvider))
+const Footer = dynamic(() => import('@/components/footer').then((mod) => mod.Footer))
 
 export default function HomePage() {
   return (
-    <>
-      <ContentWrapper>
-        <TopLines />
-        <div className="relative border-b">
-          <div className="absolute top-32 left-0 right-0 bottom-0">
-            <AnimatedGrid />
-          </div>
-          <div className="relative z-10">
-            <Header />
-            <HeroSection />
-          </div>
-        </div>
-      </ContentWrapper>
+    <StageProvider initialStage="main">
+      <LiveStreamTabs />
       <ContentWrapper>
         <SpeakersSection />
       </ContentWrapper>
       <ContentWrapper>
         <AboutSection />
       </ContentWrapper>
-      <ScheduleSection />
       <Separator />
       <ContentWrapper>
         <SponsorsSection />
         <FAQSection />
       </ContentWrapper>
       <Footer />
-    </>
-  );
+    </StageProvider>
+  )
 }

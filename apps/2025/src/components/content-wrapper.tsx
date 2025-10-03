@@ -1,17 +1,21 @@
-import { ReactNode } from "react";
-import { ColumnLine } from "./column-line";
+import { ReactNode } from 'react'
+import { ColumnLine } from './column-line'
+import { cn } from '@repo/ui/src/lib/utils'
 
 interface ContentWrapperProps {
-  children: ReactNode;
+  children: ReactNode
+  className?: string
+  hasColumnLine?: boolean
 }
 
-export function ContentWrapper({ children }: ContentWrapperProps) {
+export function ContentWrapper({ children, className, hasColumnLine = true }: ContentWrapperProps) {
   return (
-    <div className="lg:mx-8">
-      <div className="relative overflow-hidden border-l border-r border-column-lines max-w-site mx-auto">
-        <ColumnLine />
+    <div className={cn('lg:mx-8', className)}>
+      <div className="relative overflow-hidden lg:border-l lg:border-r border-column-lines max-w-site mx-auto">
+        {hasColumnLine && <ColumnLine />}
         {children}
+        {hasColumnLine && <ColumnLine className="left-auto right-8" />}
       </div>
     </div>
-  );
+  )
 }
