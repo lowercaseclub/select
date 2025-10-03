@@ -22,7 +22,7 @@ const DEV_LOCATIONS: BizzaboLocation[] = [
     id: 131743,
     name: "Build Stage",
     nameId: "build-stage",
-    description: "520 YC",
+    description: "580 20th St",
   },
 ];
 
@@ -37,7 +37,7 @@ const PROD_LOCATIONS: BizzaboLocation[] = [
     id: 131724,
     name: "Build Stage",
     nameId: "build-stage",
-    description: "520 YC",
+    description: "580 20th St",
   },
   {
     id: 131725,
