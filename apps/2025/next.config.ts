@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  serverComponentsExternalPackages: ["sharp"],
+  serverExternalPackages: ["sharp"],
   async redirects() {
     return [
       {
