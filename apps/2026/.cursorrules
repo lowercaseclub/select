@@ -1,0 +1,48 @@
+# Next.js App 2025 - Cursor Rules
+
+## Tech Stack
+
+- Next.js 15.4.6 with App Router
+- React 19.1.0
+- TypeScript (strict mode)
+- Tailwind CSS v4
+- Turbopack for fast builds/dev
+
+## Key Documentation
+
+- Bizzabo Partner API: https://bizzabo.stoplight.io/docs/bizzabo-partner-apis/216a013c43f8e-bizzabo-public-api
+- Next.js 15 docs: https://nextjs.org/docs
+- Tailwind v4 docs: https://tailwindcss.com/docs/v4-beta
+- React 19 docs: https://react.dev/
+
+## Project Structure
+
+```
+apps/2025/
+├── src/
+│   └── app/          # App Router pages
+│       ├── globals.css
+│       ├── layout.tsx
+│       └── page.tsx
+├── public/           # Static assets
+└── package.json
+```
+
+## Development
+
+- Uses Turbopack: `npm run dev` (runs `next dev --turbopack`)
+- Part of monorepo - run `pnpm dev` from root for full development
+- UI components imported from `@repo/ui` package
+
+## API Integration
+
+- Integrates with Bizzabo Partner API for event management
+- Use TypeScript for all API interactions
+- Follow Next.js API route patterns for backend integration
+
+## Code Style
+
+- TypeScript strict mode enabled
+- Use Tailwind v4 syntax with CSS variables
+- Follow Next.js 15 App Router conventions
+- Use React 19 features where appropriate

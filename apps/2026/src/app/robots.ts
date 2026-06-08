@@ -1,11 +1,14 @@
 import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  // 2025 event is archived — keep the whole site out of search indexes.
   return {
     rules: {
       userAgent: "*",
-      disallow: "/",
+      allow: "/",
+      disallow: [
+        "/api/", // Disallow API routes
+        "/application-verified/", // Private application confirmation page
+      ],
     },
   };
 }

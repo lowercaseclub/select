@@ -27,10 +27,10 @@
         "./src/*"
       ],
       "@ui/*": [
-        "../../packages/ui/src/*"
+        "../../packages/ui-2026/src/*"
       ],
       "@ui/components/*": [
-        "../../packages/ui/src/components/*"
+        "../../packages/ui-2026/src/components/*"
       ]
     }
   },

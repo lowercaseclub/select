@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isValidOrigin } from "@/lib/origin-validation";
 
+// The 2025 event has ended. Every public route is rerouted to this private,
+// noindex holding page in deployed environments (see middleware below).
+const HOLDING_ROUTE = "/closed";
+
 // In-memory store for rate limiting (in production, use Redis or similar)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
@@ -59,6 +63,16 @@ function validateOrigin(request: NextRequest): boolean {
 }
 
 export function middleware(request: NextRequest) {
+  // 2025 is archived: reroute every public request to the private holding page
+  // in any deployed environment. `next dev` is exempt so the real content stays
+  // viewable locally for reference (the matcher already excludes /closed and
+  // static assets, so this never loops or hides the holding page itself).
+  if (process.env.NODE_ENV !== "development") {
+    const url = request.nextUrl.clone();
+    url.pathname = HOLDING_ROUTE;
+    return NextResponse.redirect(url, 307);
+  }
+
   // Only apply to API routes
   if (!request.nextUrl.pathname.startsWith("/api/")) {
     return NextResponse.next();
@@ -116,5 +130,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/:path*"],
+  // Run on every route so the archive redirect can catch page + API requests,
+  // while excluding Next internals, the holding page itself, the OG/Twitter
+  // image routes, and any path with a file extension (static assets).
+  matcher: ["/((?!_next/|closed|opengraph-image|twitter-image|.*\\.).*)"],
 };

@@ -1,0 +1,19 @@
+<svg width="22.0202" height="22" overflow="visible" style="display: block;" viewBox="0 0 22.0202 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group 146">
+<g id="Polygon 6">
+<path d="M12.8682 21.6345C12.2904 22.3423 11.1189 21.9544 11.105 21.0507L10.9014 7.83273L20.0387 7.83273C21.6937 7.83273 22.6168 9.69208 21.5876 10.9528L12.8682 21.6345Z" fill="url(#paint0_linear_0_32)"/>
+<path d="M12.8682 21.6345C12.2904 22.3423 11.1189 21.9544 11.105 21.0507L10.9014 7.83273L20.0387 7.83273C21.6937 7.83273 22.6168 9.69208 21.5876 10.9528L12.8682 21.6345Z" fill="url(#paint1_linear_0_32)" fill-opacity="0.2"/>
+</g>
+<path id="Polygon 7" d="M9.15197 0.365546C9.72978 -0.342295 10.9013 0.0455506 10.9152 0.949284L11.0045 14.1673L1.98154 14.1673C0.326479 14.1673 -0.596576 12.3079 0.432587 11.0472L9.15197 0.365546Z" fill="var(--fill-0, black)" fill-opacity="0.5"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_32" x1="10.9014" y1="10.7635" x2="18.9537" y2="14.2354" gradientUnits="userSpaceOnUse">
+<stop/>
+<stop offset="1" stop-opacity="0.5"/>
+</linearGradient>
+<linearGradient id="paint1_linear_0_32" x1="7.301" y1="5.96856" x2="10.8471" y2="12.8313" gradientUnits="userSpaceOnUse">
+<stop/>
+<stop offset="1" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>

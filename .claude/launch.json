@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "2026",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "2026", "dev"],
+      "port": 3001
+    }
+  ]
+}

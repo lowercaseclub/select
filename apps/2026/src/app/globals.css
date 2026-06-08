@@ -1,0 +1,48 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Surfaces — warm off-white "bookish" cream ground */
+  --color-cream: #f8f3ef;
+  --color-cream-100: #f6f0ec;
+  --color-cream-200: #f4ece6;
+
+  /* Single intense color moment — deep Supabase forest green */
+  --color-brand: #00482f;
+
+  /* Hairlines / borders */
+  --color-hairline: #d3cfcb;
+  --color-hairline-strong: #00000054;
+
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-cream);
+    color: #000000;
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background-color: var(--color-brand);
+    color: var(--color-cream-100);
+  }
+}
+
+/* Halftone editorial photography — baked into source PNGs, present them flat */
+.photo {
+  background-position: 50%;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
