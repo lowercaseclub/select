@@ -9,9 +9,12 @@ export function SponsorsSection() {
 
         <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-3 md:mt-8">
           {SPONSORS.map((sponsor) => (
-            <div
+            <a
               key={sponsor.alt}
-              className="flex h-[130px] items-center justify-center border border-hairline md:h-[151px]"
+              href={sponsor.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-[130px] items-center justify-center border border-hairline transition-colors duration-200 hover:bg-black/[0.03] md:h-[151px]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -20,7 +23,7 @@ export function SponsorsSection() {
                 style={{ height: sponsor.height }}
                 className="w-auto"
               />
-            </div>
+            </a>
           ))}
         </div>
       </Container>

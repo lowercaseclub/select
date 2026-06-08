@@ -1,6 +1,7 @@
 'use client'
 
 import useEmblaCarousel from 'embla-carousel-react'
+import AutoScroll from 'embla-carousel-auto-scroll'
 import { GALLERY } from '@/lib/site-data'
 import { cn } from '@/lib/cn'
 
@@ -17,28 +18,23 @@ const HEIGHTS = [
 const SLIDES = [...GALLERY, ...GALLERY]
 
 export function GallerySection() {
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: true,
-    align: 'start',
-    dragFree: true,
-  })
+  const [emblaRef] = useEmblaCarousel({ loop: true, align: 'start', dragFree: true }, [
+    AutoScroll({ speed: 1, startDelay: 0, stopOnInteraction: false, stopOnMouseEnter: true }),
+  ])
 
   return (
     <section className="overflow-hidden py-14 md:py-20">
-      {/* Desktop nav — drag/swipe is the primary affordance on touch */}
-      <div className="mb-4 hidden items-center justify-end gap-2 px-6 md:flex md:px-0">
-        <NavButton label="Previous photos" onClick={() => emblaApi?.scrollPrev()}>
-          ←
-        </NavButton>
-        <NavButton label="Next photos" onClick={() => emblaApi?.scrollNext()}>
-          →
-        </NavButton>
-      </div>
-
-      <div className="overflow-hidden px-6 md:px-0" ref={emblaRef}>
-        <div className="flex items-start gap-2 md:gap-3">
+      <div
+        className="cursor-grab overflow-hidden px-6 active:cursor-grabbing md:px-0"
+        ref={emblaRef}
+      >
+        {/* Spacing lives on each slide (padding-left) instead of `gap` so the
+            loop seam keeps even spacing; the container's negative margin cancels
+            the first slide's padding. `gap` leaves no space after the last
+            slide, so wrapped slides would butt together. */}
+        <div className="-ml-2 flex items-start md:-ml-3">
           {SLIDES.map((item, i) => (
-            <figure key={i} className="min-w-0 shrink-0">
+            <figure key={i} className="min-w-0 shrink-0 pl-2 md:pl-3">
               <div
                 className={cn(
                   'photo w-[230px] bg-cream-100 md:w-[330px]',
@@ -58,29 +54,5 @@ export function GallerySection() {
         </div>
       </div>
     </section>
-  )
-}
-
-function NavButton({
-  label,
-  onClick,
-  children,
-}: {
-  label: string
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className={cn(
-        'flex size-8 items-center justify-center rounded-full border border-black/10 font-mono text-sm text-black/70 transition',
-        'hover:border-black/30 hover:text-black',
-      )}
-    >
-      {children}
-    </button>
   )
 }

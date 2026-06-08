@@ -90,14 +90,15 @@ export const RESEARCH: Research[] = [
 export type Sponsor = {
   logo: string
   alt: string
+  url: string
   /** intrinsic logo height in px to keep optical sizing even across marks */
   height: number
 }
 
 export const SPONSORS: Sponsor[] = [
-  { logo: '/img/vercel.svg', alt: 'Vercel', height: 28 },
-  { logo: '/img/resend.svg', alt: 'Resend', height: 32 },
-  { logo: '/img/posthog.svg', alt: 'PostHog', height: 30 },
+  { logo: '/img/vercel.svg', alt: 'Vercel', url: 'https://vercel.com', height: 28 },
+  { logo: '/img/resend.svg', alt: 'Resend', url: 'https://resend.com', height: 32 },
+  { logo: '/img/posthog.svg', alt: 'PostHog', url: 'https://posthog.com', height: 30 },
 ]
 
 export const GALLERY = [
