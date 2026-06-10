@@ -1,15 +1,13 @@
 import { Container } from './container'
 import { SelectWordmark } from './brand'
+import { HeroCanvas } from './hero-canvas'
 import { EVENT } from '@/lib/site-data'
 
 export function HeroSection() {
   return (
     <header>
-      {/* Placeholder for the full-bleed hero effect — desktop only, mobile leads with the wordmark */}
-      <div
-        className="photo hidden h-[clamp(420px,52vw,760px)] w-full bg-cream-100 md:block"
-        aria-hidden="true"
-      />
+      {/* Full-bleed PixiJS halftone field — shorter band on mobile, taller on desktop */}
+      <HeroCanvas className="h-[clamp(300px,48vw,440px)] w-full md:h-[clamp(420px,52vw,760px)]" />
 
       <Container className="pt-12 md:pt-20">
         {/* Wordmark + event meta */}

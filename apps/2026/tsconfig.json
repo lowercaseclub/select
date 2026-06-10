@@ -25,12 +25,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@ui/*": [
-        "../../packages/ui-2026/src/*"
-      ],
-      "@ui/components/*": [
-        "../../packages/ui-2026/src/components/*"
       ]
     }
   },

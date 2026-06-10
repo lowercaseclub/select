@@ -4,8 +4,9 @@
     {
       "name": "2026",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "2026", "dev"],
-      "port": 3001
+      "runtimeArgs": ["--filter", "2026", "exec", "next", "dev", "--turbopack"],
+      "port": 3001,
+      "autoPort": true
     }
   ]
 }
