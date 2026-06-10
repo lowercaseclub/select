@@ -98,6 +98,15 @@ export const SIM = {
   /** how much slower the structure's center evolves vs its leaves (0..1) */
   centerCalm: 0.4,
 
+  /** mouse trail — cells seeded under the pointer per tick, balancing kills
+   * per tick, and the radius (units) around the pointer that those
+   * balancing kills never touch */
+  seedPerTick: 6,
+  seedKillPerTick: 3,
+  pointerSafeRadius: 10,
+  /** seeded trail cells are split down to this size before being born */
+  seedSize: 1,
+
   /** max concurrent set pieces */
   caps: { text: 3, tile: 8, dots: 5, panels: 6 } as Partial<Record<Variant, number>>,
 }
@@ -176,6 +185,13 @@ export class HeroSim {
   /** alive cells whose blink promised a change — protected until it lands */
   private locked = new Map<number, number>()
 
+  /** unit cells the pointer crossed since the last tick */
+  private seedQueue: { x: number; y: number }[] = []
+  /** last known pointer position (units), if the pointer is over the field */
+  private pointer: { x: number; y: number } | null = null
+  /** every seeded birth owes one death far from the pointer */
+  private seedDebt = 0
+
   constructor(seed = 1) {
     this.rand = mulberry32(seed)
     this.bounds = { minX: 0, minY: 0, maxX: SIM.cols, maxY: SIM.rows }
@@ -213,6 +229,23 @@ export class HeroSim {
     return this.events
   }
 
+  /** Mark a unit cell crossed by the pointer; it becomes alive next tick. */
+  queueSeed(ux: number, uy: number) {
+    const x = Math.floor(ux)
+    const y = Math.floor(uy)
+    if (x < this.bounds.minX || x >= this.bounds.maxX) return
+    if (y < this.bounds.minY || y >= this.bounds.maxY) return
+    this.seedQueue.push({ x, y })
+  }
+
+  setPointer(ux: number, uy: number) {
+    this.pointer = { x: ux, y: uy }
+  }
+
+  clearPointer() {
+    this.pointer = null
+  }
+
   tick(): SimEvent[] {
     this.events = []
     const t = ++this.tickCount
@@ -232,6 +265,33 @@ export class HeroSim {
       } else if (r.size > 1) {
         if (!r.alive || (r.variant !== null && !SPLIT_EXEMPT.has(r.variant))) this.split(r)
       }
+    }
+
+    // Mouse trail: cells the pointer crossed are split down to trail size
+    // and born immediately. Each seeded birth accrues a death debt paid by
+    // cells far from the pointer, so the field's sparsity holds.
+    if (this.seedQueue.length > 0) {
+      const seen = new Set<string>()
+      let seeded = 0
+      for (const pt of this.seedQueue) {
+        if (seeded >= SIM.seedPerTick) break
+        const key = cellKey(pt.x, pt.y)
+        if (seen.has(key)) continue
+        seen.add(key)
+        let id = this.occ.get(key)
+        let r = id !== undefined ? this.regions.get(id) : undefined
+        if (!r || r.alive || this.queuedIds.has(r.id)) continue
+        while (r && r.size > SIM.seedSize) {
+          this.split(r)
+          id = this.occ.get(key)
+          r = id !== undefined ? this.regions.get(id) : undefined
+        }
+        if (!r || r.alive) continue
+        this.birth(r)
+        this.seedDebt++
+        seeded++
+      }
+      this.seedQueue = []
     }
 
     // Phase transition: growth ends once the structure spans almost the
@@ -344,6 +404,41 @@ export class HeroSim {
             this.queuedIds.add(r.id)
           }
         }
+      }
+    }
+
+    // Pay the seeding debt: the trail adds density near the pointer, so
+    // cells far from it die at replacement rate to keep the field sparse.
+    if (this.seedDebt > 0) {
+      const candidates: Region[] = []
+      for (const r of this.regions.values()) {
+        if (!r.alive || r.age <= SIM.graceTicks) continue
+        if (this.queuedIds.has(r.id) || this.locked.has(r.id)) continue
+        const guardsExtent =
+          r.x === live.minX ||
+          r.y === live.minY ||
+          r.x + r.size === live.maxX ||
+          r.y + r.size === live.maxY
+        if (guardsExtent) continue
+        if (this.pointer) {
+          const d = Math.hypot(
+            r.x + r.size / 2 - this.pointer.x,
+            r.y + r.size / 2 - this.pointer.y,
+          )
+          if (d < SIM.pointerSafeRadius) continue
+        }
+        candidates.push(r)
+      }
+      let pay = Math.min(this.seedDebt, SIM.seedKillPerTick)
+      while (pay > 0 && candidates.length > 0 && aliveCount > SIM.minAlive) {
+        const i = Math.floor(this.rand() * candidates.length)
+        const r = candidates[i]
+        candidates.splice(i, 1)
+        if (this.wouldDisconnect(r)) continue
+        this.kill(r)
+        this.seedDebt--
+        aliveCount--
+        pay--
       }
     }
 

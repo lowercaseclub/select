@@ -59,12 +59,12 @@ const IN_DUR: Partial<Record<Variant, number>> = {
   text: 420,
 }
 
-/** variants with a choreographed exit get more time to perform it */
+/** variants with a pre-exit (inner state resolves before the scale-out)
+ * get more time to perform it */
 const OUT_DUR: Partial<Record<Variant, number>> = {
-  dots: 620,
-  panels: 480,
-  flow: 380,
-  hatch: 380,
+  dots: 680,
+  panels: 540,
+  text: 420,
 }
 
 const C = {
@@ -382,12 +382,15 @@ export async function createHeroEngine(
         if (v.textEl) v.textEl.style.opacity = '0.92'
       } else if (v.phase === 'out') {
         v.t = Math.min(1, v.t + dms / v.dur)
-        const e = ease(v.t)
         if (v.exit) {
-          // choreographed exit carries most of the duration; fade at the end
-          v.exit(e)
-          alpha = e < 0.6 ? 1 : 1 - (e - 0.6) / 0.4
+          // pre-exit: the inner state resolves first, then the cell runs
+          // the same scale-out as everything else
+          v.exit(ease(Math.min(1, v.t / 0.55)))
+          const oe = ease(clamp((v.t - 0.55) / 0.45, 0, 1))
+          alpha = 1 - oe
+          v.root.scale.set(1 - 0.15 * oe)
         } else {
+          const e = ease(v.t)
           alpha = 1 - e
           v.root.scale.set(1 - 0.15 * e)
         }
@@ -418,6 +421,31 @@ export async function createHeroEngine(
 
   let io: IntersectionObserver | null = null
   let loop: ((ticker: Ticker) => void) | null = null
+
+  // Mouse seeding: the pointer leaves a trail of unit cells that the sim
+  // births next tick; the path is interpolated so fast moves don't skip cells.
+  let lastPointer: { x: number; y: number } | null = null
+  const onPointerMove = (ev: PointerEvent) => {
+    const rect = host.getBoundingClientRect()
+    const wx = (ev.clientX - rect.left - world.position.x) / world.scale.x / UNIT
+    const wy = (ev.clientY - rect.top - world.position.y) / world.scale.y / UNIT
+    sim.setPointer(wx, wy)
+    if (lastPointer) {
+      const dx = wx - lastPointer.x
+      const dy = wy - lastPointer.y
+      const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / 0.6))
+      for (let i = 1; i <= steps; i++) {
+        sim.queueSeed(lastPointer.x + (dx * i) / steps, lastPointer.y + (dy * i) / steps)
+      }
+    } else {
+      sim.queueSeed(wx, wy)
+    }
+    lastPointer = { x: wx, y: wy }
+  }
+  const onPointerLeave = () => {
+    lastPointer = null
+    sim.clearPointer()
+  }
 
   if (opts.reducedMotion) {
     // Static composition: simulate well past the growth phase, render once.
@@ -453,11 +481,27 @@ export async function createHeroEngine(
       else app.stop()
     })
     io.observe(host)
+
+    host.addEventListener('pointermove', onPointerMove)
+    host.addEventListener('pointerleave', onPointerLeave)
+
+    if (process.env.NODE_ENV === 'development') {
+      // manual stepper for debugging in throttled/background tabs:
+      // __heroStep(5000) advances 5s of sim + animation and renders a frame
+      ;(globalThis as unknown as Record<string, unknown>).__heroStep = (totalMs: number) => {
+        const step = 16.7
+        for (let t = 0; t < totalMs; t += step) loop?.({ deltaMS: step } as Ticker)
+        app.render()
+      }
+      ;(globalThis as unknown as Record<string, unknown>).__heroSim = sim
+    }
   }
 
   return {
     destroy() {
       io?.disconnect()
+      host.removeEventListener('pointermove', onPointerMove)
+      host.removeEventListener('pointerleave', onPointerLeave)
       if (loop) app.ticker.remove(loop)
       overlay.replaceChildren()
       // textures stay in the Assets cache (shared across remounts); unload
@@ -538,8 +582,7 @@ function buildVariant(
       lines.mask = wipe
       root.addChild(lines, wipe)
       const update = (e: number) => wipe.scale.set(Math.max(0.001, e), 1)
-      const exit = (e: number) => wipe.scale.set(Math.max(0.001, 1 - e), 1)
-      return { update, exit, dot: centerDot(root, s, C.greenBright) }
+      return { update, dot: centerDot(root, s, C.greenBright) }
     }
     case 'flow': {
       // rows of green ticks and faint arrows, direction alternating per row;
@@ -574,8 +617,7 @@ function buildVariant(
       fg.mask = wipe
       root.addChild(fg, wipe)
       const update = (e: number) => wipe.scale.set(Math.max(0.001, e), 1)
-      const exit = (e: number) => wipe.scale.set(Math.max(0.001, 1 - e), 1)
-      return { update, exit, dot: centerDot(root, s, C.dotGrey) }
+      return { update, dot: centerDot(root, s, C.dotGrey) }
     }
     case 'tile': {
       const sprite = new Sprite(explosion)
