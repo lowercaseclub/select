@@ -1,4 +1,5 @@
 import { Container } from './container'
+import { ComingSoonFrame } from './coming-soon'
 import { SPEAKERS, COMING_SOON_SLOTS, type Speaker } from '@/lib/site-data'
 
 export function SpeakersSection() {
@@ -12,7 +13,7 @@ export function SpeakersSection() {
             <SpeakerCard key={speaker.name} speaker={speaker} />
           ))}
           {Array.from({ length: COMING_SOON_SLOTS }).map((_, i) => (
-            <ComingSoonCard key={`soon-${i}`} />
+            <ComingSoonFrame key={`soon-${i}`} className="aspect-[321/338] w-full" />
           ))}
         </div>
       </Container>
@@ -33,24 +34,6 @@ function SpeakerCard({ speaker }: { speaker: Speaker }) {
         <span className="text-black/70">{speaker.name}</span>
         <span className="text-black/30">{speaker.role}</span>
       </div>
-    </div>
-  )
-}
-
-function ComingSoonCard() {
-  return (
-    <div className="relative aspect-[321/338] w-full border border-hairline">
-      <svg
-        className="absolute inset-0 h-full w-full"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-        aria-hidden
-      >
-        <line x1="0" y1="0" x2="100" y2="100" stroke="#D3CFCB" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
-      </svg>
-      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#d9d9d9] px-4 py-1 font-mono text-[12px] font-medium leading-4 tracking-[0.02em] text-black/30">
-        COMING SOON
-      </span>
     </div>
   )
 }

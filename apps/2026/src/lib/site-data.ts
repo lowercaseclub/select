@@ -1,3 +1,6 @@
+import speakersData from '@/data/speakers.json'
+import agendaData from '@/data/agenda.json'
+
 export const EVENT = {
   date: 'OCT 2',
   dateLong: 'October 2',
@@ -32,49 +35,44 @@ export type Speaker = {
   image: string
 }
 
-export const SPEAKERS: Speaker[] = [
-  { name: 'Copple', role: 'CEO, Supabase', image: '/img/speaker-copple.png' },
-  { name: 'Ant Wilson', role: 'CTO, Supabase', image: '/img/speaker-ant-wilson.png' },
-]
+/** Add speakers in src/data/speakers.json as they're announced. */
+export const SPEAKERS: Speaker[] = speakersData.speakers
 
-/** Number of unannounced speaker slots shown as "coming soon" tiles. */
-export const COMING_SOON_SLOTS = 4
+/** Number of unannounced speaker slots shown as "coming soon" tiles — set in src/data/speakers.json. */
+export const COMING_SOON_SLOTS: number = speakersData.comingSoonSlots
 
-export type Stage = 'main' | 'build'
+export type StageInfo = {
+  id: string
+  name: string
+}
 
 export type AgendaRow = {
-  time: string
-  title: string
+  /** Omit while the slot time is still TBC. */
+  time?: string
+  /** Omit (with tbc: true) for an unannounced slot. */
+  title?: string
   speakers?: string
   /** Breaks are muted and visually highlighted. */
   isBreak?: boolean
+  /** Coming soon/TBC: no title → whole slot unannounced; with title → speakers TBC. */
+  tbc?: boolean
 }
 
-export const AGENDA: Record<Stage, AgendaRow[]> = {
-  main: [
-    { time: '09:00 — 09:30', title: 'Breakfast' },
-    { time: '09:30 — 10:00', title: 'Keynote', speakers: 'Copple, Ant Wilson' },
-    {
-      time: '10:00 — 10:30',
-      title: 'Multigres Update',
-      speakers: 'Sugu Sougoumarane, Deepti Sigireddi',
-    },
-    { time: '10:30 — 11:00', title: 'Break', isBreak: true },
-    { time: '11:00 — 11:30', title: 'Keynote', speakers: 'Copple, Ant Wilson' },
-    { time: '11:30 — 12:00', title: 'Keynote', speakers: 'Copple, Ant Wilson' },
-    { time: '12:00 — 12:30', title: 'Keynote', speakers: 'Copple, Ant Wilson' },
-    { time: '12:30 — 13:00', title: 'Keynote', speakers: 'Copple, Ant Wilson' },
-    { time: '13:00 — 13:30', title: 'Keynote', speakers: 'Copple, Ant Wilson' },
-  ],
-  build: [
-    { time: '09:30 — 10:00', title: 'Deep dive: Auth', speakers: 'Supabase Engineering' },
-    { time: '10:00 — 10:30', title: 'Deep dive: Realtime', speakers: 'Supabase Engineering' },
-    { time: '10:30 — 11:00', title: 'Break', isBreak: true },
-    { time: '11:00 — 11:30', title: 'Deep dive: Storage', speakers: 'Supabase Engineering' },
-    { time: '11:30 — 12:00', title: 'Deep dive: Edge Functions', speakers: 'Supabase Engineering' },
-    { time: '12:00 — 12:30', title: 'Deep dive: Vectors', speakers: 'Supabase Engineering' },
-  ],
-}
+type AgendaEvent = AgendaRow & { stage: string }
+
+/** Stage tabs are driven by src/data/agenda.json. */
+export const STAGES: StageInfo[] = agendaData.stages
+
+/**
+ * Add sessions in src/data/agenda.json as they're confirmed. A stage with no
+ * events renders as a "coming soon" panel.
+ */
+export const AGENDA: Record<string, AgendaRow[]> = Object.fromEntries(
+  STAGES.map((stage) => [
+    stage.id,
+    (agendaData.events as AgendaEvent[]).filter((event) => event.stage === stage.id),
+  ])
+)
 
 export type Research = {
   logo: string

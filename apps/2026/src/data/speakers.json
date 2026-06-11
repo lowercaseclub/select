@@ -1,0 +1,7 @@
+{
+  "comingSoonSlots": 4,
+  "speakers": [
+    { "name": "Copple", "role": "CEO, Supabase", "image": "/img/speaker-copple.png" },
+    { "name": "Ant Wilson", "role": "CTO, Supabase", "image": "/img/speaker-ant-wilson.png" }
+  ]
+}

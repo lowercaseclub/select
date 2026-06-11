@@ -1,0 +1,33 @@
+{
+  "stages": [
+    { "id": "main", "name": "Main Stage" },
+    { "id": "build", "name": "Build Stage" }
+  ],
+  "events": [
+    { "stage": "main", "time": "09:00 — 09:30", "title": "Breakfast" },
+    { "stage": "main", "time": "09:30 — 10:00", "title": "Keynote", "speakers": "Copple, Ant Wilson" },
+    {
+      "stage": "main",
+      "time": "10:00 — 10:30",
+      "title": "Multigres Update",
+      "speakers": "Sugu Sougoumarane, Deepti Sigireddi"
+    },
+    { "stage": "main", "time": "10:30 — 11:00", "title": "Break", "isBreak": true },
+    { "stage": "main", "time": "11:00 — 11:30", "tbc": true },
+    { "stage": "main", "time": "11:30 — 12:00", "tbc": true },
+    { "stage": "main", "time": "12:00 — 12:30", "tbc": true },
+    { "stage": "main", "time": "12:30 — 13:00", "tbc": true },
+    { "stage": "main", "time": "13:00 — 13:30", "tbc": true },
+    { "stage": "build", "time": "09:30 — 10:00", "title": "Deep dive: Auth", "speakers": "Supabase Engineering" },
+    { "stage": "build", "time": "10:00 — 10:30", "title": "Deep dive: Realtime", "speakers": "Supabase Engineering" },
+    { "stage": "build", "time": "10:30 — 11:00", "title": "Break", "isBreak": true },
+    { "stage": "build", "time": "11:00 — 11:30", "title": "Deep dive: Storage", "speakers": "Supabase Engineering" },
+    {
+      "stage": "build",
+      "time": "11:30 — 12:00",
+      "title": "Deep dive: Edge Functions",
+      "speakers": "Supabase Engineering"
+    },
+    { "stage": "build", "time": "12:00 — 12:30", "title": "Deep dive: Vectors", "speakers": "Supabase Engineering" }
+  ]
+}
