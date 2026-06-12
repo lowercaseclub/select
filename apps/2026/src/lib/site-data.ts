@@ -6,7 +6,7 @@ export const EVENT = {
   dateLong: 'October 2',
   addressLine1: '575 20th Street',
   addressLine2: 'San Francisco',
-  applyHref: '#apply',
+  rsvpHref: '#apply',
 } as const
 
 export type Feature = {

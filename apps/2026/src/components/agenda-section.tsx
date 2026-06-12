@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Container } from './container'
 import { ComingSoonFrame } from './coming-soon'
 import { STAGES, AGENDA, type AgendaRow } from '@/lib/site-data'
@@ -11,20 +11,22 @@ export function AgendaSection() {
   const rows = AGENDA[stageId] ?? []
 
   return (
-    <section className="py-14 md:py-16">
+    <section className="pb-14 pt-16 md:py-16">
       <Container>
         {/* Tab header */}
-        <div className="flex items-center gap-3 text-[16px] font-medium leading-5">
+        <div className="flex items-start gap-[21px] text-[16px] font-medium leading-5">
           <span className="text-black/90">Agenda</span>
           <span className="text-black/90">→</span>
-          {STAGES.map((stage) => (
-            <StageTab
-              key={stage.id}
-              label={stage.name}
-              active={stageId === stage.id}
-              onClick={() => setStageId(stage.id)}
-            />
-          ))}
+          <div className="flex items-start gap-2">
+            {STAGES.map((stage) => (
+              <StageTab
+                key={stage.id}
+                label={stage.name}
+                active={stageId === stage.id}
+                onClick={() => setStageId(stage.id)}
+              />
+            ))}
+          </div>
         </div>
 
         {rows.length === 0 ? (
@@ -32,7 +34,7 @@ export function AgendaSection() {
         ) : (
           <>
             {/* Column labels */}
-            <div className="mt-12 grid grid-cols-[116px_1fr] gap-x-4 text-[14px] font-medium leading-[18px] text-black/30 md:grid-cols-[210px_minmax(0,1fr)_minmax(0,1fr)] md:gap-x-6">
+            <div className="mt-8 grid grid-cols-[130px_1fr] text-[14px] font-medium leading-[17px] text-black/30 md:mt-[73px] md:grid-cols-[210px_467fr_324fr]">
               <span>TIME (EST)</span>
               <span className="md:contents">
                 <span>TITLE</span>
@@ -40,12 +42,17 @@ export function AgendaSection() {
               </span>
             </div>
 
-            <div className="mt-4 h-px w-full bg-black/10" />
+            <div className="mt-3 h-px w-full bg-brand/10 md:mt-4" />
 
             {/* Rows */}
             <div>
               {rows.map((row, i) => (
-                <AgendaRowItem key={`${stageId}-${i}`} row={row} />
+                <Fragment key={`${stageId}-${i}`}>
+                  {i > 0 && !row.isBreak && !rows[i - 1].isBreak && (
+                    <div className="h-px bg-brand/10 md:hidden" />
+                  )}
+                  <AgendaRowItem row={row} />
+                </Fragment>
               ))}
             </div>
           </>
@@ -69,7 +76,7 @@ function StageTab({
       type="button"
       onClick={onClick}
       className={cn(
-        'cursor-pointer pb-1 transition-colors',
+        'cursor-pointer pb-2 transition-colors',
         active ? 'border-b border-black text-black/90' : 'text-black/30 hover:text-black/60'
       )}
     >
@@ -82,34 +89,34 @@ function AgendaRowItem({ row }: { row: AgendaRow }) {
   return (
     <div
       className={cn(
-        '-mx-6 grid grid-cols-[116px_1fr] items-baseline gap-x-4 px-6 py-[14px] md:grid-cols-[210px_minmax(0,1fr)_minmax(0,1fr)] md:gap-x-6',
+        '-mx-6 grid grid-cols-[130px_1fr] items-baseline px-6 py-4 md:grid-cols-[210px_467fr_324fr] md:py-[14px]',
         row.isBreak && 'bg-cream-200'
       )}
     >
-      <span className="whitespace-nowrap font-mono text-[13px] font-medium leading-[18px] text-black/30 md:text-[14px]">
+      <span className="whitespace-nowrap font-mono text-[14px] font-medium leading-[17px] text-black/30">
         {row.time ?? 'TBC'}
       </span>
       <span className="md:contents">
         {row.title ? (
           <span
             className={cn(
-              'text-[14px] font-medium leading-[18px]',
+              'text-[14px] font-medium leading-[17px]',
               row.isBreak ? 'text-black/30' : 'text-black'
             )}
           >
             {row.title}
           </span>
         ) : (
-          <span className="font-mono text-[13px] font-medium leading-[18px] tracking-[0.02em] text-black/30 md:text-[14px]">
+          <span className="font-mono text-[14px] font-medium leading-[17px] tracking-[0.02em] text-black/30">
             COMING SOON
           </span>
         )}
         {row.speakers ? (
-          <span className="mt-0.5 block text-[14px] font-medium leading-[18px] text-black md:mt-0">
+          <span className="mt-1.5 block text-[14px] font-medium leading-[17px] text-black md:mt-0">
             {row.speakers}
           </span>
         ) : row.tbc && row.title ? (
-          <span className="mt-0.5 block font-mono text-[13px] font-medium leading-[18px] tracking-[0.02em] text-black/30 md:mt-0 md:text-[14px]">
+          <span className="mt-1.5 block font-mono text-[14px] font-medium leading-[17px] tracking-[0.02em] text-black/30 md:mt-0">
             TBC
           </span>
         ) : null}

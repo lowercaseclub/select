@@ -12,7 +12,7 @@ export function Footer() {
             <span className="text-black/40"> — {EVENT.dateLong}, San Francisco</span>
           </p>
           <a
-            href={EVENT.applyHref}
+            href={EVENT.rsvpHref}
             className="font-medium text-black/70 transition-colors hover:text-brand"
           >
             Apply ↗
